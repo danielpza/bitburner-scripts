@@ -169,25 +169,6 @@ function growTarget(ns: NS, target: string, slots: Slot[]) {
     ns.getServerMaxMoney(target) / ns.getServerMoneyAvailable(target);
   const threadsNeeded = ns.growthAnalyze(target, factor);
 
-  let threadsLeft = threadsNeeded;
-
-  let i = 0;
-  while (threadsLeft > 0 && i < slots.length) {
-    const slot = slots[i];
-    const threads = Math.min(threadsLeft, slot.threads);
-
-    threadsLeft -= threads;
-    runScript(ns, "weaken", slot.host, threads, target);
-
-    i++;
-  }
-
-  ns.print(
-    `grow. threads=${formatInteger(threadsLeft)}/${formatInteger(
-      threadsNeeded
-    )}`
-  );
-
   const runtime = {
     grow: ns.getGrowTime(target),
     weaken: ns.getWeakenTime(target),
