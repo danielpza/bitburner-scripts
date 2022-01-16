@@ -167,6 +167,13 @@ export async function main(ns: NS) {
   while (true) {
     const servers = getBestServersToHack(ns);
     const server = servers[0];
+
+    if (!server) {
+      ns.print("No server to hack");
+      await ns.asleep(5000);
+      continue;
+    }
+
     const target = server.host;
 
     showInfo(ns, servers.slice(0, 5).reverse());
