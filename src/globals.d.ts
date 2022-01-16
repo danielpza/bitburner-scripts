@@ -43,8 +43,8 @@ interface NS {
   killall(host: string): void;
   tail(): void;
 
-  print(...args: (string | number)[]): void;
-  tprint(...args: (string | number)[]): void;
+  print(...args: unknown[]): void;
+  tprint(...args: unknown[]): void;
   enableLog(script: string): void;
   disableLog(script: string): void;
 
