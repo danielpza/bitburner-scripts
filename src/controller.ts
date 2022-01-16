@@ -130,7 +130,7 @@ async function hackTarget(ns: NS, target: string, slots: Slot[]) {
   const unsortedTasks: Task[] = slots
     .flatMap(({ host, threads }) => {
       const [wt, ht] = calcFunc(threads / 2, WEAKEN_COST, HACK_COST);
-      const [_, gt] = calcFunc(threads / 2, WEAKEN_COST, GROW_COST);
+      const [, gt] = calcFunc(threads / 2, WEAKEN_COST, GROW_COST);
 
       return [
         { host, threads: ht, script: "hack" as const },
