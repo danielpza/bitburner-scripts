@@ -1,4 +1,4 @@
-type Flags = [string, any][];
+type Flags = [string, string | number | boolean][];
 
 declare const _: import("lodash")._;
 
@@ -7,7 +7,14 @@ interface AutocompleteData {
   servers: string[];
 }
 
-type Server = any;
+interface Server {
+  hostname: string;
+  hasAdminRights: number;
+  moneyAvailable: number;
+  minDifficulty: number;
+  moneyMax: number;
+  hackDifficulty: number;
+}
 
 interface Player {
   money: number;
@@ -28,7 +35,7 @@ interface NS {
     mode?: "w" | "a"
   ): Promise<void>;
 
-  flags(flags: Flags): any;
+  flags(flags: Flags): Record<string, number | boolean | string>;
   atExit(cb: () => void): void;
   sleep(time: number): Promise<void>;
   asleep(time: number): Promise<void>;
@@ -36,8 +43,8 @@ interface NS {
   killall(host: string): void;
   tail(): void;
 
-  print(...args: any[]): void;
-  tprint(...args: any[]): void;
+  print(...args: (string | number)[]): void;
+  tprint(...args: (string | number)[]): void;
   enableLog(script: string): void;
   disableLog(script: string): void;
 

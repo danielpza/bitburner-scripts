@@ -3,7 +3,7 @@ import {
   formatMoney,
   formatPercent,
   formatTime,
-  renderTable,
+  formatTable,
   scanAll,
 } from "./shared";
 
@@ -23,7 +23,7 @@ export const SCHEDULE_WAIT_TIME = 200;
  *
  * @note needs to be updated from main
  */
-let THREAD_RAM: number = null as any;
+let THREAD_RAM: number = null as never;
 
 function setupGlobals(ns: NS) {
   THREAD_RAM = Math.max(
@@ -168,6 +168,7 @@ export async function main(ns: NS) {
     getRootServers().forEach((host) => ns.killall(host));
   });
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const servers = getBestServersToHack(ns);
     const server = servers[0];
@@ -255,7 +256,7 @@ function getBestServersToHack(ns: NS) {
 function showInfo(ns: NS, servers: ReturnType<typeof getBestServersToHack>) {
   ns.print(
     "\n",
-    renderTable(
+    formatTable(
       [
         "host",
         {
@@ -288,7 +289,7 @@ function runScript(
   ns.exec(FILES[script], host, threads, target, "--delay", delay);
 }
 
-export function schedule<T = any>(
+export function schedule<T>(
   tasks: T[],
   getTime: (task: T) => number
 ): { tasks: [T, number][]; maxTime: number } {
@@ -308,7 +309,7 @@ export function schedule<T = any>(
     maxTime - (total - i) * SCHEDULE_WAIT_TIME - time,
   ]);
 
-  const min = _.minBy<any>(withTime, "1")[1];
+  const min = _.minBy(withTime, "1")?.[1] ?? 0;
   const adjusted: [T, number][] = withTime.map(([t, time]) => [t, time - min]);
 
   return { tasks: adjusted, maxTime: maxTime - min - SCHEDULE_WAIT_TIME };

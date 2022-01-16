@@ -42,34 +42,28 @@ export function trace(
   return null;
 }
 
-export const formatTable = (values: string[][]) => {
-  if (!values.length) return "";
-
-  const paddings = values[0].map((_, i) =>
-    values.reduce((acc, v) => Math.max(v[i].length, acc), 0)
-  );
-
-  return values
-    .map((subvalues) =>
-      subvalues.map((v, i) => v.padStart(paddings[i])).join(" ")
-    )
-    .join("\n");
-};
-
-interface HeaderInfo<T = any> {
+type HeaderValue = number | string;
+export interface HeaderInfo<
+  T extends Record<K, HeaderValue> = Record<
+    string | number | symbol,
+    HeaderValue
+  >,
+  K extends string | number | symbol = keyof T
+> {
   name: string;
-  value?: (v: T) => any;
-  format?: (v: any) => string;
+  value?: (v: T) => HeaderValue;
+  format?: (v: HeaderValue) => string;
 }
 
-type Header<T = any> = keyof T | HeaderInfo<T>;
-
-export function renderTable<T = any>(
-  headers: Header<T>[],
+export function formatTable<
+  T extends Record<K, HeaderValue>,
+  K extends string | number | symbol
+>(
+  headers: (K | HeaderInfo<T, K>)[],
   rows: T[],
   { noHeader = false } = {}
 ): string {
-  const defaultFormat = (v: any) => v.toString();
+  const defaultFormat = (v: HeaderValue) => v.toString();
 
   const parsed = headers.map((header) =>
     typeof header === "string" ? { name: header } : header
@@ -83,7 +77,19 @@ export function renderTable<T = any>(
     )
   );
 
-  return formatTable(noHeader ? parsedRows : [headerRow, ...parsedRows]);
+  const actualRows = noHeader ? parsedRows : [headerRow, ...parsedRows];
+
+  if (!actualRows.length) return "";
+
+  const paddings = actualRows[0].map((_, i) =>
+    actualRows.reduce((acc, v) => Math.max(v[i].length, acc), 0)
+  );
+
+  return actualRows
+    .map((subvalues) =>
+      subvalues.map((v, i) => v.padStart(paddings[i])).join(" ")
+    )
+    .join("\n");
 }
 
 const moneyFormatter = new Intl.NumberFormat("en-US", {
@@ -105,18 +111,20 @@ const integerFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
-export const formatMoney = (v: number) => moneyFormatter.format(v);
+export const formatMoney = (v: unknown) => moneyFormatter.format(Number(v));
 
-export const formatFloat = (v: number) => floatFormatter.format(v);
+export const formatFloat = (v: unknown) => floatFormatter.format(Number(v));
 
-export const formatInteger = (v: number) => integerFormatter.format(v);
+export const formatInteger = (v: unknown) => integerFormatter.format(Number(v));
 
-export const formatRam = (v: number) => `${v}G`;
+export const formatRam = (v: unknown) => `${Number(v)}G`;
 
 const sec = 1000;
 const min = 60 * sec;
-export const formatTime = (v: number) => {
-  return `${Math.floor(v / min)}m${Math.floor((v % min) / sec)}s`;
+export const formatTime = (v: unknown) => {
+  return `${Math.floor(Number(v) / min)}m${Math.floor(
+    (Number(v) % min) / sec
+  )}s`;
 };
 
-export const formatPercent = (v: number) => `${formatFloat(v * 100)}%`;
+export const formatPercent = (v: unknown) => `${formatFloat(Number(v) * 100)}%`;

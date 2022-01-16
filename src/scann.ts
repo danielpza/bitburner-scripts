@@ -1,11 +1,12 @@
 import {
-  scanAll,
-  formatMoney,
-  formatTable,
-  formatInteger,
   formatFloat,
+  formatInteger,
+  formatMoney,
   formatPercent,
   formatTime,
+  HeaderInfo,
+  formatTable,
+  scanAll,
 } from "./shared.js";
 
 const NAME = "scann";
@@ -26,7 +27,7 @@ Example
 `;
 
 const flags: Flags = [
-  ["orgname", false],
+  // ["orgname", false],
   ["daemon", false],
   // ['deep', false],
   // ['sort', false],
@@ -52,7 +53,7 @@ export async function main(ns: NS) {
     ["min-hack-chance"]: minHackChance,
     ["min-money"]: money,
     ["desc-sec"]: descSec,
-    orgname,
+    // orgname,
     help,
   } = ns.flags(flags);
 
@@ -64,16 +65,14 @@ export async function main(ns: NS) {
   ns.disableLog("sleep");
 
   const showInfo = () => {
-    /** @type {string[]} */
-    let hosts = scanAll(ns);
+    const hosts = scanAll(ns);
 
     let servers = hosts.map((host) => ns.getServer(host));
 
-    // if (root)
     servers = servers.filter((server) => server.hasAdminRights);
 
     if (filter) {
-      const regexp = new RegExp(filter, "i");
+      const regexp = new RegExp(filter as string, "i");
       servers = servers.filter((server) => server.hostname.match(regexp));
     }
 
@@ -90,7 +89,7 @@ export async function main(ns: NS) {
 
     if (descSec) {
       let prev = servers[0].hackDifficulty;
-      servers = servers.filter((server, i, arr) => {
+      servers = servers.filter((server, i) => {
         if (i === 0) return true;
         if (server.hackDifficulty < prev) {
           prev = server.hackDifficulty;
@@ -100,7 +99,7 @@ export async function main(ns: NS) {
       });
     }
 
-    const headerInfo: Record<string, any> = {
+    const headerInfo: Record<string, HeaderInfo<Server>> = {
       hostname: { name: "root" },
       moneyAvailable: { name: "money", format: formatMoney },
       moneyMax: { name: "total money", format: formatMoney },
@@ -109,55 +108,49 @@ export async function main(ns: NS) {
       requiredHackingSkill: { name: "skill", format: formatInteger },
       hackChance: {
         name: "hack%",
-        value: (server: Server) => ns.hackAnalyzeChance(server.hostname),
+        value: (server) => ns.hackAnalyzeChance(server.hostname),
         format: formatPercent,
       },
       hackTime: {
-        value: (server: Server) => ns.getHackTime(server.hostname),
+        name: "hackTime",
+        value: (server) => ns.getHackTime(server.hostname),
         format: formatTime,
       },
       growTime: {
-        value: (server: Server) => ns.getGrowTime(server.hostname),
+        name: "growTime",
+        value: (server) => ns.getGrowTime(server.hostname),
         format: formatTime,
       },
       weakenTime: {
-        value: (server: Server) => ns.getWeakenTime(server.hostname),
+        name: "weakenTime",
+        value: (server) => ns.getWeakenTime(server.hostname),
         format: formatTime,
       },
     };
 
-    const defaultFormat = (v: any) => v.toString();
-
-    /** @type {(keyof Server)[]} */
-    const headers = [
-      "hostname",
-      "moneyAvailable",
-      "moneyMax",
-      "hackDifficulty",
-      "minDifficulty",
-      "requiredHackingSkill",
-      "hackChance",
-      "hackTime",
-      "growTime",
-      "weakenTime",
-      "serverGrowth",
-    ].filter(Boolean);
-
     return formatTable(
-      [headers.map((header) => headerInfo[header]?.name ?? header)].concat(
-        servers.map((server) =>
-          headers.map((header) =>
-            (headerInfo[header]?.format ?? defaultFormat)(
-              headerInfo[header]?.value?.(server) ?? server[header]
-            )
-          )
-        )
-      )
+      [
+        "hostname",
+        "moneyAvailable",
+        "moneyMax",
+        "hackDifficulty",
+        "minDifficulty",
+        "requiredHackingSkill",
+        "hackChance",
+        "hackTime",
+        "growTime",
+        "weakenTime",
+        "serverGrowth",
+      ].map((header) =>
+        header in headerInfo ? headerInfo[header] : header
+      ) as HeaderInfo<Server>[],
+      servers
     );
   };
 
   if (daemon) {
     ns.tail();
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       ns.print("\n", showInfo());
       await ns.sleep(10 * 1000);
