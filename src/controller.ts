@@ -80,6 +80,8 @@ interface Slot {
 }
 
 async function weakenTarget(ns: NS, target: string, slots: Slot[]) {
+  ns.print("weaken");
+
   for (const { host, threads } of slots) {
     runScript(ns, "weaken", host, threads, target);
   }
@@ -88,6 +90,7 @@ async function weakenTarget(ns: NS, target: string, slots: Slot[]) {
 }
 
 async function growTarget(ns: NS, target: string, slots: Slot[]) {
+  ns.print("grow");
   const runtime = {
     grow: ns.getGrowTime(target),
     weaken: ns.getWeakenTime(target),
@@ -117,6 +120,7 @@ async function growTarget(ns: NS, target: string, slots: Slot[]) {
 }
 
 async function hackTarget(ns: NS, target: string, slots: Slot[]) {
+  ns.print("hack");
   const runtime = {
     grow: ns.getGrowTime(target),
     weaken: ns.getWeakenTime(target),
