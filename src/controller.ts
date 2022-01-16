@@ -1,5 +1,6 @@
 import {
   formatFloat,
+  formatInteger,
   formatMoney,
   formatPercent,
   formatTable,
@@ -125,7 +126,11 @@ function weakenTarget(ns: NS, target: string, slots: Slot[]) {
     i++;
   }
 
-  ns.print(`weaken. threads=${threadsLeft}/${threadsNeeded}`);
+  ns.print(
+    `weaken. threads=${formatInteger(threadsLeft)}/${formatInteger(
+      threadsNeeded
+    )}`
+  );
 
   return ns.getWeakenTime(target);
 }
