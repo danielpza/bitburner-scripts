@@ -66,7 +66,13 @@ export async function main(ns: NS) {
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const servers = getBestServersToHack(ns, ignoredServers);
+    const slots = getAvailableSlots(ns);
+
+    const servers = getBestServersToHack(
+      ns,
+      ignoredServers,
+      _.sumBy(slots, "threads")
+    );
     const server = servers[0];
 
     ns.print(`Ignored: ${ignoredServers.join(", ")}`);
@@ -80,8 +86,6 @@ export async function main(ns: NS) {
     const target = server.host;
 
     showInfo(ns, servers.slice(0, 5).reverse());
-
-    const slots = getAvailableSlots(ns);
 
     for (const slot of slots) {
       if (slot.host === "home") continue;
@@ -245,7 +249,11 @@ function getAvailableSlots(ns: NS): Slot[] {
   ].filter((slot) => slot?.threads ?? 0 > 0) as Slot[];
 }
 
-function getBestServersToHack(ns: NS, ignoredServers: string[]) {
+function getBestServersToHack(
+  ns: NS,
+  ignoredServers: string[],
+  totalThreads: number
+) {
   const ignored = new Set(ignoredServers);
   const servers = scanAll(ns)
     .filter((host) => ns.hasRootAccess(host) && !ignored.has(host))
@@ -261,18 +269,20 @@ function getBestServersToHack(ns: NS, ignoredServers: string[]) {
       // hackAnalyze: ns.hackAnalyze(host),
     }));
 
+  const timesToGrow = (server: typeof servers[number]) =>
+    server.weakenTime *
+    (totalThreads /
+      ns.growthAnalyze(server.host, server.maxMoney / server.money));
   const sorted = _.orderBy(
     _.filter(servers, (server) => server.maxMoney > 0),
     [
       (server) => (server.weakenTime < 60 * 1000 ? 0 : 1),
-      (server) => (server.weakenTime < 2 * 60 * 1000 ? 0 : 1),
-      (server) => (server.weakenTime < 3 * 60 * 1000 ? 0 : 1),
       (server) => (server.hackChance > 0.8 ? 0 : 1),
+      (server) => server.maxMoney / timesToGrow(server),
       // (server) =>
       //   ((server.hackAnalyze + 1) / server.weakenTime) *
       //   server.hackChance *
       //   server.maxMoney,
-      (server) => -(server.growth / server.weakenTime),
       // (server) => -(server.maxMoney / server.weakenTime),
     ]
   );
