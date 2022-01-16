@@ -207,7 +207,7 @@ export function getSchedule<T = any>(
   tasks: T[],
   getTime: (task: T) => number
 ): { tasks: [T, number][]; maxTime: number } {
-  const WAIT_TIME = 50;
+  const WAIT_TIME = 200;
 
   let mapped: [T, number][] = tasks.map((t) => [t, getTime(t)]);
   const biggest = _.maxBy<any>(mapped, "1")[1];
