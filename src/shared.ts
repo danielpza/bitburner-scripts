@@ -210,13 +210,13 @@ export function getSchedule<T = any>(
   const WAIT_TIME = 200;
 
   let mapped: [T, number][] = tasks.map((t) => [t, getTime(t)]);
-  const biggest = _.maxBy<any>(mapped, "1")[1];
+  const biggest = _.maxBy(mapped, "1")?.[1] ?? 0;
 
   mapped = mapped.slice(0, Math.ceil(biggest / WAIT_TIME));
 
   const extra = mapped.length * WAIT_TIME;
 
-  const maxTime: number = _.maxBy<any>(mapped, "1")[1] + extra;
+  const maxTime: number = (_.maxBy(mapped, "1")?.[1] ?? 0) + extra;
 
   const total = mapped.length;
 
