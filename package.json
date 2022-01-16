@@ -5,9 +5,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prepare": "husky install && npm run clean && npm run build",
+    "prepare": "husky install && npm run build",
     "clean": "rm -rf lib",
-    "build": "esbuild  src/*.ts --outdir=lib",
+    "build": "npm run clean && esbuild  src/*.ts --outdir=lib",
     "watch": "npm run build -- --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

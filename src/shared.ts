@@ -53,66 +53,6 @@ export function getMaxThreads(ns: NS, script: string, host: string) {
   );
 }
 
-/**
- * @example
- *   divideServers(["foodnstuff", "n00dles", "joesgun"], [0.5, 0.5], (host) =>
- *     ns.getServerMoney(host)
- *   );
- *   // [['foodnstuff'], ['n00dles', 'joesgun']]
- */
-export function divideServers<T>(
-  servers: T[],
-  slices: number[],
-  getValue: (host: T) => number
-): T[][] {
-  const result: T[][] = Array.from({ length: slices.length }, () => []);
-  let i = 0;
-  let j = -1;
-
-  servers = servers.sort((a, b) => getValue(b) - getValue(a));
-  const values = servers.map((server) => getValue(server));
-  const total = values.reduce((acc, v) => acc + v, 0);
-
-  let left = 0;
-
-  while (j < slices.length) {
-    while (left > 0) {
-      if (i >= servers.length) return result;
-
-      result[j].push(servers[i]);
-      left -= values[i];
-
-      i++;
-    }
-    j++;
-    left = (slices[j] || 0) * total;
-  }
-  return result;
-}
-
-export function divideServersV2<T>(
-  servers: T[],
-  times: number,
-  getValue: (host: T) => number
-): T[][] {
-  const result: T[][] = Array.from({ length: times }, () => []);
-
-  const resultValue = Array.from({ length: times }, () => 0);
-
-  const sortedServers = _.sortBy(servers, (v) => -getValue(v));
-
-  for (const server of sortedServers) {
-    const i = _.minBy<number>(
-      _.range(times),
-      ((i: number) => resultValue[i]) as any
-    ) as number;
-    result[i].push(server);
-    resultValue[i] += getValue(server);
-  }
-
-  return result;
-}
-
 export function runFull(
   ns: NS,
   script: string,
