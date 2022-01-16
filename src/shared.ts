@@ -203,18 +203,18 @@ export const formatTime = (v: number) => {
 
 export const formatPercent = (v: number) => `${formatFloat(v * 100)}%`;
 
+export const SCHEDULE_WAIT_TIME = 200;
+
 export function getSchedule<T = any>(
   tasks: T[],
   getTime: (task: T) => number
 ): { tasks: [T, number][]; maxTime: number } {
-  const WAIT_TIME = 200;
-
   let mapped: [T, number][] = tasks.map((t) => [t, getTime(t)]);
   const biggest = _.maxBy(mapped, "1")?.[1] ?? 0;
 
-  mapped = mapped.slice(0, Math.ceil(biggest / WAIT_TIME));
+  mapped = mapped.slice(0, Math.ceil(biggest / SCHEDULE_WAIT_TIME));
 
-  const extra = mapped.length * WAIT_TIME;
+  const extra = mapped.length * SCHEDULE_WAIT_TIME;
 
   const maxTime: number = (_.maxBy(mapped, "1")?.[1] ?? 0) + extra;
 
@@ -222,13 +222,13 @@ export function getSchedule<T = any>(
 
   const withTime: [T, number][] = mapped.map(([t, time], i) => [
     t,
-    maxTime - (total - i) * WAIT_TIME - time,
+    maxTime - (total - i) * SCHEDULE_WAIT_TIME - time,
   ]);
 
   const min = _.minBy<any>(withTime, "1")[1];
   const adjusted: [T, number][] = withTime.map(([t, time]) => [t, time - min]);
 
-  return { tasks: adjusted, maxTime: maxTime - min - WAIT_TIME };
+  return { tasks: adjusted, maxTime: maxTime - min - SCHEDULE_WAIT_TIME };
 }
 
 export interface Task {
