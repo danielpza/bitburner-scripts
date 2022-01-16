@@ -142,7 +142,9 @@ export async function main(ns: NS) {
         "weakenTime",
         "serverGrowth",
       ].map((header) =>
-        header in headerInfo ? headerInfo[header] : header
+        header in headerInfo
+          ? { value: _.iteratee(header), ...headerInfo[header] }
+          : header
       ) as HeaderInfo<Server>[],
       servers
     );

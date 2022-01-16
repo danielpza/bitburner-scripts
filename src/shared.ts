@@ -63,7 +63,7 @@ export function formatTable<
   rows: T[],
   { noHeader = false } = {}
 ): string {
-  const defaultFormat = (v: HeaderValue) => v.toString();
+  const defaultFormat = (v: HeaderValue) => v?.toString() ?? "N/A";
 
   const parsed = headers.map((header) =>
     typeof header === "string" ? { name: header } : header
