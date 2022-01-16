@@ -159,13 +159,10 @@ export async function main(ns: NS) {
   ns.disableLog("ALL");
   ns.tail();
 
-  const getRootServers = () =>
+  ns.atExit(() => {
     scanAll(ns)
       .filter((host) => ns.hasRootAccess(host))
-      .concat("home");
-
-  ns.atExit(() => {
-    getRootServers().forEach((host) => ns.killall(host));
+      .forEach((host) => ns.killall(host));
   });
 
   // eslint-disable-next-line no-constant-condition
