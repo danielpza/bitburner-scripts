@@ -89,6 +89,8 @@ interface NS {
   getGrowTime(host: string): number;
   getHackTime(host: string): number;
 
+  weakenAnalyze(threads: number, cores?: number): number;
+
   hackAnalyzeChance(host: string): number;
 
   hackAnalyzeThreads(host: string, hackAmount: number): number;

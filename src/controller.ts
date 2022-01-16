@@ -109,11 +109,23 @@ export async function main(ns: NS) {
 }
 
 function weakenTarget(ns: NS, target: string, slots: Slot[]) {
-  ns.print("weaken");
+  const threadsNeeded =
+    (ns.getServerSecurityLevel(target) - ns.getServerMinSecurityLevel(target)) /
+    WEAKEN_COST;
+  let threadsLeft = threadsNeeded;
 
-  for (const { host, threads } of slots) {
-    runScript(ns, "weaken", host, threads, target);
+  let i = 0;
+  while (threadsLeft > 0 && i < slots.length) {
+    const slot = slots[i];
+    const threads = Math.min(threadsLeft, slot.threads);
+
+    threadsLeft -= threads;
+    runScript(ns, "weaken", slot.host, threads, target);
+
+    i++;
   }
+
+  ns.print(`weaken. threads=${threadsLeft}/${threadsNeeded}`);
 
   return ns.getWeakenTime(target);
 }
@@ -180,7 +192,6 @@ function hackTarget(ns: NS, target: string, slots: Slot[], loop = false) {
   }
 
   return maxTime;
-  // await ns.asleep(maxTime);
 }
 
 export function schedule<T>(
