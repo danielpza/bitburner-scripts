@@ -42,28 +42,6 @@ export function trace(
   return null;
 }
 
-export function getRootServers(ns: NS) {
-  return scanAll(ns).filter((host) => ns.hasRootAccess(host));
-}
-
-export function getMaxThreads(ns: NS, script: string, host: string) {
-  return Math.floor(
-    (ns.getServerMaxRam(host) - ns.getServerUsedRam(host)) /
-      ns.getScriptRam(script)
-  );
-}
-
-export function runFull(
-  ns: NS,
-  script: string,
-  host: string,
-  ...args: (string | number)[]
-) {
-  const threads = getMaxThreads(ns, script, host);
-
-  return threads > 0 && ns.exec(script, host, threads, ...args);
-}
-
 export const formatTable = (values: string[][]) => {
   if (!values.length) return "";
 

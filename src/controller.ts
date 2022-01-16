@@ -3,7 +3,6 @@ import {
   formatMoney,
   formatPercent,
   formatTime,
-  getMaxThreads,
   renderTable,
   scanAll,
   getSchedule,
@@ -81,7 +80,7 @@ interface Slot {
 
 async function weakenTarget(ns: NS, target: string, slots: Slot[]) {
   for (const { host, threads } of slots) {
-    runScript(ns, "weaken", host, target, { threads });
+    runScript(ns, "weaken", host, threads, target);
   }
 
   await ns.asleep(ns.getWeakenTime(target));
@@ -110,7 +109,7 @@ async function growTarget(ns: NS, target: string, slots: Slot[]) {
   );
 
   for (const [{ host, threads, script }, delay] of tasks) {
-    runScript(ns, script, host, target, { threads, delay });
+    runScript(ns, script, host, threads, target, delay);
   }
 
   await ns.asleep(maxTime);
@@ -143,7 +142,7 @@ async function hackTarget(ns: NS, target: string, slots: Slot[]) {
   );
 
   for (const [{ host, threads, script }, delay] of tasks) {
-    runScript(ns, script, host, target, { threads, delay });
+    runScript(ns, script, host, threads, target, delay);
   }
 
   await ns.asleep(maxTime);
@@ -270,8 +269,9 @@ function runScript(
   ns: NS,
   script: Script,
   host: string,
+  threads: number,
   target: string,
-  { threads = getMaxThreads(ns, FILES[script], host), delay = 0 } = {}
+  delay = 0
 ) {
   ns.exec(FILES[script], host, threads, target, "--delay", delay);
 }
