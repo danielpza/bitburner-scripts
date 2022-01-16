@@ -15,9 +15,15 @@ export async function main(ns: NS) {
     delay,
   } = ns.flags(flags);
 
-  if (delay) await ns.sleep(delay as number);
+  const doit = async () => {
+    if (delay) await ns.sleep(delay as number);
+    await ns.hack(host);
+  };
 
-  // eslint-disable-next-line no-constant-condition
-  if (loop) while (true) await ns.hack(host);
-  else await ns.hack(host);
+  if (loop)
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      await doit();
+    }
+  else await doit();
 }

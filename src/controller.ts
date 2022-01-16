@@ -57,6 +57,7 @@ export async function main(ns: NS) {
   ns.atExit(() => {
     scanAll(ns)
       .filter((host) => ns.hasRootAccess(host))
+      .concat(["home"])
       .forEach((host) => ns.killall(host));
   });
 
