@@ -35,7 +35,9 @@ interface NS {
     mode?: "w" | "a"
   ): Promise<void>;
 
-  flags(flags: Flags): Record<string, number | boolean | string>;
+  flags(
+    flags: Flags
+  ): Record<string, number | boolean | string> & { _: string[] };
   atExit(cb: () => void): void;
   sleep(time: number): Promise<void>;
   asleep(time: number): Promise<void>;
@@ -58,6 +60,9 @@ interface NS {
     threads: number,
     ...args: (string | number)[]
   ): void;
+  hack(target: string): Promise<number>;
+  grow(target: string): Promise<number>;
+  weaken(target: string): Promise<number>;
 
   // info
   getHackingLevel(): number;

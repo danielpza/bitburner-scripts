@@ -60,10 +60,14 @@ export async function main(ns: NS) {
       .forEach((host) => ns.killall(host));
   });
 
+  const ignoredServers: string[] = [];
+
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const servers = getBestServersToHack(ns);
+    const servers = getBestServersToHack(ns, ignoredServers);
     const server = servers[0];
+
+    ns.print(`Ignored: ${ignoredServers.join(", ")}`);
 
     if (!server) {
       ns.print("No server to hack");
@@ -76,7 +80,6 @@ export async function main(ns: NS) {
     showInfo(ns, servers.slice(0, 5).reverse());
 
     const slots = getAvailableSlots(ns);
-    // const rootServers = getRootServers();
 
     for (const slot of slots) {
       if (slot.host === "home") continue;
@@ -92,14 +95,15 @@ export async function main(ns: NS) {
     else if (server.money < server.maxMoney * 0.9)
       await ns.asleep(growTarget(ns, target, slots));
     else {
-      const time = hackTarget(ns, target, slots);
+      hackTarget(ns, target, slots, true);
 
-      // ns.print(getAvailableSlots(ns));
+      ignoredServers.push(target);
+      // TODO go to next server
 
-      await ns.asleep(time);
+      await ns.asleep(1000);
     }
 
-    await ns.asleep(100); // always wait a bit just in case
+    await ns.asleep(200); // always wait a bit just in case
   }
 }
 
@@ -143,7 +147,7 @@ function growTarget(ns: NS, target: string, slots: Slot[]) {
   return maxTime;
 }
 
-function hackTarget(ns: NS, target: string, slots: Slot[]) {
+function hackTarget(ns: NS, target: string, slots: Slot[], loop = false) {
   ns.print("hack");
   const runtime = {
     grow: ns.getGrowTime(target),
@@ -171,7 +175,7 @@ function hackTarget(ns: NS, target: string, slots: Slot[]) {
   );
 
   for (const [{ host, threads, script }, delay] of tasks) {
-    runScript(ns, script, host, threads, target, delay);
+    runScript(ns, script, host, threads, target, delay, loop);
   }
 
   return maxTime;
@@ -224,9 +228,10 @@ function getAvailableSlots(ns: NS): Slot[] {
   ].filter((slot) => slot?.threads ?? 0 > 0) as Slot[];
 }
 
-function getBestServersToHack(ns: NS) {
+function getBestServersToHack(ns: NS, ignoredServers: string[]) {
+  const ignored = new Set(ignoredServers);
   const servers = scanAll(ns)
-    .filter((host) => ns.hasRootAccess(host))
+    .filter((host) => ns.hasRootAccess(host) && !ignored.has(host))
     .map((host) => ({
       host,
       money: ns.getServerMoneyAvailable(host),
@@ -284,9 +289,17 @@ function runScript(
   host: string,
   threads: number,
   target: string,
-  delay = 0
+  delay = 0,
+  loop = false
 ) {
-  ns.exec(FILES[script], host, threads, target, "--delay", delay);
+  ns.exec(
+    FILES[script],
+    host,
+    threads,
+    ...([target, "--delay", delay, loop ? "--loop" : null].filter(
+      (v) => v != null
+    ) as string[])
+  );
 }
 
 /**
