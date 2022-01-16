@@ -5,7 +5,6 @@ import {
   formatTime,
   renderTable,
   scanAll,
-  getSchedule,
 } from "./shared";
 
 type Script = "hack" | "weaken" | "grow";
@@ -15,6 +14,8 @@ const FILES: Record<Script, string> = {
   grow: "grow.js",
   hack: "hack.js",
 };
+
+export const SCHEDULE_WAIT_TIME = 200;
 
 /**
  * @example
@@ -103,7 +104,7 @@ async function growTarget(ns: NS, target: string, slots: Slot[]) {
     })
     .filter((t) => t.threads > 0);
 
-  const { tasks, maxTime } = getSchedule(
+  const { tasks, maxTime } = schedule(
     unsortedTasks,
     ({ script }) => runtime[script]
   );
@@ -136,7 +137,7 @@ async function hackTarget(ns: NS, target: string, slots: Slot[]) {
     })
     .filter((t) => t.threads > 0);
 
-  const { tasks, maxTime } = getSchedule(
+  const { tasks, maxTime } = schedule(
     unsortedTasks,
     ({ script }) => runtime[script]
   );
@@ -276,18 +277,28 @@ function runScript(
   ns.exec(FILES[script], host, threads, target, "--delay", delay);
 }
 
-// function runScriptInSlot(
-//   ns: NS,
-//   script: Script,
-//   slot: Slot,
-//   target: string,
-//   delay = 0
-// ) {
-//   runScript(ns, script, slot.host, target, { threads: slot.threads, delay });
-// }
+export function schedule<T = any>(
+  tasks: T[],
+  getTime: (task: T) => number
+): { tasks: [T, number][]; maxTime: number } {
+  let mapped: [T, number][] = tasks.map((t) => [t, getTime(t)]);
+  const biggest = _.maxBy(mapped, "1")?.[1] ?? 0;
 
-// const getThreadsToGrow = (target: string) =>
-//   ns.growthAnalyze(
-//     target,
-//     ns.getServerMaxMoney(target) / ns.getServerMoneyAvailable(target)
-//   );
+  mapped = mapped.slice(0, Math.ceil(biggest / SCHEDULE_WAIT_TIME));
+
+  const extra = mapped.length * SCHEDULE_WAIT_TIME;
+
+  const maxTime: number = (_.maxBy(mapped, "1")?.[1] ?? 0) + extra;
+
+  const total = mapped.length;
+
+  const withTime: [T, number][] = mapped.map(([t, time], i) => [
+    t,
+    maxTime - (total - i) * SCHEDULE_WAIT_TIME - time,
+  ]);
+
+  const min = _.minBy<any>(withTime, "1")[1];
+  const adjusted: [T, number][] = withTime.map(([t, time]) => [t, time - min]);
+
+  return { tasks: adjusted, maxTime: maxTime - min - SCHEDULE_WAIT_TIME };
+}
