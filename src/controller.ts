@@ -258,6 +258,7 @@ function getBestServersToHack(ns: NS, ignoredServers: string[]) {
       sec: ns.getServerSecurityLevel(host),
       minSec: ns.getServerMinSecurityLevel(host),
       growth: ns.getServerGrowth(host),
+      // hackAnalyze: ns.hackAnalyze(host),
     }));
 
   const sorted = _.orderBy(
@@ -267,6 +268,10 @@ function getBestServersToHack(ns: NS, ignoredServers: string[]) {
       (server) => (server.weakenTime < 2 * 60 * 1000 ? 0 : 1),
       (server) => (server.weakenTime < 3 * 60 * 1000 ? 0 : 1),
       (server) => (server.hackChance > 0.8 ? 0 : 1),
+      // (server) =>
+      //   ((server.hackAnalyze + 1) / server.weakenTime) *
+      //   server.hackChance *
+      //   server.maxMoney,
       (server) => -(server.growth / server.weakenTime),
       // (server) => -(server.maxMoney / server.weakenTime),
     ]

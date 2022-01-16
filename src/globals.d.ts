@@ -91,8 +91,8 @@ interface NS {
 
   weakenAnalyze(threads: number, cores?: number): number;
 
+  hackAnalyze(host: string): number;
   hackAnalyzeChance(host: string): number;
-
   hackAnalyzeThreads(host: string, hackAmount: number): number;
   growthAnalyze(host: string, growthAmount: number, cores?: number): number;
 }
