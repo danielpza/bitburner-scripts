@@ -113,10 +113,62 @@ export async function main(ns: NS) {
   }
 }
 
+const useThreads = (
+  ns: NS,
+  name: string,
+  threadsNeeded: number,
+  slots: Slot[],
+  run: (host: string, threads: number) => void
+) => {
+  let threadsLeft = threadsNeeded;
+
+  let slotsLeft: Slot[] = [];
+
+  let i = 0;
+  while (threadsLeft > 0 && i < slots.length) {
+    const slot = slots[i];
+    const threads = Math.min(threadsLeft, slot.threads);
+
+    threadsLeft -= threads;
+    run(slot.host, threads);
+
+    if (threadsLeft < 0) {
+      const slotThreadsLeft = slot.threads - threads;
+      if (slotThreadsLeft > 0)
+        slotsLeft.push({ host: slot.host, threads: slotThreadsLeft });
+    }
+
+    i++;
+  }
+
+  slotsLeft = slotsLeft.concat(slots.slice(i));
+
+  ns.print(
+    `${name}. threads=${formatInteger(threadsLeft)}/${formatInteger(
+      threadsNeeded
+    )}`
+  );
+
+  return slotsLeft;
+};
+
 function weakenTarget(ns: NS, target: string, slots: Slot[]) {
   const threadsNeeded =
     (ns.getServerSecurityLevel(target) - ns.getServerMinSecurityLevel(target)) /
     WEAKEN_COST;
+
+  useThreads(ns, "weaken", threadsNeeded, slots, (host, threads) => {
+    runScript(ns, "weaken", host, threads, target);
+  });
+
+  return ns.getWeakenTime(target);
+}
+
+function growTarget(ns: NS, target: string, slots: Slot[]) {
+  const factor =
+    ns.getServerMaxMoney(target) / ns.getServerMoneyAvailable(target);
+  const threadsNeeded = ns.growthAnalyze(target, factor);
+
   let threadsLeft = threadsNeeded;
 
   let i = 0;
@@ -131,16 +183,11 @@ function weakenTarget(ns: NS, target: string, slots: Slot[]) {
   }
 
   ns.print(
-    `weaken. threads=${formatInteger(threadsLeft)}/${formatInteger(
+    `grow. threads=${formatInteger(threadsLeft)}/${formatInteger(
       threadsNeeded
     )}`
   );
 
-  return ns.getWeakenTime(target);
-}
-
-function growTarget(ns: NS, target: string, slots: Slot[]) {
-  ns.print("grow");
   const runtime = {
     grow: ns.getGrowTime(target),
     weaken: ns.getWeakenTime(target),
@@ -206,11 +253,14 @@ function hackTarget(ns: NS, target: string, slots: Slot[], loop = false) {
 export function schedule<T>(
   tasks: T[],
   getTime: (task: T) => number
+  // cap = false
 ): { tasks: [T, number][]; maxTime: number } {
-  let mapped: [T, number][] = tasks.map((t) => [t, getTime(t)]);
-  const biggest = _.maxBy(mapped, "1")?.[1] ?? 0;
+  const mapped: [T, number][] = tasks.map((t) => [t, getTime(t)]);
 
-  mapped = mapped.slice(0, Math.ceil(biggest / SCHEDULE_WAIT_TIME));
+  // if (cap) {
+  //   const biggest = _.maxBy(mapped, "1")?.[1] ?? 0;
+  //   mapped = mapped.slice(0, Math.ceil(biggest / SCHEDULE_WAIT_TIME));
+  // }
 
   const extra = mapped.length * SCHEDULE_WAIT_TIME;
 

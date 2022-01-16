@@ -42,15 +42,19 @@ interface NS {
   sleep(time: number): Promise<void>;
   asleep(time: number): Promise<void>;
 
+  getPurchasedServerCost(ram: number): number;
+
   killall(host: string): void;
   tail(): void;
 
+  prompt(msg: string): Promise<boolean>;
   print(...args: unknown[]): void;
   tprint(...args: unknown[]): void;
   enableLog(script: string): void;
   disableLog(script: string): void;
 
   getPurchasedServers(): string[];
+  purchaseServer(name: string, ram: number): void;
 
   // hacking
   scp(file: string | string[], host: string, target: string): Promise<void>;
