@@ -1,5 +1,5 @@
 const flags: Flags = [
-  ["loop", false],
+  ["loop", 0],
   ["delay", 0],
 ];
 
@@ -15,15 +15,15 @@ export async function main(ns: NS) {
     delay,
   } = ns.flags(flags);
 
+  if (delay) await ns.sleep(delay as number);
+
   const doit = async () => {
-    if (delay) await ns.sleep(delay as number);
     await ns.hack(host);
+    if (loop) await ns.sleep(loop as number);
   };
 
   if (loop)
     // eslint-disable-next-line no-constant-condition
-    while (true) {
-      await doit();
-    }
+    while (true) await doit();
   else await doit();
 }

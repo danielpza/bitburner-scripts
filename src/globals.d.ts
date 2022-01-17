@@ -14,6 +14,7 @@ interface Server {
   minDifficulty: number;
   moneyMax: number;
   hackDifficulty: number;
+  organizationName: string;
 }
 
 interface Player {

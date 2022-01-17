@@ -165,10 +165,6 @@ function weakenTarget(ns: NS, target: string, slots: Slot[]) {
 }
 
 function growTarget(ns: NS, target: string, slots: Slot[]) {
-  const factor =
-    ns.getServerMaxMoney(target) / ns.getServerMoneyAvailable(target);
-  const threadsNeeded = ns.growthAnalyze(target, factor);
-
   const runtime = {
     grow: ns.getGrowTime(target),
     weaken: ns.getWeakenTime(target),
@@ -219,13 +215,14 @@ function hackTarget(ns: NS, target: string, slots: Slot[], loop = false) {
     })
     .filter((t) => t.threads > 0);
 
-  const { tasks, maxTime } = schedule(
+  const { tasks, maxTime, biggestTime } = schedule(
     unsortedTasks,
-    ({ script }) => runtime[script]
+    ({ script }) => runtime[script],
+    true
   );
 
   for (const [{ host, threads, script }, delay] of tasks) {
-    runScript(ns, script, host, threads, target, delay, loop);
+    runScript(ns, script, host, threads, target, delay, biggestTime);
   }
 
   return maxTime;
@@ -233,15 +230,16 @@ function hackTarget(ns: NS, target: string, slots: Slot[], loop = false) {
 
 export function schedule<T>(
   tasks: T[],
-  getTime: (task: T) => number
-  // cap = false
-): { tasks: [T, number][]; maxTime: number } {
-  const mapped: [T, number][] = tasks.map((t) => [t, getTime(t)]);
+  getTime: (task: T) => number,
+  cap = false
+) {
+  let mapped: [T, number][] = tasks.map((t) => [t, getTime(t)]);
 
-  // if (cap) {
-  //   const biggest = _.maxBy(mapped, "1")?.[1] ?? 0;
-  //   mapped = mapped.slice(0, Math.ceil(biggest / SCHEDULE_WAIT_TIME));
-  // }
+  const biggestTime = _.maxBy(mapped, "1")?.[1] ?? 0;
+
+  if (cap) {
+    mapped = mapped.slice(0, Math.ceil(biggestTime / SCHEDULE_WAIT_TIME));
+  }
 
   const extra = mapped.length * SCHEDULE_WAIT_TIME;
 
@@ -257,7 +255,11 @@ export function schedule<T>(
   const min = _.minBy(withTime, "1")?.[1] ?? 0;
   const adjusted: [T, number][] = withTime.map(([t, time]) => [t, time - min]);
 
-  return { tasks: adjusted, maxTime: maxTime - min - SCHEDULE_WAIT_TIME };
+  return {
+    tasks: adjusted,
+    maxTime: maxTime - min - SCHEDULE_WAIT_TIME,
+    biggestTime,
+  };
 }
 
 function getSlot(ns: NS, host: string, spare = 0): Slot | null {
@@ -353,13 +355,13 @@ function runScript(
   threads: number,
   target: string,
   delay = 0,
-  loop = false
+  loop = 0
 ) {
   ns.exec(
     FILES[script],
     host,
     threads,
-    ...([target, "--delay", delay, loop ? "--loop" : null].filter(
+    ...([target, "--delay", delay, "--loop", loop].filter(
       (v) => v != null
     ) as string[])
   );
@@ -370,10 +372,14 @@ function runScript(
  * - `ax = by`
  *
  * @returns `y`
- * @note value will be floored
  */
-const calcYFromT = (threads: number, a: number, b: number) =>
-  Math.floor(threads / (b / a + 1));
+function calcYFromT(threads: number, a: number, b: number) {
+  return threads / (b / a + 1);
+}
+
+function calcYFromX(x: number, a: number, b: number) {
+  return (a * x) / b;
+}
 
 /**
  * - `t = x + y`
@@ -387,7 +393,7 @@ export function calcFunc(
   a: number,
   b: number
 ): [number, number] {
-  const y = calcYFromT(threads, a, b);
+  const y = Math.floor(calcYFromT(threads, a, b));
   const x = threads - y;
   if (x === 0 || y === 0) {
     if (threads >= 2) return [1, threads - 1];

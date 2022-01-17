@@ -27,11 +27,12 @@ Example
 `;
 
 const flags: Flags = [
-  // ["orgname", false],
+  ["orgname", false],
   ["daemon", false],
   // ['deep', false],
   // ['sort', false],
   ["filter", ""],
+  ["all", false],
   ["max-sec", Number.MAX_SAFE_INTEGER],
   ["min-money", 0],
   ["min-hack-chance", 0],
@@ -53,7 +54,8 @@ export async function main(ns: NS) {
     ["min-hack-chance"]: minHackChance,
     ["min-money"]: money,
     ["desc-sec"]: descSec,
-    // orgname,
+    orgname,
+    all,
     help,
   } = ns.flags(flags);
 
@@ -69,11 +71,14 @@ export async function main(ns: NS) {
 
     let servers = hosts.map((host) => ns.getServer(host));
 
-    servers = servers.filter((server) => server.hasAdminRights);
+    if (!all) servers = servers.filter((server) => server.hasAdminRights);
 
     if (filter) {
       const regexp = new RegExp(filter as string, "i");
-      servers = servers.filter((server) => server.hostname.match(regexp));
+      servers = servers.filter(
+        (server) =>
+          server.hostname.match(regexp) || server.organizationName.match(regexp)
+      );
     }
 
     servers = servers.filter(
@@ -141,6 +146,7 @@ export async function main(ns: NS) {
         "growTime",
         "weakenTime",
         "serverGrowth",
+        ...(orgname ? ["organizationName"] : []),
       ].map((header) =>
         header in headerInfo
           ? { value: _.iteratee(header), ...headerInfo[header] }
