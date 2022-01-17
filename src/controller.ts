@@ -305,7 +305,10 @@ function getBestServersToHack(
   const timesToGrow = (server: typeof servers[number]) =>
     server.weakenTime *
     (totalThreads /
-      ns.growthAnalyze(server.host, server.maxMoney / (server.money + 0.01)));
+      ns.growthAnalyze(
+        server.host,
+        server.maxMoney / (server.money + 0.01) + 1
+      ));
   const sorted = _.orderBy(
     _.filter(servers, (server) => server.maxMoney > 0),
     [
