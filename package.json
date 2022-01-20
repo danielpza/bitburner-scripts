@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prepare": "husky install && npm run build",
+    "prepare": "npm run build",
     "clean": "rm -rf lib",
     "build": "npm run clean && esbuild  src/*.ts --outdir=lib",
     "watch": "npm run build -- --watch",
@@ -29,7 +29,6 @@
     "@typescript-eslint/parser": "^5.9.1",
     "esbuild": "^0.14.11",
     "eslint": "^7.32.0",
-    "husky": "^7.0.0",
     "jest": "^27.4.7",
     "prettier": "^2.5.1",
     "prettier-plugin-jsdoc": "^0.3.30",
