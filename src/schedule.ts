@@ -13,5 +13,5 @@ export function getSchedule<T>(
     return [t, startTime];
   });
 
-  return { schedule: withStartTime, totalTime: goal };
+  return { schedule: withStartTime, totalTime: goal - waitTime };
 }

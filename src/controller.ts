@@ -7,6 +7,7 @@ import {
   formatTime,
   scanAll,
 } from "./shared";
+import { getSchedule } from "./schedule";
 
 type Script = "hack" | "weaken" | "grow";
 
@@ -181,9 +182,10 @@ function growTarget(ns: NS, target: string, slots: Slot[]) {
     })
     .filter((t) => t.threads > 0);
 
-  const { tasks, maxTime } = schedule(
+  const { schedule: tasks, totalTime: maxTime } = getSchedule(
     unsortedTasks,
-    ({ script }) => runtime[script]
+    ({ script }) => runtime[script],
+    SCHEDULE_WAIT_TIME
   );
 
   for (const [{ host, threads, script }, delay] of tasks) {
@@ -215,52 +217,53 @@ function hackTarget(ns: NS, target: string, slots: Slot[], loop = false) {
     })
     .filter((t) => t.threads > 0);
 
-  const { tasks, maxTime, biggestTime } = schedule(
+  const { schedule: tasks, totalTime: maxTime } = getSchedule(
     unsortedTasks,
     ({ script }) => runtime[script],
-    true
+    SCHEDULE_WAIT_TIME
   );
 
   for (const [{ host, threads, script }, delay] of tasks) {
-    runScript(ns, script, host, threads, target, delay, biggestTime);
+    // TODO update
+    runScript(ns, script, host, threads, target, delay);
   }
 
   return maxTime;
 }
 
-export function schedule<T>(
-  tasks: T[],
-  getTime: (task: T) => number,
-  cap = false
-) {
-  let mapped: [T, number][] = tasks.map((t) => [t, getTime(t)]);
+// export function schedule<T>(
+//   tasks: T[],
+//   getTime: (task: T) => number,
+//   cap = false
+// ) {
+//   let mapped: [T, number][] = tasks.map((t) => [t, getTime(t)]);
 
-  const biggestTime = _.maxBy(mapped, "1")?.[1] ?? 0;
+//   const biggestTime = _.maxBy(mapped, "1")?.[1] ?? 0;
 
-  if (cap) {
-    mapped = mapped.slice(0, Math.ceil(biggestTime / SCHEDULE_WAIT_TIME));
-  }
+//   if (cap) {
+//     mapped = mapped.slice(0, Math.ceil(biggestTime / SCHEDULE_WAIT_TIME));
+//   }
 
-  const extra = mapped.length * SCHEDULE_WAIT_TIME;
+//   const extra = mapped.length * SCHEDULE_WAIT_TIME;
 
-  const maxTime: number = (_.maxBy(mapped, "1")?.[1] ?? 0) + extra;
+//   const maxTime: number = (_.maxBy(mapped, "1")?.[1] ?? 0) + extra;
 
-  const total = mapped.length;
+//   const total = mapped.length;
 
-  const withTime: [T, number][] = mapped.map(([t, time], i) => [
-    t,
-    maxTime - (total - i) * SCHEDULE_WAIT_TIME - time,
-  ]);
+//   const withTime: [T, number][] = mapped.map(([t, time], i) => [
+//     t,
+//     maxTime - (total - i) * SCHEDULE_WAIT_TIME - time,
+//   ]);
 
-  const min = _.minBy(withTime, "1")?.[1] ?? 0;
-  const adjusted: [T, number][] = withTime.map(([t, time]) => [t, time - min]);
+//   const min = _.minBy(withTime, "1")?.[1] ?? 0;
+//   const adjusted: [T, number][] = withTime.map(([t, time]) => [t, time - min]);
 
-  return {
-    tasks: adjusted,
-    maxTime: maxTime - min - SCHEDULE_WAIT_TIME,
-    biggestTime,
-  };
-}
+//   return {
+//     tasks: adjusted,
+//     maxTime: maxTime - min - SCHEDULE_WAIT_TIME,
+//     biggestTime,
+//   };
+// }
 
 function getSlot(ns: NS, host: string, spare = 0): Slot | null {
   const max = ns.getServerMaxRam(host);
