@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { schedule } from "./schedule";
+import { getSchedule } from "./schedule";
 
 test.each([
   [[1, 2, 3], [0, 0, 0], 0],
@@ -13,7 +13,7 @@ test.each([
   output: number[],
   waitTime: number
 ) => {
-  expect(schedule(input, (v) => v, waitTime)).toStrictEqual(
+  expect(getSchedule(input, (v) => v, waitTime).schedule).toStrictEqual(
     input.map((v, i) => [v, output[i]])
   );
 }) as any);
