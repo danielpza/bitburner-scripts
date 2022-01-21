@@ -5,6 +5,8 @@ declare const _: import("lodash")._;
 interface AutocompleteData {
   flags(flags: Flags): void;
   servers: string[];
+  txt: string[];
+  scripts: srting[];
 }
 
 interface Server {
@@ -30,6 +32,7 @@ interface NS {
   getServer(host: string): Server;
   getPlayer(): Player;
 
+  read(handle: string): string;
   write(
     handle: string,
     data?: string[] | number | string,
@@ -96,8 +99,19 @@ interface NS {
 
   weakenAnalyze(threads: number, cores?: number): number;
 
+  /**
+   * Depends on security and player hack level
+   *
+   * @returns Total money percent result of hacking with a single threads
+   */
   hackAnalyze(host: string): number;
   hackAnalyzeChance(host: string): number;
   hackAnalyzeThreads(host: string, hackAmount: number): number;
+  /**
+   * Depends on security and player hack level
+   *
+   * @returns Threads needed to increase server money in a certain proportion
+   *   (`growthAmount`)
+   */
   growthAnalyze(host: string, growthAmount: number, cores?: number): number;
 }
