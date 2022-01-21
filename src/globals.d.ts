@@ -1,5 +1,20 @@
 type Flags = [string, string | number | boolean][];
 
+// https://docs.skypack.dev/skypack-cdn/code/javascript#using-skypack-urls-in-typescript
+declare module "https://*";
+declare module "https://cdn.skypack.dev/react" {
+  export * from "react";
+}
+declare module "https://cdn.skypack.dev/react-dom" {
+  export * from "react-dom";
+}
+declare module "https://cdn.skypack.dev/react-draggable" {
+  export * from "react-draggable";
+}
+declare module "https://cdn.skypack.dev/@mui/material" {
+  export * from "@mui/material";
+}
+
 declare const _: import("lodash")._;
 
 interface AutocompleteData {
