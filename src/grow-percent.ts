@@ -5,16 +5,6 @@ const flags: Flags = [
   ["daemon", false],
 ];
 
-function readJSON<T>(ns: NS, file: string): T | undefined {
-  const content = ns.read(file);
-  if (content === "") return undefined;
-  return JSON.parse(content);
-}
-
-function writeJSON(ns: NS, file: string, content: unknown): Promise<void> {
-  return ns.write(file, JSON.stringify(content), "w");
-}
-
 export function autocomplete(data: AutocompleteData) {
   data.flags(flags);
   return [...data.txt];
@@ -35,6 +25,7 @@ export async function main(ns: NS) {
   }
 
   ns.disableLog("ALL");
+  ns.enableLog("grow");
 
   const readLogs = () => readJSON<Record<string, string>>(ns, logFile) ?? {};
 
@@ -63,7 +54,7 @@ export async function main(ns: NS) {
 
     log(`inspecting ${server}`);
 
-    const result = _.round(await ns.grow(server), 2);
+    const result = await ns.grow(server);
 
     if (serverIsFull(server)) {
       log(`${server} at max capacity after grow, skipping`);

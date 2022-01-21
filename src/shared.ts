@@ -42,7 +42,7 @@ export function trace(
   return null;
 }
 
-type HeaderValue = number | string;
+type HeaderValue = number | string | null;
 export interface HeaderInfo<
   T extends Record<K, HeaderValue> = Record<
     string | number | symbol,
@@ -128,3 +128,17 @@ export const formatTime = (v: unknown) => {
 };
 
 export const formatPercent = (v: unknown) => `${formatFloat(Number(v) * 100)}%`;
+
+export function readJSON<T>(ns: NS, file: string): T | undefined {
+  const content = ns.read(file);
+  if (content === "") return undefined;
+  return JSON.parse(content) as T;
+}
+
+export function writeJSON(
+  ns: NS,
+  file: string,
+  content: unknown
+): Promise<void> {
+  return ns.write(file, JSON.stringify(content), "w");
+}
