@@ -67,6 +67,7 @@ interface NS {
   getPurchasedServerCost(ram: number): number;
 
   killall(host: string): void;
+  kill(script: string, host?: string, ...args: string[]): boolean;
   tail(): void;
 
   prompt(msg: string): Promise<boolean>;

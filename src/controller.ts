@@ -42,12 +42,6 @@ const HACK_COST = 0.002;
 const getWeakenThreads = (opThreads: number, cost: number) =>
   Math.ceil((opThreads * cost) / WEAKEN_COST);
 
-type Task = {
-  host: string;
-  threads: number;
-  script: Script;
-};
-
 interface Slot {
   host: string;
   threads: number;
@@ -66,20 +60,38 @@ export async function main(ns: NS) {
       .forEach((host) => ns.killall(host));
   });
 
-  const ignoredServers: string[] = [];
+  let ignoredServers: { target: string; runningScripts: RunningScript[] }[] =
+    [];
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
     const slots = getAvailableSlots(ns);
 
+    let toRemove: { target: string; runningScripts: RunningScript[] }[] = [];
+
+    [toRemove, ignoredServers] = _.partition(
+      ignoredServers,
+      (ignoredServer) => getMoneyPercent(ns, ignoredServer.target) < 0.8
+    );
+
+    for (const ignoredServer of toRemove) {
+      for (const runningScript of ignoredServer.runningScripts) {
+        ns.kill(
+          runningScript.script,
+          runningScript.host,
+          ...runningScript.args
+        );
+      }
+    }
+
     const servers = getBestServersToHack(
       ns,
-      ignoredServers,
+      ignoredServers.map((s) => s.target),
       _.sumBy(slots, "threads")
     );
     const server = servers[0];
 
-    ns.print(`Ignored: ${ignoredServers.join(", ")}`);
+    ns.print(`Ignored: ${ignoredServers.map((s) => s.target).join(", ")}`);
 
     if (!server) {
       ns.print("No server to hack");
@@ -105,10 +117,12 @@ export async function main(ns: NS) {
     else if (server.money < server.maxMoney * 0.9)
       await ns.asleep(growTarget(ns, target, slots));
     else {
-      hackTarget(ns, target, slots, true);
+      const scripts = hackTarget(ns, target, slots, true);
 
-      ignoredServers.push(target);
-      // TODO go to next server
+      if (scripts.length) {
+        ignoredServers.push({ target, runningScripts: scripts });
+        // TODO go to next server
+      }
 
       await ns.asleep(1000);
     }
@@ -198,7 +212,7 @@ function growTarget(ns: NS, target: string, slots: Slot[]) {
   return maxTime;
 }
 
-function hackTarget(ns: NS, target: string, slots: Slot[], loop = false) {
+function hackTarget(ns: NS, target: string, slots: Slot[]) {
   ns.print("hack");
   const runtime = {
     grow: ns.getGrowTime(target),
@@ -217,9 +231,6 @@ function hackTarget(ns: NS, target: string, slots: Slot[], loop = false) {
     ns.growthAnalyze(target, 1 / (1 - moneyToHackPercent))
   );
   const growWeakenThreads = getWeakenThreads(growThreads, GROW_COST);
-
-  // const totalProportion =
-  //   hackThreads + hackWeakenThreads + growThreads + growWeakenThreads;
 
   type TaskGroup = {
     script: Script;
@@ -265,20 +276,21 @@ function hackTarget(ns: NS, target: string, slots: Slot[], loop = false) {
     })),
   }));
 
-  console.debug({ tasksGroup, batchesDescription });
-
   const { tasksLoop, loopTime } = createLoop(
     batchesDescription,
     SCHEDULE_WAIT_TIME
   );
 
-  console.debug({ tasksLoop });
+  const scripts: RunningScript[] = [];
+
   for (const [{ script, slots }, delay] of tasksLoop) {
-    console.debug({ slots, script, delay, loopTime });
     for (const slot of slots) {
-      runScript(ns, script, slot.host, slot.threads, target, delay, loopTime);
+      scripts.push(
+        runScript(ns, script, slot.host, slot.threads, target, delay, loopTime)
+      );
     }
   }
+  return scripts;
 }
 
 function getSlot(ns: NS, host: string, spare = 0): Slot | null {
@@ -370,6 +382,8 @@ function showInfo(ns: NS, servers: ReturnType<typeof getBestServersToHack>) {
   );
 }
 
+type RunningScript = { script: string; host: string; args: string[] };
+
 function runScript(
   ns: NS,
   script: Script,
@@ -378,15 +392,14 @@ function runScript(
   target: string,
   delay = 0,
   loop = 0
-) {
-  ns.exec(
-    FILES[script],
-    host,
-    threads,
-    ...([target, "--delay", delay, "--loop", loop].filter(
-      (v) => v != null
-    ) as string[])
-  );
+): RunningScript {
+  const args = [target, "--delay", delay, "--loop", loop].filter(
+    (v) => v != null
+  ) as string[];
+
+  ns.exec(FILES[script], host, threads, ...args);
+
+  return { script: FILES[script], host, args };
 }
 
 /**
@@ -454,4 +467,8 @@ function takeSlots(
   left = left.concat(slots.slice(i));
 
   return { taken, left, success };
+}
+
+function getMoneyPercent(ns: NS, target: string) {
+  return ns.getServerMoneyAvailable(target) / ns.getServerMaxMoney(target);
 }
