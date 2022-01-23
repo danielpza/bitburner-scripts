@@ -7,7 +7,7 @@ import {
   formatTime,
   scanAll,
 } from "./shared";
-import { getSchedule } from "./schedule";
+import { getSchedule, createLoop } from "./schedule";
 
 type Script = "hack" | "weaken" | "grow";
 
@@ -38,6 +38,9 @@ function setupGlobals(ns: NS) {
 const WEAKEN_COST = 0.05;
 const GROW_COST = 0.004;
 const HACK_COST = 0.002;
+
+const getWeakenThreads = (opThreads: number, cost: number) =>
+  Math.ceil((opThreads * cost) / WEAKEN_COST);
 
 type Task = {
   host: string;
@@ -203,67 +206,116 @@ function hackTarget(ns: NS, target: string, slots: Slot[], loop = false) {
     hack: ns.getHackTime(target),
   };
 
-  const unsortedTasks: Task[] = slots
-    .flatMap(({ host, threads }) => {
-      const [wt, ht] = calcFunc(threads / 2, WEAKEN_COST, HACK_COST);
-      const [, gt] = calcFunc(threads / 2, WEAKEN_COST, GROW_COST);
+  /** Desired amount of money to hack on each batch percent of total money available */
+  const moneyToHackPercent = 0.1;
 
-      return [
-        { host, threads: ht, script: "hack" as const },
-        { host, threads: wt, script: "weaken" as const },
-        { host, threads: gt, script: "grow" as const },
-        { host, threads: wt, script: "weaken" as const },
-      ];
-    })
-    .filter((t) => t.threads > 0);
+  const hackThreads = Math.floor(
+    Math.max(moneyToHackPercent / ns.hackAnalyze(target), 1)
+  );
+  const hackWeakenThreads = getWeakenThreads(hackThreads, HACK_COST);
+  const growThreads = Math.ceil(
+    ns.growthAnalyze(target, 1 / (1 - moneyToHackPercent))
+  );
+  const growWeakenThreads = getWeakenThreads(growThreads, GROW_COST);
 
-  const { schedule: tasks, totalTime: maxTime } = getSchedule(
-    unsortedTasks,
-    ({ script }) => runtime[script],
+  // const totalProportion =
+  //   hackThreads + hackWeakenThreads + growThreads + growWeakenThreads;
+
+  const takeSlots = (
+    slots: Slot[],
+    threadsToTake: number
+  ): { taken: Slot[]; left: Slot[]; success: boolean } => {
+    let takenSoFar = 0;
+    const taken: Slot[] = [];
+    let left: Slot[] = [];
+    let success = true;
+
+    let i = 0;
+    while (threadsToTake > 0 && takenSoFar < threadsToTake) {
+      if (i >= slots.length) {
+        success = false;
+        break;
+      }
+
+      const toTake = Math.min(threadsToTake - takenSoFar, slots[i].threads);
+      if (toTake <= 0) {
+        // TODO what to do with server?
+        i++;
+        continue;
+      }
+      takenSoFar += toTake;
+      const leftInSlot = slots[i].threads - toTake;
+      taken.push({ ...slots[i], threads: toTake });
+      if (leftInSlot > 0) {
+        left.push({ ...slots[i], threads: leftInSlot });
+      }
+      i++;
+    }
+
+    left = left.concat(slots.slice(i));
+
+    return { taken, left, success };
+  };
+
+  type TaskGroup = {
+    script: Script;
+    taskTime: number;
+    threads: number;
+    tasks: Slot[][];
+  };
+  const tasksGroup: TaskGroup[] = [
+    { threads: hackThreads, tasks: [], script: "hack", taskTime: runtime.hack },
+    {
+      threads: hackWeakenThreads,
+      tasks: [],
+      script: "weaken",
+      taskTime: runtime.weaken,
+    },
+    { threads: growThreads, tasks: [], script: "grow", taskTime: runtime.grow },
+    {
+      threads: growWeakenThreads,
+      tasks: [],
+      script: "weaken",
+      taskTime: runtime.weaken,
+    },
+  ];
+
+  let left = slots;
+  let taken: Slot[] = [];
+  let success = true;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    for (const taskGroup of tasksGroup) {
+      ({ left, success, taken } = takeSlots(left, taskGroup.threads));
+      if (!success) break;
+      taskGroup.tasks.push(taken);
+    }
+    if (!success) break;
+  }
+
+  const batchesDescription = tasksGroup.map((taskGroup) => ({
+    taskTime: taskGroup.taskTime,
+    tasks: taskGroup.tasks.map((slots) => ({
+      slots,
+      script: taskGroup.script,
+    })),
+  }));
+
+  console.debug({ tasksGroup, batchesDescription });
+
+  const { tasksLoop, loopTime } = createLoop(
+    batchesDescription,
     SCHEDULE_WAIT_TIME
   );
 
-  for (const [{ host, threads, script }, delay] of tasks) {
-    // TODO update
-    runScript(ns, script, host, threads, target, delay);
+  console.debug({ tasksLoop });
+  for (const [{ script, slots }, delay] of tasksLoop) {
+    console.debug({ slots, script, delay, loopTime });
+    for (const slot of slots) {
+      runScript(ns, script, slot.host, slot.threads, target, delay, loopTime);
+    }
   }
-
-  return maxTime;
 }
-
-// export function schedule<T>(
-//   tasks: T[],
-//   getTime: (task: T) => number,
-//   cap = false
-// ) {
-//   let mapped: [T, number][] = tasks.map((t) => [t, getTime(t)]);
-
-//   const biggestTime = _.maxBy(mapped, "1")?.[1] ?? 0;
-
-//   if (cap) {
-//     mapped = mapped.slice(0, Math.ceil(biggestTime / SCHEDULE_WAIT_TIME));
-//   }
-
-//   const extra = mapped.length * SCHEDULE_WAIT_TIME;
-
-//   const maxTime: number = (_.maxBy(mapped, "1")?.[1] ?? 0) + extra;
-
-//   const total = mapped.length;
-
-//   const withTime: [T, number][] = mapped.map(([t, time], i) => [
-//     t,
-//     maxTime - (total - i) * SCHEDULE_WAIT_TIME - time,
-//   ]);
-
-//   const min = _.minBy(withTime, "1")?.[1] ?? 0;
-//   const adjusted: [T, number][] = withTime.map(([t, time]) => [t, time - min]);
-
-//   return {
-//     tasks: adjusted,
-//     maxTime: maxTime - min - SCHEDULE_WAIT_TIME,
-//     biggestTime,
-//   };
-// }
 
 function getSlot(ns: NS, host: string, spare = 0): Slot | null {
   const max = ns.getServerMaxRam(host);

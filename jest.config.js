@@ -4,5 +4,6 @@ import _ from "lodash";
 export default {
   preset: "ts-jest",
   testEnvironment: "node",
+  moduleFileExtensions: ["js", "ts", "d.ts"],
   globals: { _ },
 };

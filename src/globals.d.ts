@@ -11,6 +11,9 @@ declare module "https://cdn.skypack.dev/react-dom" {
 declare module "https://cdn.skypack.dev/react-draggable" {
   export * from "react-draggable";
 }
+declare module "https://cdn.skypack.dev/react-resizable" {
+  export * from "react-resizable";
+}
 declare module "https://cdn.skypack.dev/@mui/material" {
   export * from "@mui/material";
 }

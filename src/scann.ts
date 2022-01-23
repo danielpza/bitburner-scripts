@@ -7,6 +7,7 @@ import {
   HeaderInfo,
   formatTable,
   scanAll,
+  readJSON,
 } from "./shared.js";
 
 const NAME = "scann";
@@ -38,6 +39,8 @@ const flags: Flags = [
   ["min-hack-chance", 0],
   ["desc-sec", false],
   ["help", false],
+  ["time", false],
+  ["sec", false],
 ];
 
 export function autocomplete(data: AutocompleteData) {
@@ -50,14 +53,20 @@ export async function main(ns: NS) {
     daemon,
     // sort,
     filter,
-    ["max-sec"]: sec,
+    ["max-sec"]: maxSec,
     ["min-hack-chance"]: minHackChance,
     ["min-money"]: money,
     ["desc-sec"]: descSec,
     orgname,
     all,
     help,
+    time,
+    sec,
   } = ns.flags(flags);
+
+  const logFile = "grow-data.txt";
+
+  const growPerThread = readJSON<Record<string, number>>(ns, logFile) ?? {};
 
   if (help) {
     ns.tprint(HELP);
@@ -84,7 +93,7 @@ export async function main(ns: NS) {
     servers = servers.filter(
       (server) =>
         server.moneyAvailable >= money &&
-        server.minDifficulty <= sec &&
+        server.minDifficulty <= maxSec &&
         ns.hackAnalyzeChance(server.hostname) * 100 >= minHackChance
     );
 
@@ -131,6 +140,25 @@ export async function main(ns: NS) {
         value: (server) => ns.getWeakenTime(server.hostname),
         format: formatTime,
       },
+      grow: {
+        name: "grow",
+        value: (server) => {
+          const maxMoney = ns.getServerMaxMoney(server.hostname);
+          const money = ns.getServerMoneyAvailable(server.hostname);
+          if (maxMoney) {
+            const increase = maxMoney - money;
+            const threads = ns.growthAnalyze(server.hostname, maxMoney / money);
+            return increase ** (1 / threads) - 1;
+          }
+          return null;
+        },
+        // format: formatFloat,
+      },
+      growPerThread: {
+        name: "g/t",
+        value: (server) => growPerThread[server.hostname] - 1,
+        format: formatPercent,
+      },
     };
 
     return formatTable(
@@ -138,15 +166,14 @@ export async function main(ns: NS) {
         "hostname",
         "moneyAvailable",
         "moneyMax",
-        "hackDifficulty",
-        "minDifficulty",
+        ...(sec ? ["hackDifficulty", "minDifficulty"] : []),
         "requiredHackingSkill",
         "hackChance",
-        "hackTime",
-        "growTime",
-        "weakenTime",
+        ...(time ? ["hackTime", "growTime", "weakenTime"] : []),
         "serverGrowth",
         ...(orgname ? ["organizationName"] : []),
+        "growPerThread",
+        "grow",
       ].map((header) =>
         header in headerInfo
           ? { value: _.iteratee(header), ...headerInfo[header] }
@@ -166,4 +193,8 @@ export async function main(ns: NS) {
   } else {
     ns.tprint("\n", showInfo());
   }
+}
+
+function getBaseLog(base: number, y: number) {
+  return Math.log(y) / Math.log(base);
 }

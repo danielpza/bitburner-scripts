@@ -1,28 +1,10 @@
-import { scanAll, readJSON, writeJSON } from "./shared.js";
-
-const flags: Flags = [
-  ["logFile", "grow-data.txt"],
-  ["daemon", false],
-];
-
-export function autocomplete(data: AutocompleteData) {
-  data.flags(flags);
-  return [...data.txt];
-}
+import { scanAll } from "./shared.js";
 
 export async function main(ns: NS) {
-  const { daemon, logFile } = ns.flags(flags) as unknown as {
-    daemon: boolean;
-    logFile: string;
-  };
-
-  const log = daemon
-    ? (text: any) => ns.print(text)
-    : (text: any) => ns.tprint(text);
-
-  if (daemon) {
-    ns.tail();
-  }
+  // const { daemon, logFile } = ns.flags() as unknown as {
+  //   daemon: boolean;
+  //   logFile: string;
+  // };
 
   ns.disableLog("ALL");
   ns.enableLog("grow");
@@ -45,7 +27,6 @@ export async function main(ns: NS) {
     return sorted[0];
   };
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const server = getNextServer();
     if (!server) {
