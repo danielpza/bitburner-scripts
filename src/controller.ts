@@ -221,42 +221,6 @@ function hackTarget(ns: NS, target: string, slots: Slot[], loop = false) {
   // const totalProportion =
   //   hackThreads + hackWeakenThreads + growThreads + growWeakenThreads;
 
-  const takeSlots = (
-    slots: Slot[],
-    threadsToTake: number
-  ): { taken: Slot[]; left: Slot[]; success: boolean } => {
-    let takenSoFar = 0;
-    const taken: Slot[] = [];
-    let left: Slot[] = [];
-    let success = true;
-
-    let i = 0;
-    while (threadsToTake > 0 && takenSoFar < threadsToTake) {
-      if (i >= slots.length) {
-        success = false;
-        break;
-      }
-
-      const toTake = Math.min(threadsToTake - takenSoFar, slots[i].threads);
-      if (toTake <= 0) {
-        // TODO what to do with server?
-        i++;
-        continue;
-      }
-      takenSoFar += toTake;
-      const leftInSlot = slots[i].threads - toTake;
-      taken.push({ ...slots[i], threads: toTake });
-      if (leftInSlot > 0) {
-        left.push({ ...slots[i], threads: leftInSlot });
-      }
-      i++;
-    }
-
-    left = left.concat(slots.slice(i));
-
-    return { taken, left, success };
-  };
-
   type TaskGroup = {
     script: Script;
     taskTime: number;
@@ -333,7 +297,7 @@ function getAvailableSlots(ns: NS): Slot[] {
     ...scanAll(ns)
       .filter((host) => ns.hasRootAccess(host))
       .map((host) => getSlot(ns, host)),
-    getSlot(ns, "home", 8),
+    getSlot(ns, "home", 30),
   ].filter((slot) => slot?.threads ?? 0 > 0) as Slot[];
 }
 
@@ -435,10 +399,6 @@ function calcYFromT(threads: number, a: number, b: number) {
   return threads / (b / a + 1);
 }
 
-function calcYFromX(x: number, a: number, b: number) {
-  return (a * x) / b;
-}
-
 /**
  * - `t = x + y`
  * - `ax = by`
@@ -458,4 +418,40 @@ export function calcFunc(
     else return [0, 0];
   }
   return [x, y];
+}
+
+function takeSlots(
+  slots: Slot[],
+  threadsToTake: number
+): { taken: Slot[]; left: Slot[]; success: boolean } {
+  let takenSoFar = 0;
+  const taken: Slot[] = [];
+  let left: Slot[] = [];
+  let success = true;
+
+  let i = 0;
+  while (threadsToTake > 0 && takenSoFar < threadsToTake) {
+    if (i >= slots.length) {
+      success = false;
+      break;
+    }
+
+    const toTake = Math.min(threadsToTake - takenSoFar, slots[i].threads);
+    if (toTake <= 0) {
+      // TODO what to do with server?
+      i++;
+      continue;
+    }
+    takenSoFar += toTake;
+    const leftInSlot = slots[i].threads - toTake;
+    taken.push({ ...slots[i], threads: toTake });
+    if (leftInSlot > 0) {
+      left.push({ ...slots[i], threads: leftInSlot });
+    }
+    i++;
+  }
+
+  left = left.concat(slots.slice(i));
+
+  return { taken, left, success };
 }
