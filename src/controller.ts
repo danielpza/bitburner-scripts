@@ -117,7 +117,7 @@ export async function main(ns: NS) {
     else if (server.money < server.maxMoney * 0.9)
       await ns.asleep(growTarget(ns, target, slots));
     else {
-      const scripts = hackTarget(ns, target, slots, true);
+      const scripts = hackTarget(ns, target, slots);
 
       if (scripts.length) {
         ignoredServers.push({ target, runningScripts: scripts });
