@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "pnpm run watch & pnpm run bitburner-filesync &",
     "prepare": "pnpm run build",
     "clean": "rm -rf lib",
     "build": "pnpm run clean && esbuild src/* --outdir=lib",
