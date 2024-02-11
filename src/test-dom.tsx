@@ -1,5 +1,4 @@
 import { setup } from "./dom";
-import React from "https://cdn.skypack.dev/react";
 import Draggable from "https://cdn.skypack.dev/react-draggable";
 import { ResizableBox } from "https://cdn.skypack.dev/react-resizable";
 

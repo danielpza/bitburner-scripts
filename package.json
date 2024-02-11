@@ -7,7 +7,7 @@
   "scripts": {
     "prepare": "pnpm run build",
     "clean": "rm -rf lib",
-    "build": "pnpm run clean && esbuild  src/*.ts --outdir=lib",
+    "build": "pnpm run clean && esbuild src/* --outdir=lib",
     "watch": "pnpm run build --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
