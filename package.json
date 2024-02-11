@@ -5,10 +5,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prepare": "npm run build",
+    "prepare": "pnpm run build",
     "clean": "rm -rf lib",
-    "build": "npm run clean && esbuild  src/*.ts --outdir=lib",
-    "watch": "npm run build -- --watch",
+    "build": "pnpm run clean && esbuild  src/*.ts --outdir=lib",
+    "watch": "pnpm run build --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
