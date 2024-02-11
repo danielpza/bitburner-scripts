@@ -10,6 +10,9 @@ export function main(ns: Bitburner.NS) {
       ns.ftpcrack(target);
     } catch (e) {}
     try {
+      ns.relaysmtp(target);
+    } catch (e) {}
+    try {
       ns.nuke(target);
       ns.tprint(`Nuked ${target}`);
     } catch (e) {}
