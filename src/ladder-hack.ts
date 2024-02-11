@@ -1,5 +1,6 @@
 import { getOptimalSchedule } from "./utils/schedule";
 import { scanAll } from "./utils/scanAll";
+import { binarySearch } from "./utils/binarySearch";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
@@ -59,9 +60,28 @@ export async function main(ns: Bitburner.NS) {
 
   async function doHack() {
     const totalThreads = getAvailableThreads();
-    const weakenThreads = Math.ceil(totalThreads / 5);
-    const growThreads = Math.ceil((totalThreads - weakenThreads) / 2);
-    const hackThreads = totalThreads - weakenThreads - growThreads;
+
+    const hackThreads = binarySearch(1, totalThreads, (hackThreads) => {
+      const [growThreads, weakenThreads] = getGrowWeakenThreads(
+        target,
+        hackThreads,
+      );
+      return hackThreads + growThreads + weakenThreads <= totalThreads;
+    });
+
+    const [growThreads, weakenThreads] = getGrowWeakenThreads(
+      target,
+      hackThreads,
+    );
+
+    if (
+      hackThreads <= 0 ||
+      growThreads <= 0 ||
+      weakenThreads <= 0 ||
+      hackThreads + growThreads + weakenThreads > totalThreads
+    ) {
+      throw new Error("invalid threads");
+    }
 
     const { schedule, totalTime } = getOptimalSchedule(
       [
@@ -73,7 +93,13 @@ export async function main(ns: Bitburner.NS) {
       SLEEP,
     );
 
-    ns.print(["hacking...", ns.tFormat(totalTime)].join(" "));
+    ns.print(
+      [
+        "hacking...",
+        `(${hackThreads}, ${growThreads}, ${weakenThreads})`,
+        ns.tFormat(totalTime),
+      ].join(" "),
+    );
 
     for (const [{ script, threads }, delay] of schedule) {
       clusterExec({ script, target, threads, delay });
@@ -211,5 +237,19 @@ export async function main(ns: Bitburner.NS) {
       (acc, server) => acc + getFreeThreads(server),
       0,
     );
+  }
+
+  function getGrowWeakenThreads(target: string, hackThreads: number) {
+    const percentStolen = ns.hackAnalyze(target) * hackThreads;
+    const growThreads = Math.ceil(
+      ns.growthAnalyze(
+        target,
+        Math.ceil(1 / (1 - Math.min(percentStolen, 1 - Number.EPSILON))),
+      ),
+    );
+    const weakenThreads = Math.ceil(
+      hackThreads / HACK_PER_WEAK + growThreads / GROW_PER_WEAK,
+    );
+    return [growThreads, weakenThreads];
   }
 }
