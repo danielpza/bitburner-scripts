@@ -4,6 +4,14 @@ export function autocomplete(data: Bitburner.AutocompleteData) {
 
 const SLEEP = 100;
 
+function getServers(ns: Bitburner.NS) {
+  return ns.scan();
+}
+
+function getRootAccessServers(ns: Bitburner.NS) {
+  return getServers(ns).filter((server) => ns.hasRootAccess(server));
+}
+
 export async function main(ns: Bitburner.NS) {
   const [target] = ns.args as string[];
 
@@ -38,10 +46,25 @@ export async function main(ns: Bitburner.NS) {
   }
 
   async function doScript(script: string, time: number) {
-    let pid = ns.run(script, { threads: howManyThreadsCanRun(script) }, target);
+    const host = getFreeServer();
+    ns.scp(script, host);
+    let pid = ns.exec(
+      script,
+      host,
+      { threads: howManyThreadsCanRun(script, host) },
+      target,
+    );
     pids = [pid];
     await ns.sleep(time + SLEEP);
     pids = [];
+  }
+
+  function getFreeServer() {
+    return _.orderBy(
+      getRootAccessServers(ns),
+      [getFreeRam, (host) => (host === "home" ? 1 : 0)],
+      ["desc", "asc"],
+    )[0];
   }
 
   async function doHack() {
