@@ -1,25 +1,27 @@
-const flags: Flags = [
-  ["loop", 0],
-  ["delay", 0],
-];
+import { Flags } from "./flags-helper";
 
-export function autocomplete(data: Bitburner.AutocompleteData) {
-  data.flags(flags);
-  return [...data.servers];
-}
+const flags = new Flags(
+  {
+    loop: { type: "number" },
+    delay: { type: "number" },
+  },
+  { servers: true }
+);
+
+export const autocomplete = flags.autocomplete;
 
 export async function main(ns: Bitburner.NS) {
   const {
     _: [host],
     loop,
     delay,
-  } = ns.flags(flags);
+  } = flags.parse(ns);
 
-  if (delay) await ns.sleep(delay as number);
+  if (delay) await ns.sleep(delay);
 
   const doit = async () => {
     await ns.hack(host);
-    if (loop) await ns.sleep(loop as number);
+    if (loop) await ns.sleep(loop);
   };
 
   if (loop)
