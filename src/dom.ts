@@ -1,5 +1,3 @@
-import ReactDOM from "https://cdn.skypack.dev/react-dom";
-
 /** @see https://bitburner.readthedocs.io/en/latest/netscript/advancedfunctions/inject_html.html */
 export function execCommand(command: string) {
   /* eslint-disable */
@@ -20,6 +18,7 @@ export function execCommand(command: string) {
 }
 
 export function setup(element: import("react").ReactElement) {
+  const ReactDOM = window.ReactDOM;
   const root = document.createElement("div");
   document.body.appendChild(root);
 
