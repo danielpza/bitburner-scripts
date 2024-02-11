@@ -109,11 +109,17 @@ export async function main(ns: Bitburner.NS) {
   }
 
   async function doGrow() {
-    const {
-      schedule: [[, growDelay], [, weakenDelay]],
-      totalTime,
-    } = getOptimalSchedule(
-      [growTask, weakenTask],
+    const freeThreads = getAvailableThreads();
+    const fullOpThreads = GROW_PER_WEAK + 1;
+    const ratio = freeThreads / fullOpThreads;
+    const weakenThreads = Math.ceil(ratio);
+    const growThreads = freeThreads - weakenThreads;
+
+    const { schedule, totalTime } = getOptimalSchedule(
+      [
+        { ...growTask, threads: growThreads },
+        { ...weakenTask, threads: weakenThreads },
+      ],
       (task) => task.time(target),
       SLEEP,
     );
@@ -123,29 +129,13 @@ export async function main(ns: Bitburner.NS) {
         "growing...",
         ns.formatNumber(ns.getServerMoneyAvailable(target)),
         ns.formatNumber(ns.getServerMaxMoney(target)),
+        `(${growThreads}, ${weakenThreads})`,
         ns.tFormat(totalTime),
       ].join(" "),
     );
 
-    const freeThreads = getAvailableThreads();
-    const fullOpThreads = GROW_PER_WEAK + 1;
-    const ratio = freeThreads / fullOpThreads;
-    const weakenThreads = Math.ceil(ratio);
-    const growThreads = freeThreads - weakenThreads;
-
-    if (growThreads > 0 && weakenThreads > 0) {
-      clusterExec({
-        target,
-        script: growTask.script,
-        delay: growDelay,
-        threads: growThreads,
-      });
-      clusterExec({
-        target,
-        script: weakenTask.script,
-        delay: weakenDelay,
-        threads: weakenThreads,
-      });
+    for (const [{ script, threads }, delay] of schedule) {
+      clusterExec({ script, target, threads, delay });
     }
 
     await ns.asleep(totalTime);
