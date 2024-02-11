@@ -1,21 +1,22 @@
+import { Flags } from "./flags-helper.js";
 import { formatTable, formatMoney, formatFloat } from "./shared.js";
 
-const flags: Flags = [
-  ["daemon", false],
-  ["time", 0.3],
-];
+const flags = new Flags(
+  {
+    daemon: { type: "boolean" },
+    time: { type: "number", default: 0.3 },
+  },
+  { servers: true }
+);
 
-export function autocomplete(data: Bitburner.AutocompleteData) {
-  data.flags(flags);
-  return [...data.servers];
-}
+export const autocomplete = flags.autocomplete;
 
 export async function main(ns: Bitburner.NS) {
   const {
     _: [host],
     daemon,
     time,
-  } = ns.flags(flags);
+  } = flags.parse(ns);
 
   ns.disableLog("sleep");
 
@@ -27,7 +28,7 @@ export async function main(ns: Bitburner.NS) {
         "hostname",
         {
           name: "money",
-          value: (server: Server) =>
+          value: (server: Bitburner.Server) =>
             `${formatMoney(server.moneyAvailable)}/${formatMoney(
               server.moneyMax
             )}`,
@@ -49,7 +50,7 @@ export async function main(ns: Bitburner.NS) {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       ns.print(show());
-      await ns.sleep((time as number) * 1000);
+      await ns.sleep(time * 1000);
     }
   }
 

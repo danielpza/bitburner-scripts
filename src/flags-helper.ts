@@ -44,7 +44,9 @@ function getBitburnerFlags<
 }
 
 interface AutocompleteConfig {
-  servers: boolean;
+  servers?: boolean;
+  txts?: boolean;
+  values?: string[];
 }
 
 function getAutocompleteFunction(
@@ -56,9 +58,11 @@ function getAutocompleteFunction(
 
     let result: string[] = [];
 
-    if (config?.servers) {
-      result = result.concat(data.servers);
-    }
+    if (config?.servers) result = result.concat(data.servers);
+
+    if (config?.txts) result = result.concat(data.txts);
+
+    if (config?.values) result = result.concat(config.values);
 
     return result;
   };

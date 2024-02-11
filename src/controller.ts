@@ -105,7 +105,7 @@ export async function main(ns: Bitburner.NS) {
 
     for (const slot of slots) {
       if (slot.host === "home") continue;
-      await ns.scp(
+      ns.scp(
         [FILES.weaken, FILES.hack, FILES.grow],
         ns.getHostname(),
         slot.host

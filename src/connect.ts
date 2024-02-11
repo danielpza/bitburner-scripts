@@ -1,13 +1,16 @@
 import { trace } from "./shared.js";
 import { execCommand } from "./dom.js";
+import { Flags } from "./flags-helper.js";
 
-export function autocomplete(data: Bitburner.AutocompleteData) {
-  return [...data.servers];
-}
+const flags = new Flags({}, { servers: true });
+
+export const autocomplete = flags.autocomplete;
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function main(ns: Bitburner.NS) {
-  const [server] = ns.args;
+  const {
+    _: [server],
+  } = flags.parse(ns);
 
   const path = trace(ns, server);
 

@@ -1,24 +1,23 @@
+import { Flags } from "./flags-helper";
 import { formatRam, formatMoney, formatTable } from "./shared";
 
-const flags: Flags = [
-  ["list", false],
-  ["times", 1],
-  ["name", ""],
-];
-
-const values = Array.from({ length: 20 }, (_, i) => (2 ** i).toString());
-
-export function autocomplete(data: Bitburner.AutocompleteData) {
-  data.flags(flags);
-  return [...values];
-}
+const flags = new Flags(
+  {
+    list: { type: "boolean" },
+    times: { type: "number", default: 1 },
+    name: { type: "string", default: "" },
+  },
+  {
+    values: Array.from({ length: 20 }, (_, i) => (2 ** i).toString()),
+  }
+);
 
 export async function main(ns: Bitburner.NS) {
   const {
     _: [value],
     list,
     times,
-  } = ns.flags(flags);
+  } = flags.parse(ns);
 
   if (list) {
     ns.tprint(
@@ -44,11 +43,9 @@ export async function main(ns: Bitburner.NS) {
   const cost = ns.getPurchasedServerCost(ram);
 
   const confirm = await ns.prompt(
-    `Are you sure you want to buy ${
-      times as number
-    } ${ram}Gb server for ${formatMoney(cost)} each, total ${formatMoney(
-      (times as number) * cost
-    )}`
+    `Are you sure you want to buy ${times} ${ram}Gb server for ${formatMoney(
+      cost
+    )} each, total ${formatMoney(times * cost)}`
   );
 
   if (!confirm) {

@@ -1,24 +1,24 @@
+import { Flags } from "./flags-helper.js";
 import { scanAll, readJSON, writeJSON } from "./shared.js";
 
-const flags: Flags = [
-  ["logFile", "grow-data.txt"],
-  ["daemon", false],
-];
+const flags = new Flags(
+  {
+    logFile: { type: "string", default: "grow-data.txt" },
+    daemon: { type: "boolean", default: false },
+  },
+  {
+    txts: true,
+  }
+);
 
-export function autocomplete(data: Bitburner.AutocompleteData) {
-  data.flags(flags);
-  return [...data.txt];
-}
+export const autocomplete = flags.autocomplete;
 
 export async function main(ns: Bitburner.NS) {
-  const { daemon, logFile } = ns.flags(flags) as unknown as {
-    daemon: boolean;
-    logFile: string;
-  };
+  const { daemon, logFile } = flags.parse(ns);
 
   const log = daemon
-    ? (text: any) => ns.print(text)
-    : (text: any) => ns.tprint(text);
+    ? (text: string) => ns.print(text)
+    : (text: string) => ns.tprint(text);
 
   if (daemon) {
     ns.tail();
