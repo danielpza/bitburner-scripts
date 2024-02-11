@@ -22,43 +22,34 @@ export async function main(ns: Bitburner.NS) {
 
   const getScriptRam = _.memoize(ns.getScriptRam);
 
-  let pids: number[] = [];
-
-  // const HACK_ANALYZE_SEC = ns.hackAnalyzeSecurity(1);
-  // const GROW_ANALYZE_SEC = ns.growthAnalyzeSecurity(1);
-  // const WEAK_ANALYZE = ns.weakenAnalyze(1);
-
-  const HACK_ANALYZE_SEC = 0.002;
-  const GROW_ANALYZE_SEC = 0.004;
-  const WEAK_ANALYZE = 0.05;
+  const HACK_ANALYZE_SEC = 0.002; // ns.hackAnalyzeSecurity(1);
+  const GROW_ANALYZE_SEC = 0.004; // ns.growthAnalyzeSecurity(1);
+  const WEAK_ANALYZE = 0.05; // ns.weakenAnalyze(1);
 
   const GROW_PER_WEAK = WEAK_ANALYZE / GROW_ANALYZE_SEC;
   const HACK_PER_WEAK = WEAK_ANALYZE / HACK_ANALYZE_SEC;
 
+  const RAM = Math.max(
+    getScriptRam("scripts/dummy-hack.js"),
+    getScriptRam("scripts/dummy-grow.js"),
+    getScriptRam("scripts/dummy-weaken.js"),
+  );
+
   const hackTask = {
     script: "scripts/dummy-hack.js",
     time: (target: string) => ns.getHackTime(target),
-    ram: getScriptRam("scripts/dummy-hack.js"),
     sec: HACK_ANALYZE_SEC,
   };
   const growTask = {
     script: "scripts/dummy-grow.js",
     time: (target: string) => ns.getGrowTime(target),
-    ram: getScriptRam("scripts/dummy-grow.js"),
     sec: GROW_ANALYZE_SEC,
   };
   const weakenTask = {
     script: "scripts/dummy-weaken.js",
     time: (target: string) => ns.getWeakenTime(target),
-    ram: getScriptRam("scripts/dummy-weaken.js"),
     sec: WEAK_ANALYZE,
   };
-
-  ns.atExit(() => {
-    for (const pid of pids) {
-      ns.kill(pid);
-    }
-  });
 
   for (;;) {
     if (canLowerSecurity()) await doWeaken();
@@ -72,9 +63,15 @@ export async function main(ns: Bitburner.NS) {
         "hacking...",
         ns.formatNumber(ns.getServerMoneyAvailable(target)),
         ns.formatNumber(ns.getServerMaxMoney(target)),
+        ns.tFormat(ns.getHackTime(target)),
       ].join(" "),
     );
-    return doScript("scripts/dummy-hack.js", ns.getHackTime(target));
+    clusterExec({
+      script: hackTask.script,
+      target,
+      threads: getAvailableThreads(),
+    });
+    await ns.asleep(ns.getHackTime(target) + SLEEP);
   }
 
   async function doGrow() {
@@ -96,37 +93,28 @@ export async function main(ns: Bitburner.NS) {
       ].join(" "),
     );
 
-    let hosts = getRootAccessServers(ns);
+    const freeThreads = getAvailableThreads();
+    const fullOpThreads = GROW_PER_WEAK + 1;
+    const ratio = freeThreads / fullOpThreads;
+    const weakenThreads = Math.ceil(ratio);
+    const growThreads = freeThreads - weakenThreads;
 
-    for (const host of hosts) {
-      ns.scp([hackTask.script, growTask.script, weakenTask.script], host);
-
-      const freeRam = getFreeRam(host);
-      const fullOpRam = GROW_PER_WEAK * growTask.ram + weakenTask.ram;
-      const ratio = freeRam / fullOpRam;
-      const weakenThreads = Math.ceil(ratio);
-      const freeRamAfterWeaken = freeRam - weakenThreads * weakenTask.ram;
-      const growThreads = Math.floor(freeRamAfterWeaken / growTask.ram);
-
-      if (growThreads > 0 && weakenThreads > 0) {
-        execScript({
-          host,
-          target,
-          script: growTask.script,
-          delay: growDelay,
-          threads: growThreads,
-        });
-        execScript({
-          host,
-          target,
-          script: weakenTask.script,
-          delay: weakenDelay,
-          threads: weakenThreads,
-        });
-      }
+    if (growThreads > 0 && weakenThreads > 0) {
+      clusterExec({
+        target,
+        script: growTask.script,
+        delay: growDelay,
+        threads: growThreads,
+      });
+      clusterExec({
+        target,
+        script: weakenTask.script,
+        delay: weakenDelay,
+        threads: weakenThreads,
+      });
     }
 
-    await ns.asleep(totalTime + SLEEP);
+    await ns.asleep(totalTime);
   }
 
   async function doWeaken() {
@@ -135,9 +123,15 @@ export async function main(ns: Bitburner.NS) {
         "weakening...",
         ns.formatNumber(ns.getServerSecurityLevel(target)),
         ns.formatNumber(ns.getServerMinSecurityLevel(target)),
+        ns.tFormat(ns.getWeakenTime(target)),
       ].join(" "),
     );
-    return doScript("scripts/dummy-weaken.js", ns.getWeakenTime(target));
+    clusterExec({
+      script: weakenTask.script,
+      target,
+      threads: getAvailableThreads(),
+    });
+    await ns.asleep(ns.getWeakenTime(target) + SLEEP);
   }
 
   function canLowerSecurity() {
@@ -147,26 +141,37 @@ export async function main(ns: Bitburner.NS) {
   }
 
   function canGrow() {
-    return (
-      ns.getServerMoneyAvailable(target) <
-      Math.min(10_000_000, ns.getServerMaxMoney(target))
-    );
+    return ns.getServerMoneyAvailable(target) < ns.getServerMaxMoney(target);
   }
 
-  async function doScript(script: string, time: number) {
-    let hosts = getRootAccessServers(ns);
+  function clusterExec({
+    script,
+    threads = 1,
+    target,
+    delay = 0,
+  }: {
+    script: string;
+    threads?: number;
+    target: string;
+    delay?: number;
+  }) {
+    const hosts = getRootAccessServers(ns);
+    let missingThreads = threads;
     for (const host of hosts) {
-      ns.scp(script, host);
-      const threads = howManyThreadsCanRun(script, host);
-      if (threads <= 0) continue;
-      let pid = execScript({ script, host, target, threads });
-      pids.push(pid);
+      const freeThreads = getFreeThreads(host);
+      if (freeThreads > 0) {
+        const threadsToUse = Math.min(freeThreads, missingThreads);
+        remoteExec({ script, host, threads: threadsToUse, target, delay });
+        missingThreads -= threadsToUse;
+      }
+      if (missingThreads <= 0) break;
     }
-    await ns.asleep(time + SLEEP);
-    pids = [];
+    if (missingThreads > 0) {
+      throw new Error("no enough free threads");
+    }
   }
 
-  function execScript({
+  function remoteExec({
     script,
     host,
     threads = 1,
@@ -179,6 +184,7 @@ export async function main(ns: Bitburner.NS) {
     target: string;
     delay?: number;
   }) {
+    ns.scp(script, host);
     return ns.exec(script, host, { threads }, target, "--delay", delay);
   }
 
@@ -188,9 +194,14 @@ export async function main(ns: Bitburner.NS) {
     return total - used;
   }
 
-  function howManyThreadsCanRun(script: string, host = ns.getHostname()) {
-    const freeRam = getFreeRam(host);
-    const ram = getScriptRam(script);
-    return Math.floor(freeRam / ram);
+  function getFreeThreads(host: string) {
+    return Math.floor(getFreeRam(host) / RAM);
+  }
+
+  function getAvailableThreads() {
+    return getRootAccessServers(ns).reduce(
+      (acc, server) => acc + getFreeThreads(server),
+      0,
+    );
   }
 }
