@@ -96,6 +96,13 @@ export async function main(ns: Bitburner.NS) {
     ns.print(
       [
         "hacking...",
+        ns.formatNumber(
+          ns.hackAnalyze(target) *
+            hackThreads *
+            ns.getServerMoneyAvailable(target),
+        ) +
+          "/" +
+          ns.formatNumber(ns.getServerMoneyAvailable(target)),
         `(${hackThreads}, ${growThreads}, ${weakenThreads})`,
         ns.tFormat(totalTime),
       ].join(" "),
@@ -127,8 +134,9 @@ export async function main(ns: Bitburner.NS) {
     ns.print(
       [
         "growing...",
-        ns.formatNumber(ns.getServerMoneyAvailable(target)),
-        ns.formatNumber(ns.getServerMaxMoney(target)),
+        ns.formatNumber(ns.getServerMoneyAvailable(target)) +
+          "/" +
+          ns.formatNumber(ns.getServerMaxMoney(target)),
         `(${growThreads}, ${weakenThreads})`,
         ns.tFormat(totalTime),
       ].join(" "),
@@ -145,8 +153,9 @@ export async function main(ns: Bitburner.NS) {
     ns.print(
       [
         "weakening...",
-        ns.formatNumber(ns.getServerSecurityLevel(target)),
-        ns.formatNumber(ns.getServerMinSecurityLevel(target)),
+        ns.formatNumber(ns.getServerSecurityLevel(target)) +
+          "/" +
+          ns.formatNumber(ns.getServerMinSecurityLevel(target)),
         ns.tFormat(ns.getWeakenTime(target)),
       ].join(" "),
     );
