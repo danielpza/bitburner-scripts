@@ -19,6 +19,10 @@ export async function main(ns: Bitburner.NS) {
 
   ns.tail();
 
+  let pids = [] as number[];
+
+  ns.atExit(() => void pids.forEach(ns.kill));
+
   ns.disableLog("ALL");
 
   const getScriptRam = _.memoize(ns.getScriptRam);
@@ -56,6 +60,7 @@ export async function main(ns: Bitburner.NS) {
     if (canLowerSecurity()) await doWeaken();
     else if (canGrow()) await doGrow();
     else await doHack();
+    pids = [];
   }
 
   async function doHack() {
@@ -194,7 +199,14 @@ export async function main(ns: Bitburner.NS) {
       const freeThreads = getFreeThreads(host);
       if (freeThreads > 0) {
         const threadsToUse = Math.min(freeThreads, missingThreads);
-        remoteExec({ script, host, threads: threadsToUse, target, delay });
+        let pid = remoteExec({
+          script,
+          host,
+          threads: threadsToUse,
+          target,
+          delay,
+        });
+        pids.push(pid);
         missingThreads -= threadsToUse;
       }
       if (missingThreads <= 0) break;
