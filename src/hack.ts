@@ -61,30 +61,16 @@ export async function main(ns: Bitburner.NS) {
     pids = [];
   }
 
-  // function getFreeServer() {
-  //   return _.orderBy(
-  //     getRootAccessServers(ns),
-  //     [
-  //       getFreeRam,
-  //       // (host) => (host === "home" ? 1 : 0)
-  //     ],
-  //     [
-  //       "desc",
-  //       // "asc"
-  //     ],
-  //   )[0];
-  // }
-
   async function doHack() {
-    return doScript("dummy-hack.js", ns.getHackTime(target));
+    return doScript("scripts/dummy-hack.js", ns.getHackTime(target));
   }
 
   async function doGrow() {
-    return doScript("dummy-grow.js", ns.getGrowTime(target));
+    return doScript("scripts/dummy-grow.js", ns.getGrowTime(target));
   }
 
   async function doWeaken() {
-    return doScript("dummy-weaken.js", ns.getWeakenTime(target));
+    return doScript("scripts/dummy-weaken.js", ns.getWeakenTime(target));
   }
 
   function canLowerSecurity() {
