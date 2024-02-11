@@ -9,6 +9,14 @@ export async function main(ns: Bitburner.NS) {
 
   ns.tail();
 
+  let pids: number[] = [];
+
+  ns.atExit(() => {
+    for (const pid of pids) {
+      ns.kill(pid);
+    }
+  });
+
   const getScriptRam = _.memoize(ns.getScriptRam);
 
   for (;;) {
@@ -29,9 +37,11 @@ export async function main(ns: Bitburner.NS) {
     return Math.floor(freeRam / ram);
   }
 
-  function doScript(script: string, time: number) {
-    ns.run(script, { threads: howManyThreadsCanRun(script) }, target);
-    return ns.sleep(time + SLEEP);
+  async function doScript(script: string, time: number) {
+    let pid = ns.run(script, { threads: howManyThreadsCanRun(script) }, target);
+    pids = [pid];
+    await ns.sleep(time + SLEEP);
+    pids = [];
   }
 
   async function doHack() {
