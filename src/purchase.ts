@@ -8,12 +8,12 @@ const flags: Flags = [
 
 const values = Array.from({ length: 20 }, (_, i) => (2 ** i).toString());
 
-export function autocomplete(data: AutocompleteData) {
+export function autocomplete(data: Bitburner.AutocompleteData) {
   data.flags(flags);
   return [...values];
 }
 
-export async function main(ns: NS) {
+export async function main(ns: Bitburner.NS) {
   const {
     _: [value],
     list,

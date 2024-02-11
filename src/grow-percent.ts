@@ -5,12 +5,12 @@ const flags: Flags = [
   ["daemon", false],
 ];
 
-export function autocomplete(data: AutocompleteData) {
+export function autocomplete(data: Bitburner.AutocompleteData) {
   data.flags(flags);
   return [...data.txt];
 }
 
-export async function main(ns: NS) {
+export async function main(ns: Bitburner.NS) {
   const { daemon, logFile } = ns.flags(flags) as unknown as {
     daemon: boolean;
     logFile: string;

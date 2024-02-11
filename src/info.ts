@@ -5,12 +5,12 @@ const flags: Flags = [
   ["time", 0.3],
 ];
 
-export function autocomplete(data: AutocompleteData) {
+export function autocomplete(data: Bitburner.AutocompleteData) {
   data.flags(flags);
   return [...data.servers];
 }
 
-export async function main(ns: NS) {
+export async function main(ns: Bitburner.NS) {
   const {
     _: [host],
     daemon,

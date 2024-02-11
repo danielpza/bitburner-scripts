@@ -1,12 +1,12 @@
 import { trace } from "./shared.js";
 import { execCommand } from "./dom.js";
 
-export function autocomplete(data: AutocompleteData) {
+export function autocomplete(data: Bitburner.AutocompleteData) {
   return [...data.servers];
 }
 
 // eslint-disable-next-line @typescript-eslint/require-await
-export async function main(ns: NS) {
+export async function main(ns: Bitburner.NS) {
   const [server] = ns.args;
 
   const path = trace(ns, server);

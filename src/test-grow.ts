@@ -1,6 +1,6 @@
-import { scanAll } from "./shared.js";
+import { scanAll, readJSON } from "./shared.js";
 
-export async function main(ns: NS) {
+export async function main(ns: Bitburner.NS) {
   // const { daemon, logFile } = ns.flags() as unknown as {
   //   daemon: boolean;
   //   logFile: string;

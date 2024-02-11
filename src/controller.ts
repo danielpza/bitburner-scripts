@@ -27,7 +27,7 @@ export const SCHEDULE_WAIT_TIME = 200;
  */
 let THREAD_RAM: number = null as never;
 
-function setupGlobals(ns: NS) {
+function setupGlobals(ns: Bitburner.NS) {
   THREAD_RAM = Math.max(
     ...["weaken", "grow", "hack"].map((s) =>
       ns.getScriptRam(FILES[s as Script])
@@ -47,7 +47,7 @@ interface Slot {
   threads: number;
 }
 
-export async function main(ns: NS) {
+export async function main(ns: Bitburner.NS) {
   setupGlobals(ns);
 
   ns.disableLog("ALL");
@@ -132,7 +132,7 @@ export async function main(ns: NS) {
 }
 
 const useThreads = (
-  ns: NS,
+  ns: Bitburner.NS,
   name: string,
   threadsNeeded: number,
   slots: Slot[],
@@ -170,7 +170,7 @@ const useThreads = (
   return slotsLeft;
 };
 
-function weakenTarget(ns: NS, target: string, slots: Slot[]) {
+function weakenTarget(ns: Bitburner.NS, target: string, slots: Slot[]) {
   const threadsNeeded =
     (ns.getServerSecurityLevel(target) - ns.getServerMinSecurityLevel(target)) /
     WEAKEN_COST;
@@ -182,7 +182,7 @@ function weakenTarget(ns: NS, target: string, slots: Slot[]) {
   return ns.getWeakenTime(target);
 }
 
-function growTarget(ns: NS, target: string, slots: Slot[]) {
+function growTarget(ns: Bitburner.NS, target: string, slots: Slot[]) {
   const runtime = {
     grow: ns.getGrowTime(target),
     weaken: ns.getWeakenTime(target),
@@ -212,7 +212,7 @@ function growTarget(ns: NS, target: string, slots: Slot[]) {
   return maxTime;
 }
 
-function hackTarget(ns: NS, target: string, slots: Slot[]) {
+function hackTarget(ns: Bitburner.NS, target: string, slots: Slot[]) {
   ns.print("hack");
   const runtime = {
     grow: ns.getGrowTime(target),
@@ -293,7 +293,7 @@ function hackTarget(ns: NS, target: string, slots: Slot[]) {
   return scripts;
 }
 
-function getSlot(ns: NS, host: string, spare = 0): Slot | null {
+function getSlot(ns: Bitburner.NS, host: string, spare = 0): Slot | null {
   const max = ns.getServerMaxRam(host);
   const used = ns.getServerUsedRam(host);
   const left = Math.max(max - used - spare, 0);
@@ -304,7 +304,7 @@ function getSlot(ns: NS, host: string, spare = 0): Slot | null {
   return { host, threads };
 }
 
-function getAvailableSlots(ns: NS): Slot[] {
+function getAvailableSlots(ns: Bitburner.NS): Slot[] {
   return [
     ...scanAll(ns)
       .filter((host) => ns.hasRootAccess(host))
@@ -314,7 +314,7 @@ function getAvailableSlots(ns: NS): Slot[] {
 }
 
 function getBestServersToHack(
-  ns: NS,
+  ns: Bitburner.NS,
   ignoredServers: string[],
   totalThreads: number
 ) {
@@ -333,7 +333,7 @@ function getBestServersToHack(
       // hackAnalyze: ns.hackAnalyze(host),
     }));
 
-  const timesToGrow = (server: typeof servers[number]) =>
+  const timesToGrow = (server: (typeof servers)[number]) =>
     server.weakenTime *
     (totalThreads /
       ns.growthAnalyze(
@@ -357,7 +357,10 @@ function getBestServersToHack(
   return sorted;
 }
 
-function showInfo(ns: NS, servers: ReturnType<typeof getBestServersToHack>) {
+function showInfo(
+  ns: Bitburner.NS,
+  servers: ReturnType<typeof getBestServersToHack>
+) {
   ns.print(
     "\n",
     formatTable(
@@ -385,7 +388,7 @@ function showInfo(ns: NS, servers: ReturnType<typeof getBestServersToHack>) {
 type RunningScript = { script: string; host: string; args: string[] };
 
 function runScript(
-  ns: NS,
+  ns: Bitburner.NS,
   script: Script,
   host: string,
   threads: number,
@@ -469,6 +472,6 @@ function takeSlots(
   return { taken, left, success };
 }
 
-function getMoneyPercent(ns: NS, target: string) {
+function getMoneyPercent(ns: Bitburner.NS, target: string) {
   return ns.getServerMoneyAvailable(target) / ns.getServerMaxMoney(target);
 }

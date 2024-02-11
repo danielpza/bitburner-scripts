@@ -5,7 +5,7 @@
  *   const allServers = scanAll(ns);
  */
 export function scanAll(
-  ns: NS,
+  ns: Bitburner.NS,
   target = ns.getHostname(),
   visited = new Set()
 ): string[] {
@@ -18,7 +18,7 @@ export function scanAll(
 }
 
 export function trace(
-  ns: NS,
+  ns: Bitburner.NS,
   target: string,
   host = ns.getHostname(),
   visited = new Set<string>()
@@ -129,14 +129,14 @@ export const formatTime = (v: unknown) => {
 
 export const formatPercent = (v: unknown) => `${formatFloat(Number(v) * 100)}%`;
 
-export function readJSON<T>(ns: NS, file: string): T | undefined {
+export function readJSON<T>(ns: Bitburner.NS, file: string): T | undefined {
   const content = ns.read(file);
   if (content === "") return undefined;
   return JSON.parse(content) as T;
 }
 
 export function writeJSON(
-  ns: NS,
+  ns: Bitburner.NS,
   file: string,
   content: unknown
 ): Promise<void> {

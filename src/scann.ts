@@ -27,7 +27,7 @@ Example
   ${NAME} --sort
 `;
 
-const flags: Flags = [
+const flags: Bitburner.Flags = [
   ["orgname", false],
   ["daemon", false],
   // ['deep', false],
@@ -43,12 +43,12 @@ const flags: Flags = [
   ["sec", false],
 ];
 
-export function autocomplete(data: AutocompleteData) {
+export function autocomplete(data: Bitburner.AutocompleteData) {
   data.flags(flags);
   return [...data.servers];
 }
 
-export async function main(ns: NS) {
+export async function main(ns: Bitburner.NS) {
   const {
     daemon,
     // sort,
