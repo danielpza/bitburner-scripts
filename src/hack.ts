@@ -49,12 +49,9 @@ export async function main(ns: Bitburner.NS) {
     let hosts = getRootAccessServers(ns);
     for (const host of hosts) {
       ns.scp(script, host);
-      let pid = ns.exec(
-        script,
-        host,
-        { threads: howManyThreadsCanRun(script, host) },
-        target,
-      );
+      const threads = howManyThreadsCanRun(script, host);
+      if (threads <= 0) continue;
+      let pid = ns.exec(script, host, { threads }, target);
       pids.push(pid);
     }
     await ns.asleep(time + SLEEP);
