@@ -9,6 +9,8 @@ export async function main(ns: Bitburner.NS) {
 
   ns.tail();
 
+  const getScriptRam = _.memoize(ns.getScriptRam);
+
   for (;;) {
     if (canLowerSecurity()) await doWeaken();
     else if (canGrow()) await doGrow();
@@ -23,29 +25,25 @@ export async function main(ns: Bitburner.NS) {
 
   function howManyThreadsCanRun(script: string, host = ns.getHostname()) {
     const freeRam = getFreeRam(host);
-    const ram = ns.getScriptRam(script);
+    const ram = getScriptRam(script);
     return Math.floor(freeRam / ram);
   }
 
-  async function doHack() {
-    const hackTime = ns.getHackTime(target);
-    const script = "dummy-hack.js";
+  function doScript(script: string, time: number) {
     ns.run(script, { threads: howManyThreadsCanRun(script) }, target);
-    await ns.sleep(hackTime + SLEEP);
+    return ns.sleep(time + SLEEP);
+  }
+
+  async function doHack() {
+    return doScript("dummy-hack.js", ns.getHackTime(target));
   }
 
   async function doGrow() {
-    const growTime = ns.getGrowTime(target);
-    const script = "dummy-grow.js";
-    ns.run(script, { threads: howManyThreadsCanRun(script) }, target);
-    await ns.sleep(growTime + SLEEP);
+    return doScript("dummy-grow.js", ns.getGrowTime(target));
   }
 
   async function doWeaken() {
-    const weakenTime = ns.getWeakenTime(target);
-    const script = "dummy-weaken.js";
-    ns.run(script, { threads: howManyThreadsCanRun(script) }, target);
-    await ns.asleep(weakenTime + SLEEP);
+    return doScript("dummy-weaken.js", ns.getWeakenTime(target));
   }
 
   function canLowerSecurity() {
