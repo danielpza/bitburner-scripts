@@ -234,7 +234,7 @@ export async function main(ns: Bitburner.NS) {
     const growThreads = Math.ceil(
       ns.growthAnalyze(
         target,
-        Math.ceil(1 / (1 - Math.min(percentStolen, 1 - Number.EPSILON))),
+        1 / (1 - _.clamp(percentStolen, 0, 1 - Number.EPSILON)),
       ),
     );
     const weakenThreads = Math.ceil(
