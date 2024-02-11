@@ -12,3 +12,5 @@ declare global {
     ReactDOM: typeof import("react-dom");
   }
 }
+
+declare const _: typeof import("lodash");
