@@ -9,7 +9,7 @@
     "start:compile": "pnpm build --watch",
     "start:sync": "pnpm bitburner-filesync",
     "prepare": "pnpm run build",
-    "clean": "rm -rf lib/* && mkdir -p lib/",
+    "clean": "rm -rf lib/ && mkdir -p lib/",
     "build": "esbuild src/* --outdir=lib",
     "watch": "pnpm run build --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
