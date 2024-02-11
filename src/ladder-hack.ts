@@ -58,20 +58,28 @@ export async function main(ns: Bitburner.NS) {
   }
 
   async function doHack() {
-    ns.print(
+    const totalThreads = getAvailableThreads();
+    const weakenThreads = Math.ceil(totalThreads / 5);
+    const growThreads = Math.ceil((totalThreads - weakenThreads) / 2);
+    const hackThreads = totalThreads - weakenThreads - growThreads;
+
+    const { schedule, totalTime } = getOptimalSchedule(
       [
-        "hacking...",
-        ns.formatNumber(ns.getServerMoneyAvailable(target)),
-        ns.formatNumber(ns.getServerMaxMoney(target)),
-        ns.tFormat(ns.getHackTime(target)),
-      ].join(" "),
+        { ...hackTask, threads: hackThreads },
+        { ...growTask, threads: growThreads },
+        { ...weakenTask, threads: weakenThreads },
+      ],
+      (task) => task.time(target),
+      SLEEP,
     );
-    clusterExec({
-      script: hackTask.script,
-      target,
-      threads: getAvailableThreads(),
-    });
-    await ns.asleep(ns.getHackTime(target) + SLEEP);
+
+    ns.print(["hacking...", ns.tFormat(totalTime)].join(" "));
+
+    for (const [{ script, threads }, delay] of schedule) {
+      clusterExec({ script, target, threads, delay });
+    }
+
+    await ns.asleep(totalTime);
   }
 
   async function doGrow() {
