@@ -1,4 +1,4 @@
-import { getOptimalSchedule } from "./schedule";
+import { getOptimalSchedule } from "./utils/schedule";
 import { scanAll } from "./utils/scanAll";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
@@ -24,9 +24,13 @@ export async function main(ns: Bitburner.NS) {
 
   let pids: number[] = [];
 
-  const HACK_ANALYZE_SEC = ns.hackAnalyzeSecurity(1);
-  const GROW_ANALYZE_SEC = ns.growthAnalyzeSecurity(1);
-  const WEAK_ANALYZE = ns.weakenAnalyze(1);
+  // const HACK_ANALYZE_SEC = ns.hackAnalyzeSecurity(1);
+  // const GROW_ANALYZE_SEC = ns.growthAnalyzeSecurity(1);
+  // const WEAK_ANALYZE = ns.weakenAnalyze(1);
+
+  const HACK_ANALYZE_SEC = 0.002;
+  const GROW_ANALYZE_SEC = 0.004;
+  const WEAK_ANALYZE = 0.05;
 
   const GROW_PER_WEAK = WEAK_ANALYZE / GROW_ANALYZE_SEC;
   const HACK_PER_WEAK = WEAK_ANALYZE / HACK_ANALYZE_SEC;
