@@ -1,51 +1,46 @@
-import { Flags } from "./flags-helper";
-import { formatRam, formatMoney, formatTable } from "./shared";
-
-const flags = new Flags(
-  {
-    list: { type: "boolean" },
-    times: { type: "number", default: 1 },
-    name: { type: "string", default: "" },
-  },
-  {
-    values: Array.from({ length: 20 }, (_, i) => (2 ** i).toString()),
-  }
-);
+import { table } from "./utils/table";
 
 export async function main(ns: Bitburner.NS) {
   const {
     _: [value],
     list,
     times,
-  } = flags.parse(ns);
+  } = ns.flags([
+    ["list", false],
+    ["times", 1],
+    ["name", ""],
+  ]) as { _: [string]; list: boolean; times: number; name: string };
 
   if (list) {
     ns.tprint(
       "\n",
-      formatTable(
-        [
-          { name: "ram", format: formatRam },
-          { name: "price", format: formatMoney },
-        ],
+      table(
         Array.from({ length: 20 }, (_, i) => ({
           ram: 2 ** i,
           price: ns.getPurchasedServerCost(2 ** i),
-        }))
-      )
+        })),
+        [{ header: "ram" }, { header: "price", format: ns.formatNumber }],
+      ),
     );
     return;
   }
 
-  const ram = Number(value);
+  let ram = Number(value);
 
-  if (!Number.isFinite(ram)) throw new Error("Must enter number of gb");
+  if (!Number.isFinite(ram))
+    ram = Number(
+      await ns.prompt("Enter the amount of RAM", {
+        type: "select",
+        choices: Array.from({ length: 20 }, (_, i) => String(2 ** i)),
+      }),
+    );
 
   const cost = ns.getPurchasedServerCost(ram);
 
   const confirm = await ns.prompt(
-    `Are you sure you want to buy ${times} ${ram}Gb server for ${formatMoney(
-      cost
-    )} each, total ${formatMoney(times * cost)}`
+    `Are you sure you want to buy ${times} ${ram}Gb server for $${ns.formatNumber(
+      cost,
+    )} each, total $${ns.formatNumber(times * cost)}`,
   );
 
   if (!confirm) {
