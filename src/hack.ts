@@ -1,15 +1,15 @@
+import { scanAll } from "./utils/scanAll";
+
 export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
 }
 
 const SLEEP = 100;
 
-function getServers(ns: Bitburner.NS) {
-  return ns.scan();
-}
-
 function getRootAccessServers(ns: Bitburner.NS) {
-  return getServers(ns).filter((server) => ns.hasRootAccess(server));
+  return scanAll(ns).filter(
+    (server) => ns.hasRootAccess(server) && server !== "home",
+  );
 }
 
 export async function main(ns: Bitburner.NS) {
@@ -46,26 +46,34 @@ export async function main(ns: Bitburner.NS) {
   }
 
   async function doScript(script: string, time: number) {
-    const host = getFreeServer();
-    ns.scp(script, host);
-    let pid = ns.exec(
-      script,
-      host,
-      { threads: howManyThreadsCanRun(script, host) },
-      target,
-    );
-    pids = [pid];
-    await ns.sleep(time + SLEEP);
+    let hosts = getRootAccessServers(ns);
+    for (const host of hosts) {
+      ns.scp(script, host);
+      let pid = ns.exec(
+        script,
+        host,
+        { threads: howManyThreadsCanRun(script, host) },
+        target,
+      );
+      pids.push(pid);
+    }
+    await ns.asleep(time + SLEEP);
     pids = [];
   }
 
-  function getFreeServer() {
-    return _.orderBy(
-      getRootAccessServers(ns),
-      [getFreeRam, (host) => (host === "home" ? 1 : 0)],
-      ["desc", "asc"],
-    )[0];
-  }
+  // function getFreeServer() {
+  //   return _.orderBy(
+  //     getRootAccessServers(ns),
+  //     [
+  //       getFreeRam,
+  //       // (host) => (host === "home" ? 1 : 0)
+  //     ],
+  //     [
+  //       "desc",
+  //       // "asc"
+  //     ],
+  //   )[0];
+  // }
 
   async function doHack() {
     return doScript("dummy-hack.js", ns.getHackTime(target));
