@@ -7,6 +7,9 @@ export function main(ns: Bitburner.NS) {
       ns.brutessh(target);
     } catch (e) {}
     try {
+      ns.ftpcrack(target);
+    } catch (e) {}
+    try {
       ns.nuke(target);
       ns.tprint(`Nuked ${target}`);
     } catch (e) {}
