@@ -111,6 +111,10 @@ export async function main(ns: Bitburner.NS) {
       throw new Error("invalid threads");
     }
 
+    const moneyStolen =
+      ns.hackAnalyze(target) * hackThreads * ns.getServerMoneyAvailable(target);
+    const moneyAvailable = ns.getServerMoneyAvailable(target);
+
     const { schedule, totalTime } = getOptimalSchedule(
       [
         { ...hackTask, threads: hackThreads },
@@ -123,10 +127,11 @@ export async function main(ns: Bitburner.NS) {
 
     let i;
 
+    const maxCycles = Math.floor(totalTime / SLEEP) - 1;
+
     for (
       i = 0;
-      i < Math.floor(totalTime / SLEEP) &&
-      requiredThreads <= getAvailableThreads();
+      i < maxCycles && requiredThreads <= getAvailableThreads();
       i++
     ) {
       for (const [{ script, threads }, delay] of schedule) {
@@ -141,13 +146,7 @@ export async function main(ns: Bitburner.NS) {
     ns.print(
       [
         "hacking...",
-        ns.formatNumber(
-          ns.hackAnalyze(target) *
-            hackThreads *
-            ns.getServerMoneyAvailable(target),
-        ) +
-          "/" +
-          ns.formatNumber(ns.getServerMoneyAvailable(target)),
+        ns.formatNumber(moneyStolen) + "/" + ns.formatNumber(moneyAvailable),
         `(${hackThreads}, ${growThreads}, ${weakenThreads})`,
         `x${i}`,
         ns.tFormat(totalTime),
