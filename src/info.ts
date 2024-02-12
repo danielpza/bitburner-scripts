@@ -2,14 +2,16 @@ import { table } from "./utils/table";
 import { scanAll } from "./utils/scanAll";
 
 export async function main(ns: Bitburner.NS) {
-  const { loop } = ns.flags([["loop", false]]) as { loop: boolean };
-
   ns.print(ns.args);
 
   ns.disableLog("ALL");
 
   function getInfo() {
-    const servers = scanAll(ns).filter((server) => ns.hasRootAccess(server));
+    const purchasedServers = ns.getPurchasedServers();
+    const servers = scanAll(ns).filter(
+      (server) =>
+        ns.hasRootAccess(server) && !purchasedServers.includes(server),
+    );
 
     return table(
       _.orderBy(servers, [
@@ -57,13 +59,13 @@ export async function main(ns: Bitburner.NS) {
     );
   }
 
-  if (!loop) {
+  const isTail = !!ns.getRunningScript()?.tailProperties;
+
+  if (!isTail) {
     ns.tprint("\n", getInfo());
     return;
   }
-  ns.isRunning(script);
 
-  ns.tail();
   ns.resizeTail(800, 400);
 
   for (;;) {
