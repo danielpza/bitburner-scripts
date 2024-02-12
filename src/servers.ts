@@ -31,6 +31,7 @@ export async function main(ns: Bitburner.NS) {
       ns.getPurchasedServerCost(ram) <= ns.getPlayer().money &&
       ns.getPurchasedServers().length < ns.getPurchasedServerLimit()
     ) {
+      ns.print(`Buying server with ${ns.formatRam(ram)} ram`);
       ns.purchaseServer(getName(), ram);
     }
     // ns.setTitle(`${ns.getPurchasedServers().length}`);
@@ -51,6 +52,7 @@ export async function main(ns: Bitburner.NS) {
         // ns.setTitle(`${ns.formatRam(ns.getServerMaxRam(smallestServer))}`);
         break;
       }
+      ns.print(`Upgrading ${smallestServer} to ${ns.formatRam(desiredRam)}`);
       ns.upgradePurchasedServer(smallestServer, desiredRam);
     }
     return;
