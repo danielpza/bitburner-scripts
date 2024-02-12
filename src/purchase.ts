@@ -35,17 +35,7 @@ export async function main(ns: Bitburner.NS) {
       }),
     );
 
-  const cost = ns.getPurchasedServerCost(ram);
-
-  const confirm = await ns.prompt(
-    `Are you sure you want to buy ${times} ${ram}Gb server for $${ns.formatNumber(
-      cost,
-    )} each, total $${ns.formatNumber(times * cost)}`,
-  );
-
-  if (!confirm) {
-    return;
-  }
+  if (!ram) return;
 
   for (let i = 0; i < times; i++) {
     const name = `server${ram}_${ns.getPurchasedServers().length + 1}`;
