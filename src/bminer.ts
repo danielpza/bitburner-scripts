@@ -1,16 +1,12 @@
 export async function main(ns: Bitburner.NS) {
-  const isTail = !!ns.getRunningScript()?.tailProperties;
+  doBuy();
+  doUpgrade();
 
-  if (isTail) {
-    for (;;) {
-      doBuy();
-      doUpgrade();
-      await ns.asleep(5000);
-    }
-  } else {
-    doBuy();
-    doUpgrade();
-  }
+  // for (;;) {
+  //   doBuy();
+  //   doUpgrade();
+  //   await ns.asleep(5000);
+  // }
 
   function doBuy() {
     while (canBuyNode()) ns.hacknet.purchaseNode();
