@@ -4,7 +4,5 @@ export async function main(ns: Bitburner.NS) {
     delay,
   } = ns.flags([["delay", 0]]) as { _: [string]; delay: number };
 
-  if (delay) await ns.sleep(delay);
-
-  await ns.grow(host);
+  await ns.grow(host, { additionalMsec: delay });
 }
