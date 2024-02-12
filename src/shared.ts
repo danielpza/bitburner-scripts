@@ -1,17 +1,14 @@
+export interface ClusterExecOptions {
+  script: string;
+  threads?: number;
+  target: string;
+  delay?: number;
+}
+
 export function clusterExec(
   ns: Bitburner.NS,
   hosts: string[],
-  {
-    script,
-    threads = 1,
-    target,
-    delay = 0,
-  }: {
-    script: string;
-    threads?: number;
-    target: string;
-    delay?: number;
-  },
+  { script, threads = 1, target, delay = 0 }: ClusterExecOptions,
 ) {
   let missingThreads = threads;
   let pids = [] as number[];
