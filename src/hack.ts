@@ -129,11 +129,7 @@ export async function main(ns: Bitburner.NS) {
 
     const maxCycles = Math.floor(totalTime / SLEEP);
 
-    for (
-      i = 0;
-      i < maxCycles && requiredThreads <= getAvailableThreads();
-      i++
-    ) {
+    for (i = 0; i < 200 && requiredThreads <= getAvailableThreads(); i++) {
       for (const [{ script, threads }, delay] of schedule) {
         clusterExec({ script, target, threads, delay: delay + i * SLEEP });
       }
@@ -152,7 +148,7 @@ export async function main(ns: Bitburner.NS) {
       ].join(" "),
     );
 
-    await ns.asleep(totalTime + SLEEP * (i - 1));
+    await ns.asleep(totalTime + SLEEP * i);
   }
 
   async function doGrow() {
