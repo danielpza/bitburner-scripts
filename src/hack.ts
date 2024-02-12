@@ -177,6 +177,14 @@ export async function main(ns: Bitburner.NS) {
 
   async function doWeaken() {
     const totalTime = ns.getWeakenTime(target);
+
+    const currentSecurity = ns.getServerSecurityLevel(target);
+    const minSecurity = ns.getServerMinSecurityLevel(target);
+
+    const secToRemove = currentSecurity - minSecurity;
+
+    const weakenThreads = Math.ceil(secToRemove / WEAK_ANALYZE);
+
     ns.setTitle(`weak ${target} ${ns.tFormat(totalTime)}`);
     ns.print(
       [
@@ -184,14 +192,17 @@ export async function main(ns: Bitburner.NS) {
         ns.formatNumber(ns.getServerSecurityLevel(target)) +
           "/" +
           ns.formatNumber(ns.getServerMinSecurityLevel(target)),
+        `(${weakenThreads})`,
         ns.tFormat(totalTime),
       ].join(" "),
     );
+
     clusterExec({
       script: weakenTask.script,
       target,
-      threads: getAvailableThreads(),
+      threads: Math.min(getAvailableThreads(), weakenThreads),
     });
+
     await ns.asleep(totalTime + SLEEP);
   }
 
