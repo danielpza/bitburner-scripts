@@ -110,7 +110,9 @@ export async function main(ns: Bitburner.NS) {
       weakenThreads <= 0 ||
       requiredThreads > totalAvailableThreads
     ) {
-      throw new Error("invalid threads");
+      throw new Error(
+        `invalid threads (${hackThreads} ${growThreads} ${weakenThreads}), total ${totalAvailableThreads}`,
+      );
     }
 
     const moneyStolen =
