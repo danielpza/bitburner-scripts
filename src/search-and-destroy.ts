@@ -16,6 +16,9 @@ export function main(ns: Bitburner.NS) {
       ns.httpworm(target);
     } catch (e) {}
     try {
+      ns.sqlinject(target);
+    } catch (e) {}
+    try {
       ns.nuke(target);
       ns.tprint(`Nuked ${target}`);
     } catch (e) {}
