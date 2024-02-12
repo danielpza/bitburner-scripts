@@ -8,7 +8,10 @@ export async function main(ns: Bitburner.NS) {
 
   function getInfo() {
     const servers = scanAll(ns)
-      .map((hostname) => ns.getServer(hostname))
+      .map((hostname) => ({
+        ...ns.getServer(hostname),
+        hackTime: ns.getHackTime(hostname),
+      }))
       .filter(
         (server) =>
           server.hasAdminRights &&
@@ -16,18 +19,18 @@ export async function main(ns: Bitburner.NS) {
           (server.moneyAvailable ?? 0) > 0,
       );
 
-    servers[0].hostname;
-
     return formatTable(_.orderBy(servers, ["requiredHackingSkill"]), [
       { header: "hostname", align: "left" },
       { header: "moneyAvailable", format: formatMoney },
       { header: "moneyMax", format: formatMoney },
-      { header: "hackDifficulty", format: ns.formatNumber },
-      { header: "minDifficulty", format: ns.formatNumber },
-      { header: "requiredHackingSkill" },
+      // { header: "hackDifficulty", format: ns.formatNumber },
+      // { header: "minDifficulty", format: ns.formatNumber },
+      // { header: "requiredHackingSkill" },
       // { header: "ramUsed", format: ns.formatRam },
       { header: "maxRam", format: ns.formatRam },
       { header: "serverGrowth" },
+      // { header: "organizationName", align: "left" },
+      { header: "hackTime", format: ns.tFormat },
     ]);
 
     function formatMoney(value: number) {
