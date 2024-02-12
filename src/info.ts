@@ -1,4 +1,3 @@
-import { table } from "./utils/table";
 import { scanAll } from "./utils/scanAll";
 import { formatTable } from "./utils/formatTable";
 
