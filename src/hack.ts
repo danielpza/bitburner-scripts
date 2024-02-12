@@ -125,7 +125,8 @@ export async function main(ns: Bitburner.NS) {
 
     for (
       i = 0;
-      i < totalTime / SLEEP && requiredThreads <= getAvailableThreads();
+      i < Math.floor(totalTime / SLEEP) &&
+      requiredThreads <= getAvailableThreads();
       i++
     ) {
       for (const [{ script, threads }, delay] of schedule) {
