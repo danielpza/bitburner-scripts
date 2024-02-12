@@ -1,15 +1,20 @@
 import { table } from "./utils/table";
 
 export function autocomplete() {
-  return ["buy", "upgrade", "list"];
+  return ["buy", "upgrade", "list", "watch"];
 }
 
 export async function main(ns: Bitburner.NS) {
   const [operation] = ns.args;
 
-  ns.resizeTail(200, 0);
+  // ns.resizeTail(200, 0);
 
   const servers = ns.getPurchasedServers();
+
+  if (operation === "watch") {
+    await watch();
+    return;
+  }
 
   if (operation === "buy") buy();
   else if (operation === "upgrade") upgrade();
@@ -19,11 +24,16 @@ export async function main(ns: Bitburner.NS) {
   function buy() {
     let ram = getBiggestRam();
     if (!ram) {
-      ns.tprint("Cannot buy any servers");
+      // ns.tprint("Cannot buy any servers");
       return;
     }
-    ns.purchaseServer(getName(), ram);
-    ns.setTitle(`${ns.getPurchasedServers().length}`);
+    if (
+      ns.getPurchasedServerCost(ram) <= ns.getPlayer().money &&
+      ns.getPurchasedServers().length < ns.getPurchasedServerLimit()
+    ) {
+      ns.purchaseServer(getName(), ram);
+    }
+    // ns.setTitle(`${ns.getPurchasedServers().length}`);
   }
 
   function upgrade() {
@@ -32,15 +42,16 @@ export async function main(ns: Bitburner.NS) {
 
       if (!smallestServer) break;
 
+      const desiredRam = ns.getServerMaxRam(smallestServer) * 2;
+
       if (
-        !ns.upgradePurchasedServer(
-          smallestServer,
-          ns.getServerMaxRam(smallestServer) * 2,
-        )
+        ns.getPurchasedServerUpgradeCost(smallestServer, desiredRam) >
+        ns.getPlayer().money
       ) {
-        ns.setTitle(`${ns.formatRam(ns.getServerMaxRam(smallestServer))}`);
+        // ns.setTitle(`${ns.formatRam(ns.getServerMaxRam(smallestServer))}`);
         break;
       }
+      ns.upgradePurchasedServer(smallestServer, desiredRam);
     }
     return;
   }
@@ -66,6 +77,17 @@ export async function main(ns: Bitburner.NS) {
         ],
       ),
     );
+  }
+
+  async function watch() {
+    ns.disableLog("ALL");
+    ns.enableLog("upgradePurchasedServer");
+    ns.enableLog("purchaseServer");
+    for (;;) {
+      upgrade();
+      buy();
+      await ns.sleep(1000);
+    }
   }
 
   function moneyFormat(value: number) {
