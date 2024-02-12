@@ -73,6 +73,7 @@ export async function main(ns: Bitburner.NS) {
     else if (canGrow()) await doGrow();
     else await doHack();
     pids = [];
+    await ns.sleep(1500);
   }
 
   async function doHack() {
