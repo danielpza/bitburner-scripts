@@ -11,7 +11,7 @@ const SLEEP = 200;
 export async function main(ns: Bitburner.NS) {
   const [target] = ns.args as string[];
 
-  const includeHome = ns.args.includes("home");
+  const includeHome = ns.args.includes("--home");
 
   ns.disableLog("ALL");
 
