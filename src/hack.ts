@@ -285,7 +285,7 @@ export async function main(ns: Bitburner.NS) {
   function remoteExec({
     script,
     host,
-    threads = 1,
+    threads,
     target,
     delay = 0,
   }: {
