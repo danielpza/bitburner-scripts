@@ -66,13 +66,22 @@ export async function main(ns: Bitburner.NS) {
   async function doHack() {
     const totalThreads = getAvailableThreads();
 
-    const hackThreads = binarySearch(1, totalThreads, (hackThreads) => {
-      const [growThreads, weakenThreads] = getGrowWeakenThreads(
-        target,
-        hackThreads,
-      );
-      return hackThreads + growThreads + weakenThreads <= totalThreads;
-    });
+    const hackThreads = binarySearch(
+      1,
+      Math.min(
+        totalThreads,
+        Math.ceil(
+          ns.hackAnalyzeThreads(target, ns.getServerMoneyAvailable(target)),
+        ),
+      ),
+      (hackThreads) => {
+        const [growThreads, weakenThreads] = getGrowWeakenThreads(
+          target,
+          hackThreads,
+        );
+        return hackThreads + growThreads + weakenThreads <= totalThreads;
+      },
+    );
 
     const [growThreads, weakenThreads] = getGrowWeakenThreads(
       target,
