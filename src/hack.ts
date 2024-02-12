@@ -156,11 +156,22 @@ export async function main(ns: Bitburner.NS) {
   }
 
   async function doGrow() {
+    let growThreads = Math.ceil(
+      ns.growthAnalyze(
+        target,
+        ns.getServerMaxMoney(target) / ns.getServerMoneyAvailable(target),
+      ),
+    );
+    let weakenThreads = Math.ceil(growThreads / GROW_PER_WEAK);
+    let targetTotalThreads = growThreads + weakenThreads;
+
     const freeThreads = getAvailableThreads();
-    const fullOpThreads = GROW_PER_WEAK + 1;
-    const ratio = freeThreads / fullOpThreads;
-    const weakenThreads = Math.ceil(ratio);
-    const growThreads = freeThreads - weakenThreads;
+
+    if (targetTotalThreads > freeThreads) {
+      const ratio = freeThreads / targetTotalThreads;
+      weakenThreads = Math.ceil(weakenThreads * ratio);
+      growThreads = freeThreads - weakenThreads;
+    }
 
     const { schedule, totalTime } = getOptimalSchedule(
       [
