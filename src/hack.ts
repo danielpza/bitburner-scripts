@@ -137,7 +137,7 @@ export async function main(ns: Bitburner.NS) {
       for (const [{ script, threads }, delay] of schedule) {
         clusterExec({ script, target, threads, delay });
       }
-      await ns.sleep(SLEEP);
+      await ns.asleep(SLEEP);
     }
 
     // title = `hack ${target} x${i}`;
@@ -153,7 +153,7 @@ export async function main(ns: Bitburner.NS) {
       ].join(" "),
     );
 
-    await ns.asleep(totalTime);
+    await ns.asleep(totalTime + SLEEP);
   }
 
   async function doGrow() {
