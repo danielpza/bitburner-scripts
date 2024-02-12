@@ -127,7 +127,7 @@ export async function main(ns: Bitburner.NS) {
 
     let i;
 
-    const maxCycles = Math.floor(totalTime / SLEEP) - 1;
+    const maxCycles = Math.floor(totalTime / SLEEP);
 
     for (
       i = 0;
@@ -135,9 +135,8 @@ export async function main(ns: Bitburner.NS) {
       i++
     ) {
       for (const [{ script, threads }, delay] of schedule) {
-        clusterExec({ script, target, threads, delay });
+        clusterExec({ script, target, threads, delay: delay + i * SLEEP });
       }
-      await ns.asleep(SLEEP);
     }
 
     // title = `hack ${target} x${i}`;
@@ -153,7 +152,7 @@ export async function main(ns: Bitburner.NS) {
       ].join(" "),
     );
 
-    await ns.asleep(totalTime + SLEEP);
+    await ns.asleep(totalTime + SLEEP * (i - 1));
   }
 
   async function doGrow() {
