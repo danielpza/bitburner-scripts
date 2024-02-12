@@ -16,5 +16,5 @@ export function getOptimalSchedule<T>(
     withStartTime.map(([, time], i) => withDuration[i][1] + time),
   ) as number;
 
-  return { schedule: withStartTime, totalTime: biggestTime + waitTime };
+  return { schedule: withStartTime, totalTime: biggestTime };
 }

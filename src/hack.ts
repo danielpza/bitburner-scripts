@@ -126,7 +126,7 @@ export async function main(ns: Bitburner.NS) {
       clusterExec({ script, target, threads, delay });
     }
 
-    await ns.asleep(totalTime);
+    await ns.asleep(totalTime + SLEEP);
   }
 
   async function doGrow() {
@@ -160,7 +160,7 @@ export async function main(ns: Bitburner.NS) {
       clusterExec({ script, target, threads, delay });
     }
 
-    await ns.asleep(totalTime);
+    await ns.asleep(totalTime + SLEEP);
   }
 
   async function doWeaken() {
