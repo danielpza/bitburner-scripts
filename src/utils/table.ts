@@ -1,10 +1,11 @@
-type Column<T> = {
+type Column<R, T> = {
   header: string;
-  getValue: (row: string) => T;
+  getValue?: (row: R) => T;
   format?: (value: T) => string;
   align?: "left" | "right";
 };
-export function table(rows: string[], columns: Column<any>[]) {
+
+export function table<T>(rows: T[], columns: Column<T, any>[]) {
   let result = "";
 
   let paddings = Array.from({ length: columns.length }, () => 0);
@@ -17,7 +18,7 @@ export function table(rows: string[], columns: Column<any>[]) {
     columns.map((column) => column.header),
     ...rows.map((row) =>
       columns.map((column) => {
-        let value = column.getValue(row);
+        let value = column.getValue?.(row) ?? _.get(row, column.header);
         return column.format?.(value) ?? String(value);
       }),
     ),
