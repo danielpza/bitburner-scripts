@@ -1,6 +1,7 @@
 import { getOptimalSchedule } from "./utils/schedule";
 import { scanAll } from "./utils/scanAll";
 import { binarySearch } from "./utils/binarySearch";
+import { clusterExec, getFreeThreads } from "./shared";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
@@ -131,7 +132,12 @@ export async function main(ns: Bitburner.NS) {
 
     for (i = 0; i < 200 && requiredThreads <= getAvailableThreads(); i++) {
       for (const [{ script, threads }, delay] of schedule) {
-        clusterExec({ script, target, threads, delay: delay + i * SLEEP });
+        clusterExec(ns, getRootAccessServers(ns), {
+          script,
+          target,
+          threads,
+          delay: delay + i * SLEEP,
+        });
       }
     }
 
@@ -193,7 +199,12 @@ export async function main(ns: Bitburner.NS) {
     );
 
     for (const [{ script, threads }, delay] of schedule) {
-      clusterExec({ script, target, threads, delay });
+      clusterExec(ns, getRootAccessServers(ns), {
+        script,
+        target,
+        threads,
+        delay,
+      });
     }
 
     await ns.asleep(totalTime + SLEEP);
@@ -223,7 +234,7 @@ export async function main(ns: Bitburner.NS) {
       ].join(" "),
     );
 
-    clusterExec({
+    clusterExec(ns, getRootAccessServers(ns), {
       script: weakenTask.script,
       target,
       threads: Math.min(getAvailableThreads(), weakenThreads),
@@ -242,70 +253,9 @@ export async function main(ns: Bitburner.NS) {
     return ns.getServerMoneyAvailable(target) < ns.getServerMaxMoney(target);
   }
 
-  function clusterExec({
-    script,
-    threads = 1,
-    target,
-    delay = 0,
-  }: {
-    script: string;
-    threads?: number;
-    target: string;
-    delay?: number;
-  }) {
-    const hosts = getRootAccessServers(ns);
-    let missingThreads = threads;
-    for (const host of hosts) {
-      const freeThreads = getFreeThreads(host);
-      if (freeThreads > 0) {
-        const threadsToUse = Math.min(freeThreads, missingThreads);
-        let pid = remoteExec({
-          script,
-          host,
-          threads: threadsToUse,
-          target,
-          delay,
-        });
-        pids.push(pid);
-        missingThreads -= threadsToUse;
-      }
-      if (missingThreads <= 0) break;
-    }
-    if (missingThreads > 0) {
-      throw new Error("no enough free threads");
-    }
-  }
-
-  function remoteExec({
-    script,
-    host,
-    threads,
-    target,
-    delay = 0,
-  }: {
-    script: string;
-    host: string;
-    threads?: number;
-    target: string;
-    delay?: number;
-  }) {
-    ns.scp(script, host);
-    return ns.exec(script, host, { threads }, target, "--delay", delay);
-  }
-
-  function getFreeRam(host: string) {
-    const total = ns.getServerMaxRam(host);
-    const used = ns.getServerUsedRam(host);
-    return total - used;
-  }
-
-  function getFreeThreads(host: string) {
-    return Math.floor(getFreeRam(host) / RAM);
-  }
-
   function getAvailableThreads() {
     return getRootAccessServers(ns).reduce(
-      (acc, server) => acc + getFreeThreads(server),
+      (acc, server) => acc + getFreeThreads(ns, server, RAM),
       0,
     );
   }
