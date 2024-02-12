@@ -1,8 +1,6 @@
 import { getOptimalSchedule } from "./utils/schedule";
+import { scanAll } from "./utils/scanAll";
 import { binarySearch } from "./utils/binarySearch";
-import { getFreeThreads } from "./utils/getFreeThreads";
-import { getRootAccessServers } from "./utils/getRootAccessServers";
-import { clusterExec } from "./utils/clusterExec";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
@@ -131,12 +129,7 @@ export async function main(ns: Bitburner.NS) {
       i++
     ) {
       for (const [{ script, threads }, delay] of schedule) {
-        clusterExec(ns, getRootAccessServers(ns, { includeHome }), {
-          script,
-          target,
-          threads,
-          delay,
-        });
+        clusterExec({ script, target, threads, delay });
       }
       await ns.sleep(SLEEP);
     }
@@ -205,12 +198,7 @@ export async function main(ns: Bitburner.NS) {
     );
 
     for (const [{ script, threads }, delay] of schedule) {
-      clusterExec(ns, getRootAccessServers(ns, { includeHome }), {
-        script,
-        target,
-        threads,
-        delay,
-      });
+      clusterExec({ script, target, threads, delay });
     }
 
     await ns.asleep(totalTime + SLEEP);
@@ -240,7 +228,7 @@ export async function main(ns: Bitburner.NS) {
       ].join(" "),
     );
 
-    clusterExec(ns, getRootAccessServers(ns, { includeHome }), {
+    clusterExec({
       script: weakenTask.script,
       target,
       threads: Math.min(getAvailableThreads(), weakenThreads),
@@ -259,9 +247,70 @@ export async function main(ns: Bitburner.NS) {
     return ns.getServerMoneyAvailable(target) < ns.getServerMaxMoney(target);
   }
 
+  function clusterExec({
+    script,
+    threads = 1,
+    target,
+    delay = 0,
+  }: {
+    script: string;
+    threads?: number;
+    target: string;
+    delay?: number;
+  }) {
+    const hosts = getRootAccessServers(ns);
+    let missingThreads = threads;
+    for (const host of hosts) {
+      const freeThreads = getFreeThreads(host);
+      if (freeThreads > 0) {
+        const threadsToUse = Math.min(freeThreads, missingThreads);
+        let pid = remoteExec({
+          script,
+          host,
+          threads: threadsToUse,
+          target,
+          delay,
+        });
+        pids.push(pid);
+        missingThreads -= threadsToUse;
+      }
+      if (missingThreads <= 0) break;
+    }
+    if (missingThreads > 0) {
+      throw new Error("no enough free threads");
+    }
+  }
+
+  function remoteExec({
+    script,
+    host,
+    threads = 1,
+    target,
+    delay = 0,
+  }: {
+    script: string;
+    host: string;
+    threads?: number;
+    target: string;
+    delay?: number;
+  }) {
+    ns.scp(script, host);
+    return ns.exec(script, host, { threads }, target, "--delay", delay);
+  }
+
+  function getFreeRam(host: string) {
+    const total = ns.getServerMaxRam(host);
+    const used = ns.getServerUsedRam(host);
+    return total - used;
+  }
+
+  function getFreeThreads(host: string) {
+    return Math.floor(getFreeRam(host) / RAM);
+  }
+
   function getAvailableThreads() {
     return getRootAccessServers(ns).reduce(
-      (acc, server) => acc + getFreeThreads(ns, server, RAM),
+      (acc, server) => acc + getFreeThreads(server),
       0,
     );
   }
@@ -278,5 +327,11 @@ export async function main(ns: Bitburner.NS) {
       hackThreads / HACK_PER_WEAK + growThreads / GROW_PER_WEAK,
     );
     return [growThreads, weakenThreads];
+  }
+
+  function getRootAccessServers(ns: Bitburner.NS) {
+    let servers = scanAll(ns).filter((server) => ns.hasRootAccess(server));
+    if (includeHome) servers.push("home");
+    return servers;
   }
 }
