@@ -8,14 +8,10 @@ export function autocomplete(data: Bitburner.AutocompleteData) {
 
 const SLEEP = 100;
 
-function getRootAccessServers(ns: Bitburner.NS) {
-  return scanAll(ns).filter(
-    (server) => ns.hasRootAccess(server) && server !== "home",
-  );
-}
-
 export async function main(ns: Bitburner.NS) {
   const [target] = ns.args as string[];
+
+  const includeHome = ns.args.includes("home");
 
   ns.tail();
   ns.resizeTail(600, 120);
@@ -285,5 +281,11 @@ export async function main(ns: Bitburner.NS) {
       hackThreads / HACK_PER_WEAK + growThreads / GROW_PER_WEAK,
     );
     return [growThreads, weakenThreads];
+  }
+
+  function getRootAccessServers(ns: Bitburner.NS) {
+    let servers = scanAll(ns).filter((server) => ns.hasRootAccess(server));
+    if (includeHome) servers.push("home");
+    return servers;
   }
 }
