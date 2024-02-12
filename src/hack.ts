@@ -6,7 +6,7 @@ export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
 }
 
-const SLEEP = 100;
+const SLEEP = 200;
 
 export async function main(ns: Bitburner.NS) {
   const [target] = ns.args as string[];
