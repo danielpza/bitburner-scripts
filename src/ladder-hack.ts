@@ -18,6 +18,7 @@ export async function main(ns: Bitburner.NS) {
   const [target] = ns.args as string[];
 
   ns.tail();
+  ns.resizeTail(600, 120);
 
   let pids = [] as number[];
 
