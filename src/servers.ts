@@ -11,7 +11,8 @@ export async function main(ns: Bitburner.NS) {
 
   if (operation === "buy") buy();
   else if (operation === "upgrade") upgrade();
-  else list();
+
+  list();
 
   function buy() {
     let ram = getBiggestRam();
@@ -47,11 +48,16 @@ export async function main(ns: Bitburner.NS) {
           name: host,
           used: ns.getServerUsedRam(host),
           total: ns.getServerMaxRam(host),
+          upgrade_cost: ns.getPurchasedServerUpgradeCost(
+            host,
+            ns.getServerMaxRam(host) * 2,
+          ),
         })),
         [
           { header: "name", align: "left" },
           { header: "used", format: ramFormat },
           { header: "total", format: ramFormat },
+          { header: "upgrade_cost", format: moneyFormat },
         ],
       ),
     );
@@ -59,6 +65,10 @@ export async function main(ns: Bitburner.NS) {
 
   function ramFormat(value: number) {
     return ns.formatNumber(value, 0);
+  }
+
+  function moneyFormat(value: number) {
+    return `$${ns.formatNumber(value, 0)}`;
   }
 
   function getBiggestRam() {
