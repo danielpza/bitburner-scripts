@@ -8,6 +8,7 @@ export function autocomplete(data: Bitburner.AutocompleteData) {
 }
 
 const SLEEP = 200;
+const MAX_CYCLES = 200;
 
 export async function main(ns: Bitburner.NS) {
   const [target] = ns.args as string[];
@@ -128,9 +129,11 @@ export async function main(ns: Bitburner.NS) {
 
     let i;
 
-    const maxCycles = Math.floor(totalTime / SLEEP);
-
-    for (i = 0; i < 200 && requiredThreads <= getAvailableThreads(); i++) {
+    for (
+      i = 0;
+      i < MAX_CYCLES && requiredThreads <= getAvailableThreads();
+      i++
+    ) {
       for (const [{ script, threads }, delay] of schedule) {
         clusterExec(ns, getRootAccessServers(ns), {
           script,
