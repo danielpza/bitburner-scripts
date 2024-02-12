@@ -36,25 +36,16 @@ export async function main(ns: Bitburner.NS) {
   }
 
   function upgrade() {
-    const servers = ns.getPurchasedServers();
-    for (;;) {
-      const smallestServer = _.minBy(servers, ns.getServerMaxRam);
-
-      if (!smallestServer) break;
-
-      const desiredRam = ns.getServerMaxRam(smallestServer) * 2;
-
-      if (
-        ns.getPurchasedServerUpgradeCost(smallestServer, desiredRam) >
-        ns.getPlayer().money
-      ) {
-        // ns.setTitle(`${ns.formatRam(ns.getServerMaxRam(smallestServer))}`);
-        break;
-      }
-      ns.print(`Upgrading ${smallestServer} to ${ns.formatRam(desiredRam)}`);
-      ns.upgradePurchasedServer(smallestServer, desiredRam);
+    let server: string | undefined;
+    let desiredRam: number;
+    while (
+      (server = getSmallestServer()) &&
+      ((desiredRam = ns.getServerMaxRam(server) * 2),
+      canUpgradeServer(server, desiredRam))
+    ) {
+      ns.print(`Upgrading ${server} to ${ns.formatRam(desiredRam)}`);
+      ns.upgradePurchasedServer(server, desiredRam);
     }
-    return;
   }
 
   function list() {
@@ -110,5 +101,17 @@ export async function main(ns: Bitburner.NS) {
 
   function getName() {
     return `purchased_server_${ns.getPurchasedServers().length + 1}`;
+  }
+
+  function canUpgradeServer(server: string, desiredRam: number) {
+    return (
+      ns.getPurchasedServerUpgradeCost(server, desiredRam) <=
+      ns.getPlayer().money
+    );
+  }
+
+  function getSmallestServer() {
+    const servers = ns.getPurchasedServers();
+    return _.minBy(servers, ns.getServerMaxRam);
   }
 }
