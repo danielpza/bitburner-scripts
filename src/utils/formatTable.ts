@@ -2,10 +2,13 @@ type Column<T> = {
   header: keyof T;
   format?: (value: any) => string;
   align?: "left" | "right";
+  hide?: boolean;
 };
 
 export function formatTable<T>(rows: T[], columns: Column<T>[]) {
   let result = "";
+
+  columns = columns.filter((column) => !column.hide);
 
   let paddings = Array.from({ length: columns.length }, () => 0);
   let aligns = Array.from(
