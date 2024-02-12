@@ -120,6 +120,7 @@ export async function main(ns: Bitburner.NS) {
       await ns.sleep(SLEEP);
     }
 
+    ns.setTitle(`hack ${target} x${i} ${ns.tFormat(totalTime)}`);
     ns.print(
       [
         "hacking...",
@@ -155,6 +156,7 @@ export async function main(ns: Bitburner.NS) {
       SLEEP,
     );
 
+    ns.setTitle(`grow ${target} ${ns.tFormat(totalTime)}`);
     ns.print(
       [
         "growing...",
@@ -174,13 +176,15 @@ export async function main(ns: Bitburner.NS) {
   }
 
   async function doWeaken() {
+    const totalTime = ns.getWeakenTime(target);
+    ns.setTitle(`weak ${target} ${ns.tFormat(totalTime)}`);
     ns.print(
       [
         "weakening...",
         ns.formatNumber(ns.getServerSecurityLevel(target)) +
           "/" +
           ns.formatNumber(ns.getServerMinSecurityLevel(target)),
-        ns.tFormat(ns.getWeakenTime(target)),
+        ns.tFormat(totalTime),
       ].join(" "),
     );
     clusterExec({
@@ -188,7 +192,7 @@ export async function main(ns: Bitburner.NS) {
       target,
       threads: getAvailableThreads(),
     });
-    await ns.asleep(ns.getWeakenTime(target) + SLEEP);
+    await ns.asleep(totalTime + SLEEP);
   }
 
   function canLowerSecurity() {
