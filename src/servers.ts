@@ -55,16 +55,12 @@ export async function main(ns: Bitburner.NS) {
         })),
         [
           { header: "name", align: "left" },
-          { header: "used", format: ramFormat },
-          { header: "total", format: ramFormat },
+          { header: "used", format: ns.formatRam },
+          { header: "total", format: ns.formatRam },
           { header: "upgrade_cost", format: moneyFormat },
         ],
       ),
     );
-  }
-
-  function ramFormat(value: number) {
-    return ns.formatNumber(value, 0);
   }
 
   function moneyFormat(value: number) {
