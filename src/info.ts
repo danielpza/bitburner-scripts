@@ -2,16 +2,32 @@ import { scanAll } from "./utils/scanAll";
 import { formatTable } from "./utils/formatTable";
 
 export async function main(ns: Bitburner.NS) {
-  ns.print(ns.args);
+  const sec = ns.args.includes("--sec");
+  const ram = ns.args.includes("--ram");
 
   ns.disableLog("ALL");
 
   function getInfo() {
     const servers = scanAll(ns)
-      .map((hostname) => ({
-        ...ns.getServer(hostname),
-        hackTime: ns.getHackTime(hostname),
-      }))
+      .map((hostname) => {
+        const server = ns.getServer(hostname);
+        const timeRatio =
+          server.minDifficulty && server.hackDifficulty
+            ? server.minDifficulty / server.hackDifficulty
+            : null;
+        return {
+          name: server.hostname,
+          money: server.moneyAvailable,
+          max_money: server.moneyMax,
+          sec: server.hackDifficulty,
+          min_sec: server.minDifficulty,
+          hack_skill: server.requiredHackingSkill,
+          growth: server.serverGrowth,
+          ...server,
+          hack_time: ns.getHackTime(hostname),
+          hack_time2: timeRatio ? ns.getHackTime(hostname) * timeRatio : null,
+        };
+      })
       .filter(
         (server) =>
           server.hasAdminRights &&
@@ -20,17 +36,18 @@ export async function main(ns: Bitburner.NS) {
       );
 
     return formatTable(_.orderBy(servers, ["requiredHackingSkill"]), [
-      { header: "hostname", align: "left" },
-      { header: "moneyAvailable", format: formatMoney },
-      { header: "moneyMax", format: formatMoney },
-      // { header: "hackDifficulty", format: ns.formatNumber },
-      // { header: "minDifficulty", format: ns.formatNumber },
-      // { header: "requiredHackingSkill" },
-      // { header: "ramUsed", format: ns.formatRam },
-      { header: "maxRam", format: ns.formatRam },
-      { header: "serverGrowth" },
+      { header: "name", align: "left" },
+      // { header: "money", format: formatMoney },
+      { header: "max_money", format: formatMoney },
+      { header: "sec", format: ns.formatNumber, hide: !sec },
+      { header: "min_sec", format: ns.formatNumber, hide: !sec },
+      { header: "hack_skill", hide: !sec },
+      { header: "ramUsed", format: ns.formatRam, hide: !ram },
+      { header: "maxRam", format: ns.formatRam, hide: !ram },
+      { header: "growth" },
       // { header: "organizationName", align: "left" },
-      { header: "hackTime", format: ns.tFormat },
+      { header: "hack_time", format: ns.tFormat },
+      { header: "hack_time2", format: ns.tFormat },
     ]);
 
     function formatMoney(value: number) {
