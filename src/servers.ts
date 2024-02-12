@@ -9,8 +9,6 @@ export async function main(ns: Bitburner.NS) {
 
   // ns.resizeTail(200, 0);
 
-  const servers = ns.getPurchasedServers();
-
   if (operation === "watch") {
     await watch();
     return;
@@ -38,6 +36,7 @@ export async function main(ns: Bitburner.NS) {
   }
 
   function upgrade() {
+    const servers = ns.getPurchasedServers();
     for (;;) {
       const smallestServer = _.minBy(servers, ns.getServerMaxRam);
 
@@ -59,6 +58,7 @@ export async function main(ns: Bitburner.NS) {
   }
 
   function list() {
+    const servers = ns.getPurchasedServers();
     ns.tprint(
       "\n",
       table(
@@ -83,8 +83,8 @@ export async function main(ns: Bitburner.NS) {
 
   async function watch() {
     ns.disableLog("ALL");
-    ns.enableLog("upgradePurchasedServer");
-    ns.enableLog("purchaseServer");
+    // ns.enableLog("upgradePurchasedServer");
+    // ns.enableLog("purchaseServer");
     for (;;) {
       upgrade();
       buy();
