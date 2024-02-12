@@ -6,7 +6,7 @@
  */
 export function scanAll(
   ns: Bitburner.NS,
-  target = ns.getHostname(),
+  target = "home",
   visited = new Set(),
 ): string[] {
   visited.add(target);
