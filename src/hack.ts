@@ -65,7 +65,7 @@ export async function main(ns: Bitburner.NS) {
   }
 
   async function doHack() {
-    const totalThreads = getAvailableThreads();
+    const totalAvailableThreads = getAvailableThreads();
 
     const maxHackThreads = Math.ceil(
       ns.hackAnalyzeThreads(target, ns.getServerMoneyAvailable(target)),
@@ -73,13 +73,15 @@ export async function main(ns: Bitburner.NS) {
 
     const hackThreads = binarySearch(
       1,
-      Math.min(totalThreads, maxHackThreads),
+      Math.min(totalAvailableThreads, maxHackThreads),
       (hackThreads) => {
         const [growThreads, weakenThreads] = getGrowWeakenThreads(
           target,
           hackThreads,
         );
-        return hackThreads + growThreads + weakenThreads <= totalThreads;
+        return (
+          hackThreads + growThreads + weakenThreads <= totalAvailableThreads
+        );
       },
     );
 
@@ -88,11 +90,13 @@ export async function main(ns: Bitburner.NS) {
       hackThreads,
     );
 
+    const requiredThreads = hackThreads + growThreads + weakenThreads;
+
     if (
       hackThreads <= 0 ||
       growThreads <= 0 ||
       weakenThreads <= 0 ||
-      hackThreads + growThreads + weakenThreads > totalThreads
+      requiredThreads > totalAvailableThreads
     ) {
       throw new Error("invalid threads");
     }
@@ -107,6 +111,19 @@ export async function main(ns: Bitburner.NS) {
       SLEEP,
     );
 
+    let i;
+
+    for (
+      i = 0;
+      i < totalTime / SLEEP && requiredThreads <= getAvailableThreads();
+      i++
+    ) {
+      for (const [{ script, threads }, delay] of schedule) {
+        clusterExec({ script, target, threads, delay });
+      }
+      await ns.sleep(SLEEP);
+    }
+
     ns.print(
       [
         "hacking...",
@@ -118,15 +135,12 @@ export async function main(ns: Bitburner.NS) {
           "/" +
           ns.formatNumber(ns.getServerMoneyAvailable(target)),
         `(${hackThreads}, ${growThreads}, ${weakenThreads})`,
+        `x${i}`,
         ns.tFormat(totalTime),
       ].join(" "),
     );
 
-    for (const [{ script, threads }, delay] of schedule) {
-      clusterExec({ script, target, threads, delay });
-    }
-
-    await ns.asleep(totalTime + SLEEP);
+    await ns.asleep(totalTime);
   }
 
   async function doGrow() {
