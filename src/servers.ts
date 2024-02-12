@@ -7,6 +7,8 @@ export function autocomplete() {
 export async function main(ns: Bitburner.NS) {
   const [operation] = ns.args;
 
+  ns.resizeTail(200, 0);
+
   const servers = ns.getPurchasedServers();
 
   if (operation === "buy") buy();
@@ -21,6 +23,7 @@ export async function main(ns: Bitburner.NS) {
       return;
     }
     ns.purchaseServer(getName(), ram);
+    ns.setTitle(`${ns.getPurchasedServers().length}`);
   }
 
   function upgrade() {
@@ -34,8 +37,10 @@ export async function main(ns: Bitburner.NS) {
           smallestServer,
           ns.getServerMaxRam(smallestServer) * 2,
         )
-      )
+      ) {
+        ns.setTitle(`${ns.formatRam(ns.getServerMaxRam(smallestServer))}`);
         break;
+      }
     }
     return;
   }
