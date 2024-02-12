@@ -3,7 +3,6 @@ import { scanAll } from "./utils/scanAll";
 import { formatTable } from "./utils/formatTable";
 
 export async function main(ns: Bitburner.NS) {
-  const excludeZeroMoney = ns.args.includes("--money");
   ns.print(ns.args);
 
   ns.disableLog("ALL");
@@ -15,7 +14,7 @@ export async function main(ns: Bitburner.NS) {
         (server) =>
           server.hasAdminRights &&
           !server.purchasedByPlayer &&
-          (!excludeZeroMoney || (server.moneyAvailable ?? 0) > 0),
+          (server.moneyAvailable ?? 0) > 0,
       );
 
     servers[0].hostname;
