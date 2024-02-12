@@ -20,19 +20,19 @@ export async function main(ns: Bitburner.NS) {
 
   let pids = [] as number[];
 
-  let title: string = null;
-  let titleTime = 0;
+  // let title: string = null;
+  // let titleTime = 0;
 
-  let interval = setInterval(() => {
-    ns.setTitle(`${title} ${ns.tFormat(titleTime)}`);
+  // let interval = setInterval(() => {
+  //   ns.setTitle(`${title} ${ns.tFormat(titleTime)}`);
 
-    titleTime -= 1000;
-    if (titleTime < 0) titleTime = 0;
-  }, 1000);
+  //   titleTime -= 1000;
+  //   if (titleTime < 0) titleTime = 0;
+  // }, 1000);
 
   ns.atExit(() => {
     pids.forEach(ns.kill);
-    clearInterval(interval);
+    // clearInterval(interval);
   });
 
   const getScriptRam = _.memoize(ns.getScriptRam);
@@ -133,8 +133,9 @@ export async function main(ns: Bitburner.NS) {
       await ns.sleep(SLEEP);
     }
 
-    title = `hack ${target} x${i}`;
-    titleTime = totalTime;
+    // title = `hack ${target} x${i}`;
+    // titleTime = totalTime;
+    ns.setTitle(`hack ${target} x${i} ${ns.tFormat(totalTime)}`);
     ns.print(
       [
         "hacking...",
@@ -170,8 +171,9 @@ export async function main(ns: Bitburner.NS) {
       SLEEP,
     );
 
-    title = `grow ${target}`;
-    titleTime = totalTime;
+    // title = `grow ${target}`;
+    // titleTime = totalTime;
+    ns.setTitle(`grow ${target} ${ns.tFormat(totalTime)}`);
     ns.print(
       [
         "growing...",
@@ -200,8 +202,9 @@ export async function main(ns: Bitburner.NS) {
 
     const weakenThreads = Math.ceil(secToRemove / WEAK_ANALYZE);
 
-    title = `weak ${target}`;
-    titleTime = totalTime;
+    // title = `weak ${target}`;
+    // titleTime = totalTime;
+    ns.setTitle(`weak ${target} ${ns.tFormat(totalTime)}`);
     ns.print(
       [
         "weakening...",
