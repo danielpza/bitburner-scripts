@@ -8,7 +8,7 @@ export function autocomplete(data: Bitburner.AutocompleteData) {
 }
 
 const SLEEP = 200;
-const MAX_CYCLES = 200;
+const MAX_CYCLES = 1000;
 
 export async function main(ns: Bitburner.NS) {
   const [target] = ns.args as string[];
