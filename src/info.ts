@@ -1,62 +1,40 @@
 import { table } from "./utils/table";
 import { scanAll } from "./utils/scanAll";
+import { formatTable } from "./utils/formatTable";
 
 export async function main(ns: Bitburner.NS) {
+  const excludeZeroMoney = ns.args.includes("--money");
   ns.print(ns.args);
 
   ns.disableLog("ALL");
 
   function getInfo() {
-    const purchasedServers = ns.getPurchasedServers();
-    const servers = scanAll(ns).filter(
-      (server) =>
-        ns.hasRootAccess(server) && !purchasedServers.includes(server),
-    );
+    const servers = scanAll(ns)
+      .map((hostname) => ns.getServer(hostname))
+      .filter(
+        (server) =>
+          server.hasAdminRights &&
+          !server.purchasedByPlayer &&
+          (!excludeZeroMoney || (server.moneyAvailable ?? 0) > 0),
+      );
 
-    return table(
-      _.orderBy(servers, [
-        (server) => ns.getServerRequiredHackingLevel(server),
-      ]),
-      [
-        {
-          header: "Name",
-          getValue: (host) => host,
-          align: "left",
-        },
-        {
-          header: "Money",
-          getValue: (host) => ns.getServerMoneyAvailable(host),
-          format: ns.formatNumber,
-        },
-        {
-          header: "Max Money",
-          getValue: (host) => ns.getServerMaxMoney(host),
-          format: ns.formatNumber,
-        },
-        {
-          header: "Security",
-          getValue: (host) => ns.getServerSecurityLevel(host),
-          format: ns.formatNumber,
-        },
-        {
-          header: "Min Sec",
-          getValue: (host) => ns.getServerMinSecurityLevel(host),
-          format: ns.formatNumber,
-        },
-        {
-          header: "Skill",
-          getValue: (host) => ns.getServerRequiredHackingLevel(host),
-        },
-        {
-          header: "RAM",
-          getValue: (host) => ns.getServerMaxRam(host),
-        },
-        {
-          header: "growth",
-          getValue: (host) => ns.getServerGrowth(host),
-        },
-      ],
-    );
+    servers[0].hostname;
+
+    return formatTable(_.orderBy(servers, ["requiredHackingSkill"]), [
+      { header: "hostname", align: "left" },
+      { header: "moneyAvailable", format: formatMoney },
+      { header: "moneyMax", format: formatMoney },
+      { header: "hackDifficulty", format: ns.formatNumber },
+      { header: "minDifficulty", format: ns.formatNumber },
+      { header: "requiredHackingSkill" },
+      // { header: "ramUsed", format: ns.formatRam },
+      { header: "maxRam", format: ns.formatRam },
+      { header: "serverGrowth" },
+    ]);
+
+    function formatMoney(value: number) {
+      return "$" + ns.formatNumber(value);
+    }
   }
 
   const isTail = !!ns.getRunningScript()?.tailProperties;
