@@ -1,14 +1,27 @@
 export async function main(ns: Bitburner.NS) {
-  for (;;) {
-    while (canBuyNode()) ns.hacknet.purchaseNode();
+  const isTail = !!ns.getRunningScript()?.tailProperties;
 
+  if (isTail) {
+    for (;;) {
+      doBuy();
+      doUpgrade();
+      await ns.asleep(5000);
+    }
+  } else {
+    doBuy();
+    doUpgrade();
+  }
+
+  function doBuy() {
+    while (canBuyNode()) ns.hacknet.purchaseNode();
+  }
+
+  function doUpgrade() {
     for (let i = 0; i < ns.hacknet.numNodes(); i++) {
       while (canUpgradeNodeLevel(i)) ns.hacknet.upgradeLevel(i);
       while (canUpgradeCoreLevel(i)) ns.hacknet.upgradeCore(i);
       while (canUpgradeRam(i)) ns.hacknet.upgradeRam(i);
     }
-
-    await ns.asleep(5000);
   }
 
   function canUpgradeNodeLevel(i: number) {
