@@ -5,33 +5,53 @@ export async function main(ns: Bitburner.NS) {
     _: [value],
     list,
     times,
+    quick,
   } = ns.flags([
     ["list", false],
     ["times", 1],
     ["name", ""],
-  ]) as { _: [string]; list: boolean; times: number; name: string };
+    ["quick", false],
+  ]) as {
+    _: [string];
+    list: boolean;
+    times: number;
+    name: string;
+    quick: boolean;
+  };
+
+  const choices = Array.from({ length: 20 }, (_, i) => ({
+    ram: 2 ** i,
+    price: ns.getPurchasedServerCost(2 ** i),
+  }));
 
   if (list) {
     ns.tprint(
       "\n",
-      table(
-        Array.from({ length: 20 }, (_, i) => ({
-          ram: 2 ** i,
-          price: ns.getPurchasedServerCost(2 ** i),
-        })),
-        [{ header: "ram" }, { header: "price", format: ns.formatNumber }],
-      ),
+      table(choices, [
+        { header: "ram" },
+        { header: "price", format: ns.formatNumber },
+      ]),
     );
     return;
   }
 
   let ram = Number(value);
 
+  if (quick) {
+    // get biggest server that can buy
+    for (
+      ram = 1;
+      ns.getPurchasedServerCost(ram) <= ns.getPlayer().money;
+      ram *= 2
+    ) {}
+    ram /= 2;
+  }
+
   if (!Number.isFinite(ram))
     ram = Number(
       await ns.prompt("Enter the amount of RAM", {
         type: "select",
-        choices: Array.from({ length: 20 }, (_, i) => String(2 ** i)),
+        choices: choices.map((choice) => String(choice.ram)),
       }),
     );
 
