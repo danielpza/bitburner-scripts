@@ -11,7 +11,7 @@ export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
 }
 
-const SLEEP = 200;
+const SLEEP = 75;
 const MAX_CYCLES = 1000;
 
 const HACK_ANALYZE_SEC = 0.002; // ns.hackAnalyzeSecurity(1);
