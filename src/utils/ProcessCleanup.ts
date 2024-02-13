@@ -31,9 +31,7 @@ export class ProcessCleanup {
     });
   }
 
-  add(pids: number | number[]) {
-    for (const pid of _.castArray(pids)) {
-      this.#pids.add(pid);
-    }
+  add(pid: number) {
+    this.#pids.add(pid);
   }
 }

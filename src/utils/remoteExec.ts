@@ -14,5 +14,5 @@ export function remoteExec(
 ) {
   ns.scp(script, host);
   let pid = ns.exec(script, host, { threads }, target, "--delay", delay);
-  ProcessCleanup.get(ns).add([pid]);
+  ProcessCleanup.get(ns).add(pid);
 }
