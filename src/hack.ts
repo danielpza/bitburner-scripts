@@ -14,6 +14,13 @@ export function autocomplete(data: Bitburner.AutocompleteData) {
 const SLEEP = 200;
 const MAX_CYCLES = 1000;
 
+const HACK_ANALYZE_SEC = 0.002; // ns.hackAnalyzeSecurity(1);
+const GROW_ANALYZE_SEC = 0.004; // ns.growthAnalyzeSecurity(1);
+const WEAK_ANALYZE = 0.05; // ns.weakenAnalyze(1);
+
+const GROW_PER_WEAK = WEAK_ANALYZE / GROW_ANALYZE_SEC;
+const HACK_PER_WEAK = WEAK_ANALYZE / HACK_ANALYZE_SEC;
+
 export async function main(ns: Bitburner.NS) {
   const [target] = ns.args as string[];
 
@@ -42,13 +49,6 @@ export async function main(ns: Bitburner.NS) {
   });
 
   const getScriptRam = _.memoize(ns.getScriptRam);
-
-  const HACK_ANALYZE_SEC = 0.002; // ns.hackAnalyzeSecurity(1);
-  const GROW_ANALYZE_SEC = 0.004; // ns.growthAnalyzeSecurity(1);
-  const WEAK_ANALYZE = 0.05; // ns.weakenAnalyze(1);
-
-  const GROW_PER_WEAK = WEAK_ANALYZE / GROW_ANALYZE_SEC;
-  const HACK_PER_WEAK = WEAK_ANALYZE / HACK_ANALYZE_SEC;
 
   const RAM = Math.max(
     getScriptRam("scripts/dummy-hack.js"),
