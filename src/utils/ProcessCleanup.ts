@@ -6,13 +6,13 @@
  * cleanup.remove([2]);
  */
 export class ProcessCleanup {
-  static #pcleanup: ProcessCleanup | undefined;
+  static #pcleanup = new Map<number, ProcessCleanup>();
 
   static get(ns: Bitburner.NS) {
-    if (!this.#pcleanup) {
-      this.#pcleanup = new ProcessCleanup(ns);
+    if (!this.#pcleanup.has(ns.pid)) {
+      this.#pcleanup.set(ns.pid, new ProcessCleanup(ns));
     }
-    return this.#pcleanup;
+    return this.#pcleanup.get(ns.pid)!;
   }
 
   #pids = new Set<number>();
@@ -25,6 +25,7 @@ export class ProcessCleanup {
 
   #setup() {
     this.#ns.atExit(() => {
+      ProcessCleanup.#pcleanup.delete(this.#ns.pid);
       for (const pid of this.#pids) {
         this.#ns.kill(pid);
       }
