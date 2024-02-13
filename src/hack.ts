@@ -142,7 +142,10 @@ export async function main(ns: Bitburner.NS) {
     let growThreads = Math.ceil(
       ns.growthAnalyze(
         target,
-        ns.getServerMaxMoney(target) / ns.getServerMoneyAvailable(target),
+        Math.min(
+          Number.MAX_SAFE_INTEGER,
+          ns.getServerMaxMoney(target) / ns.getServerMoneyAvailable(target),
+        ),
       ),
     );
     let weakenThreads = Math.ceil(growThreads / GROW_PER_WEAK);
