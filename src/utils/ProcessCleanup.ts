@@ -1,9 +1,8 @@
-/** Will setup hooks to cleanup pending running processes
+/**
+ * Will setup hooks to cleanup pending running processes
+ *
  * @example
- * const cleanup = new ProcessCleanup();
- * cleanup.setup(ns);
- * cleanup.add([1, 2, 3]);
- * cleanup.remove([2]);
+ * ProcessCleanup.get(ns).add(pid);
  */
 export class ProcessCleanup {
   static #pcleanup = new Map<number, ProcessCleanup>();
