@@ -1,25 +1,25 @@
-import { getOptimalSchedule } from "./utils/schedule.ts";
-import { scanAll } from "./utils/scanAll.ts";
 import { binarySearch } from "./utils/binarySearch.ts";
-import { getFreeThreads } from "./utils/getFreeThreads.ts";
 import {
   ClusterExecOptions,
   clusterExec as clusterExec2,
 } from "./utils/clusterExec.ts";
+import {
+  GROW_ANALYZE_SEC,
+  GROW_PER_WEAK,
+  HACK_ANALYZE_SEC,
+  HACK_PER_WEAK,
+  SLEEP,
+  WEAK_ANALYZE,
+} from "./utils/constants.ts";
+import { getFreeThreads } from "./utils/getFreeThreads.ts";
+import { scanAll } from "./utils/scanAll.ts";
+import { getOptimalSchedule } from "./utils/schedule.ts";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
 }
 
-const SLEEP = 75;
 const MAX_CYCLES = 1000;
-
-const HACK_ANALYZE_SEC = 0.002; // ns.hackAnalyzeSecurity(1);
-const GROW_ANALYZE_SEC = 0.004; // ns.growthAnalyzeSecurity(1);
-const WEAK_ANALYZE = 0.05; // ns.weakenAnalyze(1);
-
-const GROW_PER_WEAK = WEAK_ANALYZE / GROW_ANALYZE_SEC;
-const HACK_PER_WEAK = WEAK_ANALYZE / HACK_ANALYZE_SEC;
 
 export async function main(ns: Bitburner.NS) {
   const [target] = ns.args as string[];
