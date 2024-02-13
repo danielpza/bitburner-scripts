@@ -1,3 +1,4 @@
+import { ProcessCleanup } from "./utils/ProcessCleanup.ts";
 import { clusterExec } from "./utils/clusterExec.ts";
 import { getFreeThreads } from "./utils/getFreeThreads.ts";
 import { scanAll } from "./utils/scanAll.ts";
@@ -11,6 +12,8 @@ export async function main(ns: Bitburner.NS) {
 
   ns.tail();
   ns.resizeTail(600, 120);
+
+  const pcleanup = new ProcessCleanup(ns);
 
   const RAM = Math.max(
     ns.getScriptRam("scripts/dummy-hack.js"),
@@ -48,11 +51,13 @@ export async function main(ns: Bitburner.NS) {
 
         const weakenThreads = Math.ceil(secToRemove / WEAK_ANALYZE);
 
-        clusterExec(ns, getRootAccessServers(ns), {
+        const pids = clusterExec(ns, getRootAccessServers(ns), {
           script: "scripts/dummy-weaken.js",
           target,
           threads: Math.min(availableThreads, weakenThreads),
         });
+
+        pcleanup.add(pids, totalTime);
 
         ns.print(
           [

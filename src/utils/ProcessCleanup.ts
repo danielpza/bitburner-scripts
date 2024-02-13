@@ -31,9 +31,20 @@ export class ProcessCleanup {
     });
   }
 
-  add(pids: number | number[]) {
-    for (const pid of _.castArray(pids)) {
+  add(pids: number[], timeout?: number) {
+    for (const pid of pids) {
       this.#pids.add(pid);
+    }
+    if (timeout) {
+      this.#ns.asleep(timeout).then(() => {
+        this.#remove(pids);
+      });
+    }
+  }
+
+  #remove(pids: number[]) {
+    for (const pid of pids) {
+      this.#pids.delete(pid);
     }
   }
 }
