@@ -1,3 +1,5 @@
+import { ProcessCleanup } from "./ProcessCleanup.ts";
+
 export interface RemoteExecOptions {
   script: string;
   host: string;
@@ -11,5 +13,6 @@ export function remoteExec(
   { script, host, threads, target, delay = 0 }: RemoteExecOptions,
 ) {
   ns.scp(script, host);
-  return ns.exec(script, host, { threads }, target, "--delay", delay);
+  let pid = ns.exec(script, host, { threads }, target, "--delay", delay);
+  ProcessCleanup.get(ns).add([pid]);
 }
