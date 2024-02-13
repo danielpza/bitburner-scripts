@@ -1,4 +1,4 @@
-import { scanAll } from "./utils/scanAll";
+import { scanAll } from "./utils/scanAll.ts";
 
 export function main(ns: Bitburner.NS) {
   const servers = scanAll(ns).filter((server) => !ns.hasRootAccess(server));

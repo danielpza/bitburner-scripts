@@ -1,11 +1,11 @@
-import { getOptimalSchedule } from "./utils/schedule";
-import { scanAll } from "./utils/scanAll";
-import { binarySearch } from "./utils/binarySearch";
+import { getOptimalSchedule } from "./utils/schedule.ts";
+import { scanAll } from "./utils/scanAll.ts";
+import { binarySearch } from "./utils/binarySearch.ts";
 import {
   ClusterExecOptions,
   clusterExec as clusterExec2,
   getFreeThreads,
-} from "./shared";
+} from "./shared.ts";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;

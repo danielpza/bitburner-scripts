@@ -1,4 +1,4 @@
-import { table } from "./utils/table";
+import { table } from "./utils/table.ts";
 
 export function autocomplete() {
   return ["buy", "upgrade", "list", "watch"];

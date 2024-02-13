@@ -1,4 +1,4 @@
-import { scanAll } from "./utils/scanAll";
+import { scanAll } from "./utils/scanAll.ts";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
