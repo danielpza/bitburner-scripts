@@ -1,4 +1,6 @@
-import { clusterExec, getFreeThreads, ProcessCleanup } from "./shared.ts";
+import { ProcessCleanup } from "./utils/ProcessCleanup.ts";
+import { clusterExec } from "./utils/clusterExec.ts";
+import { getFreeThreads } from "./utils/getFreeThreads.ts";
 import { scanAll } from "./utils/scanAll.ts";
 
 const SLEEP = 200;
