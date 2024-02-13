@@ -118,8 +118,10 @@ export async function main(ns: Bitburner.NS) {
       }
     }
 
-    const moneyStolen =
-      ns.hackAnalyze(target) * hackThreads * ns.getServerMoneyAvailable(target);
+    const moneyStolen = Math.min(
+      ns.hackAnalyze(target) * hackThreads * ns.getServerMoneyAvailable(target),
+      ns.getServerMoneyAvailable(target),
+    );
     const moneyAvailable = ns.getServerMoneyAvailable(target);
 
     // title = `hack ${target} x${i}`;
