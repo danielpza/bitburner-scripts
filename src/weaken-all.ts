@@ -13,8 +13,7 @@ export async function main(ns: Bitburner.NS) {
   ns.tail();
   ns.resizeTail(600, 120);
 
-  const pcleanup = new ProcessCleanup();
-  pcleanup.setup(ns);
+  const pcleanup = new ProcessCleanup(ns);
 
   const RAM = Math.max(
     ns.getScriptRam("scripts/dummy-hack.js"),
@@ -33,7 +32,7 @@ export async function main(ns: Bitburner.NS) {
           (host) =>
             !blackList.has(host) &&
             canLowerSecurity(host) &&
-            ns.getWeakenTime(host) < 1000 * 60 * 10,
+            ns.getWeakenTime(host) < 1000 * 60 * 20,
         ),
         (target) => ns.getWeakenTime(target),
       ).map(async (target) => {
@@ -58,7 +57,7 @@ export async function main(ns: Bitburner.NS) {
           threads: Math.min(availableThreads, weakenThreads),
         });
 
-        pcleanup.add(pids);
+        pcleanup.add(pids, totalTime);
 
         ns.print(
           [
@@ -74,8 +73,6 @@ export async function main(ns: Bitburner.NS) {
         await ns.asleep(totalTime);
 
         ns.print(`weakened ${target}`);
-
-        pcleanup.remove(pids);
       }),
     );
 

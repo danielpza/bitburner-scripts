@@ -6,6 +6,7 @@ import {
   ClusterExecOptions,
   clusterExec as clusterExec2,
 } from "./utils/clusterExec.ts";
+import { ProcessCleanup } from "./utils/ProcessCleanup.ts";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
@@ -31,7 +32,7 @@ export async function main(ns: Bitburner.NS) {
   ns.tail();
   ns.resizeTail(600, 120);
 
-  let pids = [] as number[];
+  const pcleanup = new ProcessCleanup(ns);
 
   // let title: string = null;
   // let titleTime = 0;
@@ -42,11 +43,6 @@ export async function main(ns: Bitburner.NS) {
   //   titleTime -= 1000;
   //   if (titleTime < 0) titleTime = 0;
   // }, 1000);
-
-  ns.atExit(() => {
-    pids.forEach(ns.kill);
-    // clearInterval(interval);
-  });
 
   const getScriptRam = _.memoize(ns.getScriptRam);
 
@@ -76,7 +72,6 @@ export async function main(ns: Bitburner.NS) {
     if (canLowerSecurity()) await doWeaken();
     else if (canGrow()) await doGrow();
     else await doHack();
-    pids = [];
     await ns.sleep(1500);
   }
 
@@ -103,18 +98,22 @@ export async function main(ns: Bitburner.NS) {
 
     let i;
 
+    let pids: number[] = [];
+
     for (
       i = 0;
       i < MAX_CYCLES && requiredThreads <= getAvailableThreads();
       i++
     ) {
       for (const [{ script, threads }, delay] of schedule) {
-        clusterExec(ns, {
-          script,
-          target,
-          threads,
-          delay: delay + i * SLEEP,
-        });
+        pids.push(
+          ...clusterExec(ns, {
+            script,
+            target,
+            threads,
+            delay: delay + i * SLEEP,
+          }),
+        );
       }
     }
 
@@ -137,6 +136,7 @@ export async function main(ns: Bitburner.NS) {
       ].join(" "),
     );
 
+    pcleanup.add(pids, totalTime);
     await ns.asleep(totalTime + SLEEP * i + 1000);
   }
 
@@ -184,15 +184,20 @@ export async function main(ns: Bitburner.NS) {
       ].join(" "),
     );
 
+    let pids: number[] = [];
+
     for (const [{ script, threads }, delay] of schedule) {
-      clusterExec(ns, {
-        script,
-        target,
-        threads,
-        delay,
-      });
+      pids.push(
+        ...clusterExec(ns, {
+          script,
+          target,
+          threads,
+          delay,
+        }),
+      );
     }
 
+    pcleanup.add(pids, totalTime);
     await ns.asleep(totalTime + SLEEP);
   }
 
@@ -220,12 +225,13 @@ export async function main(ns: Bitburner.NS) {
       ].join(" "),
     );
 
-    clusterExec(ns, {
+    let pids = clusterExec(ns, {
       script: weakenTask.script,
       target,
       threads: Math.min(getAvailableThreads(), weakenThreads),
     });
 
+    pcleanup.add(pids, totalTime);
     await ns.asleep(totalTime + SLEEP);
   }
 
@@ -268,8 +274,7 @@ export async function main(ns: Bitburner.NS) {
 
   function clusterExec(ns: Bitburner.NS, options: ClusterExecOptions) {
     const hosts = getRootAccessServers(ns);
-    let newPids = clusterExec2(ns, hosts, options);
-    pids.push(...newPids);
+    return clusterExec2(ns, hosts, options);
   }
 
   function getBatchThreadForHackProcess() {
