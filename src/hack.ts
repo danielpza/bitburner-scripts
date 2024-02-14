@@ -1,20 +1,15 @@
 import { growTarget } from "./grow.ts";
 import { binarySearch } from "./utils/binarySearch.ts";
+import { clusterExec } from "./utils/clusterExec.ts";
 import {
-  ClusterExecOptions,
-  clusterExec as clusterExec2,
-} from "./utils/clusterExec.ts";
-import {
-  GROW_ANALYZE_SEC,
   GROW_PER_WEAK,
-  HACK_ANALYZE_SEC,
   HACK_PER_WEAK,
   SLEEP,
-  WEAK_ANALYZE,
+  Script,
 } from "./utils/constants.ts";
+import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getFreeThreads } from "./utils/getFreeThreads.ts";
 import { scanAll } from "./utils/scanAll.ts";
-import { getOptimalSchedule } from "./utils/schedule.ts";
 import { weakenTarget } from "./weaken.ts";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
@@ -41,22 +36,6 @@ export async function main(ns: Bitburner.NS) {
     getScriptRam("scripts/dummy-weaken.js"),
   );
 
-  const hackTask = {
-    script: "scripts/dummy-hack.js",
-    time: (target: string) => ns.getHackTime(target),
-    sec: HACK_ANALYZE_SEC,
-  };
-  const growTask = {
-    script: "scripts/dummy-grow.js",
-    time: (target: string) => ns.getGrowTime(target),
-    sec: GROW_ANALYZE_SEC,
-  };
-  const weakenTask = {
-    script: "scripts/dummy-weaken.js",
-    time: (target: string) => ns.getWeakenTime(target),
-    sec: WEAK_ANALYZE,
-  };
-
   for (;;) {
     await weakenTarget(ns, target);
     await growTarget(ns, target);
@@ -75,31 +54,30 @@ export async function main(ns: Bitburner.NS) {
 
     const requiredThreads = hackThreads + growThreads + weakenThreads;
 
-    const { schedule, totalTime } = getOptimalSchedule(
-      [
-        { ...hackTask, threads: hackThreads },
-        { ...growTask, threads: growThreads },
-        { ...weakenTask, threads: weakenThreads },
-      ],
-      (task) => task.time(target),
-      SLEEP,
-    );
+    const hackTime = ns.getHackTime(target) + SLEEP * 2;
+    const growTime = ns.getGrowTime(target) + SLEEP;
+    const weakenTime = ns.getWeakenTime(target);
+
+    const totalTime = Math.max(growTime, hackTime, weakenTime);
+
+    const hackDelay = totalTime - hackTime;
+    const growDelay = totalTime - growTime;
+    const weakenDelay = totalTime - weakenTime;
+
+    const cluster = getRootAccessServers(ns);
+
+    const sexec = (script: string, threads: number, delay: number) =>
+      clusterExec(ns, cluster, { script, target, threads, delay });
 
     let i;
 
-    for (
-      i = 0;
-      i < MAX_CYCLES && requiredThreads <= getAvailableThreads();
-      i++
-    ) {
-      for (const [{ script, threads }, delay] of schedule) {
-        clusterExec(ns, {
-          script,
-          target,
-          threads,
-          delay: delay + i * SLEEP,
-        });
-      }
+    let totalThreads = getClusterFreeThreads(ns, cluster, RAM);
+
+    for (i = 0; i < MAX_CYCLES && requiredThreads <= totalThreads; i++) {
+      sexec(Script.HACK, hackThreads, hackDelay + i * SLEEP);
+      sexec(Script.GROW, growThreads, growDelay + i * SLEEP);
+      sexec(Script.WEAKEN, weakenThreads, weakenDelay + i * SLEEP);
+      totalThreads -= requiredThreads;
     }
 
     const moneyStolen = Math.min(
@@ -108,9 +86,6 @@ export async function main(ns: Bitburner.NS) {
     );
     const moneyAvailable = ns.getServerMoneyAvailable(target);
 
-    // title = `hack ${target} x${i}`;
-    // titleTime = totalTime;
-    ns.setTitle(`hack ${target} x${i} ${ns.tFormat(totalTime)}`);
     ns.print(
       [
         "hacking...",
@@ -149,11 +124,6 @@ export async function main(ns: Bitburner.NS) {
     let servers = scanAll(ns).filter((server) => ns.hasRootAccess(server));
     if (includeHome) servers.push("home");
     return servers;
-  }
-
-  function clusterExec(ns: Bitburner.NS, options: ClusterExecOptions) {
-    const hosts = getRootAccessServers(ns);
-    clusterExec2(ns, hosts, options);
   }
 
   function getBatchThreadForHackProcess() {
