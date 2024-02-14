@@ -8,8 +8,7 @@ import {
   Script,
 } from "./utils/constants.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
-import { getFreeThreads } from "./utils/getFreeThreads.ts";
-import { scanAll } from "./utils/scanAll.ts";
+import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 import { weakenTarget } from "./weaken.ts";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
@@ -21,19 +20,15 @@ const MAX_CYCLES = 1000;
 export async function main(ns: Bitburner.NS) {
   const [target] = ns.args as string[];
 
-  const includeHome = ns.args.includes("--home");
-
   ns.disableLog("ALL");
 
   ns.tail();
   ns.resizeTail(600, 120);
 
-  const getScriptRam = _.memoize(ns.getScriptRam);
-
   const RAM = Math.max(
-    getScriptRam("scripts/dummy-hack.js"),
-    getScriptRam("scripts/dummy-grow.js"),
-    getScriptRam("scripts/dummy-weaken.js"),
+    ns.getScriptRam(Script.HACK),
+    ns.getScriptRam(Script.GROW),
+    ns.getScriptRam(Script.WEAKEN),
   );
 
   for (;;) {
@@ -44,7 +39,9 @@ export async function main(ns: Bitburner.NS) {
   }
 
   async function hackTarget() {
-    const threads = getBatchThreadForHackProcess();
+    const cluster = getRootAccessServers(ns);
+    const freeThreads = getClusterFreeThreads(ns, cluster, RAM);
+    const threads = getBatchThreadForHackProcess(freeThreads);
 
     if (!threads) {
       throw new Error(`invalid threads`);
@@ -63,8 +60,6 @@ export async function main(ns: Bitburner.NS) {
     const hackDelay = totalTime - hackTime;
     const growDelay = totalTime - growTime;
     const weakenDelay = totalTime - weakenTime;
-
-    const cluster = getRootAccessServers(ns);
 
     const sexec = (script: string, threads: number, delay: number) =>
       clusterExec(ns, cluster, { script, target, threads, delay });
@@ -99,13 +94,6 @@ export async function main(ns: Bitburner.NS) {
     await ns.asleep(totalTime + SLEEP * i + 1000);
   }
 
-  function getAvailableThreads() {
-    return getRootAccessServers(ns).reduce(
-      (acc, server) => acc + getFreeThreads(ns, server, RAM),
-      0,
-    );
-  }
-
   function getGrowWeakenThreads(target: string, hackThreads: number) {
     const percentStolen = ns.hackAnalyze(target) * hackThreads;
     const growThreads = Math.ceil(
@@ -120,18 +108,10 @@ export async function main(ns: Bitburner.NS) {
     return [growThreads, weakenThreads];
   }
 
-  function getRootAccessServers(ns: Bitburner.NS) {
-    let servers = scanAll(ns).filter((server) => ns.hasRootAccess(server));
-    if (includeHome) servers.push("home");
-    return servers;
-  }
-
-  function getBatchThreadForHackProcess() {
+  function getBatchThreadForHackProcess(totalAvailableThreads: number) {
     const maxHackThreads = Math.ceil(
       ns.hackAnalyzeThreads(target, ns.getServerMoneyAvailable(target)),
     );
-
-    const totalAvailableThreads = getAvailableThreads();
 
     const hackThreads = binarySearch(
       1,
