@@ -16,12 +16,14 @@ export async function main(ns: Bitburner.NS) {
 
   (async () => {
     // secondary thread
-    nukeAll(ns);
+    while (true) {
+      nukeAll(ns);
 
-    while (tryPurchaseServer(ns));
-    while (tryUpgradeServer(ns));
+      while (tryPurchaseServer(ns));
+      while (tryUpgradeServer(ns));
 
-    await ns.asleep(1000);
+      await ns.asleep(1000);
+    }
   })();
 
   while (true) {
