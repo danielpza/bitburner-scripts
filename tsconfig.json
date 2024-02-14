@@ -5,6 +5,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "jsx": "react",
-    "jsxFactory": "window.React.createElement"
+    "jsxFactory": "window.React.createElement",
+    "jsxFragmentFactory": "window.React.Fragment"
   }
 }
