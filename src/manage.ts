@@ -22,7 +22,7 @@ export async function main(ns: Bitburner.NS) {
     if (canFullyWeaken(target)) {
       await Promise.all([
         weakenTarget(ns, target),
-        growTarget(ns, target, { extraDelay: SLEEP }),
+        growTarget(ns, target, { extraDelay: SLEEP * 2 }),
       ]);
     } else {
       await weakenTarget(ns, target);
