@@ -5,6 +5,7 @@ import { scanAll } from "./utils/scanAll.ts";
 
 import { nukeAll } from "./nuke-all.ts";
 import { weakenGrowTarget } from "./weaken-grow.ts";
+import { tryPurchaseServer, tryUpgradeServer } from "./servers.ts";
 
 export async function main(ns: Bitburner.NS) {
   ns.disableLog("ALL");
@@ -18,6 +19,10 @@ export async function main(ns: Bitburner.NS) {
 
   for (;;) {
     nukeAll(ns);
+
+    while (tryPurchaseServer(ns));
+    while (tryUpgradeServer(ns));
+
     const cluster = getRootAccessServers(ns);
 
     const hosts = scanAll(ns);
