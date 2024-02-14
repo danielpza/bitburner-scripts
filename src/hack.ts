@@ -81,7 +81,7 @@ export async function hackTarget(
 
   ns.print(
     [
-      "hacking...",
+      `hacking ${target}`,
       ns.formatNumber(moneyStolen) + "/" + ns.formatNumber(moneyAvailable),
       `(${hackThreads}, ${growThreads}, ${weakenThreads})`,
       `x${i}`,
