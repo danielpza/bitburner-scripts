@@ -25,76 +25,76 @@ export async function main(ns: Bitburner.NS) {
   ns.tail();
   ns.resizeTail(600, 120);
 
+  for (;;) {
+    await weakenTarget(ns, target);
+    await growTarget(ns, target);
+    await hackTarget(ns, target);
+    await ns.sleep(1500);
+  }
+}
+
+async function hackTarget(ns: Bitburner.NS, target: string) {
   const RAM = Math.max(
     ns.getScriptRam(Script.HACK),
     ns.getScriptRam(Script.GROW),
     ns.getScriptRam(Script.WEAKEN),
   );
 
-  for (;;) {
-    await weakenTarget(ns, target);
-    await growTarget(ns, target);
-    await hackTarget();
-    await ns.sleep(1500);
+  const cluster = getRootAccessServers(ns);
+  const freeThreads = getClusterFreeThreads(ns, cluster, RAM);
+  const threads = getBatchThreadForHackProcess(freeThreads);
+
+  if (!threads) {
+    throw new Error(`invalid threads`);
   }
 
-  async function hackTarget() {
-    const cluster = getRootAccessServers(ns);
-    const freeThreads = getClusterFreeThreads(ns, cluster, RAM);
-    const threads = getBatchThreadForHackProcess(freeThreads);
+  const { hackThreads, growThreads, weakenThreads } = threads;
 
-    if (!threads) {
-      throw new Error(`invalid threads`);
-    }
+  const requiredThreads = hackThreads + growThreads + weakenThreads;
 
-    const { hackThreads, growThreads, weakenThreads } = threads;
+  const hackTime = ns.getHackTime(target) + SLEEP * 2;
+  const growTime = ns.getGrowTime(target) + SLEEP;
+  const weakenTime = ns.getWeakenTime(target);
 
-    const requiredThreads = hackThreads + growThreads + weakenThreads;
+  const totalTime = Math.max(growTime, hackTime, weakenTime);
 
-    const hackTime = ns.getHackTime(target) + SLEEP * 2;
-    const growTime = ns.getGrowTime(target) + SLEEP;
-    const weakenTime = ns.getWeakenTime(target);
+  const hackDelay = totalTime - hackTime;
+  const growDelay = totalTime - growTime;
+  const weakenDelay = totalTime - weakenTime;
 
-    const totalTime = Math.max(growTime, hackTime, weakenTime);
+  const sexec = (script: string, threads: number, delay: number) =>
+    clusterExec(ns, cluster, { script, target, threads, delay });
 
-    const hackDelay = totalTime - hackTime;
-    const growDelay = totalTime - growTime;
-    const weakenDelay = totalTime - weakenTime;
+  let i;
 
-    const sexec = (script: string, threads: number, delay: number) =>
-      clusterExec(ns, cluster, { script, target, threads, delay });
+  let totalThreads = getClusterFreeThreads(ns, cluster, RAM);
 
-    let i;
-
-    let totalThreads = getClusterFreeThreads(ns, cluster, RAM);
-
-    for (i = 0; i < MAX_CYCLES && requiredThreads <= totalThreads; i++) {
-      sexec(Script.HACK, hackThreads, hackDelay + i * SLEEP);
-      sexec(Script.GROW, growThreads, growDelay + i * SLEEP);
-      sexec(Script.WEAKEN, weakenThreads, weakenDelay + i * SLEEP);
-      totalThreads -= requiredThreads;
-    }
-
-    const moneyStolen = Math.min(
-      ns.hackAnalyze(target) * hackThreads * ns.getServerMoneyAvailable(target),
-      ns.getServerMoneyAvailable(target),
-    );
-    const moneyAvailable = ns.getServerMoneyAvailable(target);
-
-    ns.print(
-      [
-        "hacking...",
-        ns.formatNumber(moneyStolen) + "/" + ns.formatNumber(moneyAvailable),
-        `(${hackThreads}, ${growThreads}, ${weakenThreads})`,
-        `x${i}`,
-        ns.tFormat(totalTime),
-      ].join(" "),
-    );
-
-    await ns.asleep(totalTime + SLEEP * i + 1000);
+  for (i = 0; i < MAX_CYCLES && requiredThreads <= totalThreads; i++) {
+    sexec(Script.HACK, hackThreads, hackDelay + i * SLEEP);
+    sexec(Script.GROW, growThreads, growDelay + i * SLEEP);
+    sexec(Script.WEAKEN, weakenThreads, weakenDelay + i * SLEEP);
+    totalThreads -= requiredThreads;
   }
 
-  function getGrowWeakenThreads(target: string, hackThreads: number) {
+  const moneyStolen = Math.min(
+    ns.hackAnalyze(target) * hackThreads * ns.getServerMoneyAvailable(target),
+    ns.getServerMoneyAvailable(target),
+  );
+  const moneyAvailable = ns.getServerMoneyAvailable(target);
+
+  ns.print(
+    [
+      "hacking...",
+      ns.formatNumber(moneyStolen) + "/" + ns.formatNumber(moneyAvailable),
+      `(${hackThreads}, ${growThreads}, ${weakenThreads})`,
+      `x${i}`,
+      ns.tFormat(totalTime),
+    ].join(" "),
+  );
+
+  await ns.asleep(totalTime + SLEEP * i + 1000);
+
+  function getGrowWeakenThreads(hackThreads: number) {
     const percentStolen = ns.hackAnalyze(target) * hackThreads;
     const growThreads = Math.ceil(
       ns.growthAnalyze(
@@ -117,20 +117,14 @@ export async function main(ns: Bitburner.NS) {
       1,
       Math.min(maxHackThreads + 1, totalAvailableThreads),
       (hackThreads) => {
-        const [growThreads, weakenThreads] = getGrowWeakenThreads(
-          target,
-          hackThreads,
-        );
+        const [growThreads, weakenThreads] = getGrowWeakenThreads(hackThreads);
         return (
           hackThreads + growThreads + weakenThreads <= totalAvailableThreads
         );
       },
     );
 
-    const [growThreads, weakenThreads] = getGrowWeakenThreads(
-      target,
-      hackThreads,
-    );
+    const [growThreads, weakenThreads] = getGrowWeakenThreads(hackThreads);
 
     if (
       hackThreads <= 0 ||
