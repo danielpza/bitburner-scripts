@@ -28,7 +28,11 @@ export async function main(ns: Bitburner.NS) {
   await hackTarget(ns, target);
 }
 
-export async function hackTarget(ns: Bitburner.NS, target: string) {
+export async function hackTarget(
+  ns: Bitburner.NS,
+  target: string,
+  { maxCycles = MAX_CYCLES } = {},
+) {
   const RAM = Math.max(
     ns.getScriptRam(Script.HACK),
     ns.getScriptRam(Script.GROW),
@@ -64,7 +68,7 @@ export async function hackTarget(ns: Bitburner.NS, target: string) {
 
   let totalThreads = getClusterFreeThreads(ns, cluster, RAM);
 
-  for (i = 0; i < MAX_CYCLES && requiredThreads <= totalThreads; i++) {
+  for (i = 0; i < maxCycles && requiredThreads <= totalThreads; i++) {
     sexec(Script.HACK, hackThreads, hackDelay + i * SLEEP);
     sexec(Script.GROW, growThreads, growDelay + i * SLEEP);
     sexec(Script.WEAKEN, weakenThreads, weakenDelay + i * SLEEP);
