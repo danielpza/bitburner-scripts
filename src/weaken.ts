@@ -31,10 +31,10 @@ export async function weakenTarget(ns: Bitburner.NS, target: string) {
     }
 
     const servers = getRootAccessServers(ns);
+    const freeThreads = getClusterFreeThreads(ns, servers, ram);
+
     const totalTime = ns.getWeakenTime(target);
     const weakenThreads = Math.ceil(secToRemove / WEAK_ANALYZE);
-
-    const freeThreads = getClusterFreeThreads(ns, servers, ram);
 
     clusterExec(ns, servers, {
       script: Script.WEAKEN,
