@@ -39,7 +39,8 @@ export async function main(ns: Bitburner.NS) {
       (server) => ns.getServerMaxMoney(server) > 0 && ns.hasRootAccess(server),
     );
     return _.orderBy(servers, [
-      (server) => Math.floor(ns.getWeakenTime(server) / (1000 * 60 * 5)),
+      // (server) => Math.floor(ns.getWeakenTime(server) / (1000 * 60 * 5)),
+      (server) => Math.round(Math.log(ns.getWeakenTime(server))),
       (server) => {
         const maxMoney = ns.getServerMaxMoney(server);
         const hackThreads = Math.ceil(1 / ns.hackAnalyze(server));
