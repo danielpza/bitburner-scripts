@@ -25,15 +25,10 @@ export async function main(ns: Bitburner.NS) {
   ns.tail();
   ns.resizeTail(600, 120);
 
-  for (;;) {
-    await weakenTarget(ns, target);
-    await growTarget(ns, target);
-    await hackTarget(ns, target);
-    await ns.sleep(1500);
-  }
+  await hackTarget(ns, target);
 }
 
-async function hackTarget(ns: Bitburner.NS, target: string) {
+export async function hackTarget(ns: Bitburner.NS, target: string) {
   const RAM = Math.max(
     ns.getScriptRam(Script.HACK),
     ns.getScriptRam(Script.GROW),
