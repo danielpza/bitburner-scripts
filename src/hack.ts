@@ -14,6 +14,7 @@ import {
 import { getFreeThreads } from "./utils/getFreeThreads.ts";
 import { scanAll } from "./utils/scanAll.ts";
 import { getOptimalSchedule } from "./utils/schedule.ts";
+import { weakenTarget } from "./weaken.ts";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
@@ -56,8 +57,8 @@ export async function main(ns: Bitburner.NS) {
   };
 
   for (;;) {
-    if (canLowerSecurity()) await doWeaken();
-    else if (canGrow()) await doGrow();
+    await weakenTarget(ns, target);
+    if (canGrow()) await doGrow();
     else await doHack();
     await ns.sleep(1500);
   }
@@ -176,45 +177,6 @@ export async function main(ns: Bitburner.NS) {
     }
 
     await ns.asleep(totalTime + SLEEP);
-  }
-
-  async function doWeaken() {
-    const totalTime = ns.getWeakenTime(target);
-
-    const currentSecurity = ns.getServerSecurityLevel(target);
-    const minSecurity = ns.getServerMinSecurityLevel(target);
-
-    const secToRemove = currentSecurity - minSecurity;
-
-    const weakenThreads = Math.ceil(secToRemove / WEAK_ANALYZE);
-
-    // title = `weak ${target}`;
-    // titleTime = totalTime;
-    ns.setTitle(`weak ${target} ${ns.tFormat(totalTime)}`);
-    ns.print(
-      [
-        "weakening...",
-        ns.formatNumber(ns.getServerSecurityLevel(target)) +
-          "/" +
-          ns.formatNumber(ns.getServerMinSecurityLevel(target)),
-        `(${weakenThreads})`,
-        ns.tFormat(totalTime),
-      ].join(" "),
-    );
-
-    clusterExec(ns, {
-      script: weakenTask.script,
-      target,
-      threads: Math.min(getAvailableThreads(), weakenThreads),
-    });
-
-    await ns.asleep(totalTime + SLEEP);
-  }
-
-  function canLowerSecurity() {
-    return (
-      ns.getServerMinSecurityLevel(target) < ns.getServerSecurityLevel(target)
-    );
   }
 
   function canGrow() {
