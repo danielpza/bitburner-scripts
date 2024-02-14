@@ -8,7 +8,7 @@ export function nukeAll(ns: Bitburner.NS) {
   const servers = scanAll(ns).filter((server) => !ns.hasRootAccess(server));
   for (const target of servers) {
     if (nukeTarget(ns, target)) {
-      ns.tprint(`Nuked ${target}`);
+      ns.print(`Nuked ${target}`);
     }
   }
 }
