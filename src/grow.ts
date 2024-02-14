@@ -22,27 +22,21 @@ export async function growTarget(
   target: string,
   { extraDelay = 0 } = {},
 ) {
-  const ram = ns.getScriptRam(Script.GROW);
+  const ram = Math.max(
+    ns.getScriptRam(Script.GROW),
+    ns.getScriptRam(Script.WEAKEN),
+  );
 
   while (true) {
-    const currentMoney = ns.getServerMoneyAvailable(target);
-    const maxMoney = ns.getServerMaxMoney(target);
+    let growThreads = getRequiredGrowThreads(ns, target);
 
-    const moneyNeeded = maxMoney - currentMoney;
-
-    if (moneyNeeded <= 0) {
+    if (growThreads == 0) {
       break;
     }
 
-    const servers = getRootAccessServers(ns);
-    const freeThreads = getClusterFreeThreads(ns, servers, ram);
+    const cluster = getRootAccessServers(ns);
+    const freeThreads = getClusterFreeThreads(ns, cluster, ram);
 
-    let growThreads = Math.ceil(
-      ns.growthAnalyze(
-        target,
-        Math.min(Number.MAX_SAFE_INTEGER, maxMoney / currentMoney),
-      ),
-    );
     let weakenThreads = Math.ceil(growThreads / GROW_PER_WEAK);
     let targetTotalThreads = growThreads + weakenThreads;
 
@@ -59,18 +53,11 @@ export async function growTarget(
     const growDelay = totalTime - growTime;
     const weakenDelay = totalTime - weakenTime;
 
-    clusterExec(ns, servers, {
-      script: Script.GROW,
-      target,
-      threads: growThreads,
-      delay: growDelay,
-    });
-    clusterExec(ns, servers, {
-      script: Script.WEAKEN,
-      target,
-      threads: weakenThreads,
-      delay: weakenDelay,
-    });
+    const sexec = (script: string, threads: number, delay: number) =>
+      clusterExec(ns, cluster, { script, target, threads, delay });
+
+    sexec(Script.GROW, growThreads, growDelay);
+    sexec(Script.WEAKEN, weakenThreads, weakenDelay);
 
     ns.print(
       [
@@ -87,4 +74,21 @@ export async function growTarget(
 
     ns.print(`grown ${target}`);
   }
+}
+
+export function getRequiredGrowThreads(ns: Bitburner.NS, target: string) {
+  const currentMoney = ns.getServerMoneyAvailable(target);
+  const maxMoney = ns.getServerMaxMoney(target);
+
+  if (currentMoney === maxMoney) return 0;
+
+  return Math.ceil(
+    ns.growthAnalyze(
+      target,
+      Math.min(
+        Number.MAX_SAFE_INTEGER,
+        maxMoney / Math.max(currentMoney, Number.EPSILON),
+      ),
+    ),
+  );
 }

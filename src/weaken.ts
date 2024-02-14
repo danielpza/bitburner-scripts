@@ -14,13 +14,17 @@ export async function main(ns: Bitburner.NS) {
   ns.tail();
   ns.resizeTail(700, 120);
 
-  await weakenTarget(ns, target);
+  await weakenTarget(ns, target, { loop: true });
 }
 
-export async function weakenTarget(ns: Bitburner.NS, target: string) {
+export async function weakenTarget(
+  ns: Bitburner.NS,
+  target: string,
+  { loop = false }: { loop?: boolean } = {},
+) {
   const ram = ns.getScriptRam(Script.WEAKEN);
 
-  while (true) {
+  do {
     const currentSecurity = ns.getServerSecurityLevel(target);
     const minSecurity = ns.getServerMinSecurityLevel(target);
 
@@ -56,5 +60,14 @@ export async function weakenTarget(ns: Bitburner.NS, target: string) {
     await ns.asleep(totalTime + SLEEP);
 
     ns.print(`weakened ${target}`);
-  }
+  } while (loop);
+}
+
+export function getRequiredWeakenThreads(ns: Bitburner.NS, target: string) {
+  const currentSecurity = ns.getServerSecurityLevel(target);
+  const minSecurity = ns.getServerMinSecurityLevel(target);
+
+  const secToRemove = currentSecurity - minSecurity;
+
+  return Math.ceil(secToRemove / WEAK_ANALYZE);
 }
