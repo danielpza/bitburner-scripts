@@ -1,4 +1,5 @@
 import { growTarget } from "./grow.ts";
+import { nukeAll } from "./nuke-all.ts";
 import { SLEEP, Script, WEAK_ANALYZE } from "./utils/constants.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
@@ -15,10 +16,11 @@ export async function main(ns: Bitburner.NS) {
 
   let blackList = new Set<string>([]);
 
-  const hosts = scanAll(ns);
-
   for (;;) {
+    nukeAll(ns);
     const cluster = getRootAccessServers(ns);
+
+    const hosts = scanAll(ns);
     const possibleTargets = hosts.filter(
       (host) =>
         !blackList.has(host) &&
