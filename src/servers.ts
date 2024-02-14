@@ -14,39 +14,10 @@ export async function main(ns: Bitburner.NS) {
     return;
   }
 
-  if (operation === "buy") buy();
-  else if (operation === "upgrade") upgrade();
+  if (operation === "buy") while (tryPurchaseServer(ns));
+  else if (operation === "upgrade") while (tryUpgradeServer(ns));
 
   list();
-
-  function buy() {
-    let ram = getBiggestRam();
-    if (!ram) {
-      // ns.tprint("Cannot buy any servers");
-      return;
-    }
-    if (
-      ns.getPurchasedServerCost(ram) <= ns.getPlayer().money &&
-      ns.getPurchasedServers().length < ns.getPurchasedServerLimit()
-    ) {
-      ns.print(`Buying server with ${ns.formatRam(ram)} ram`);
-      ns.purchaseServer(getName(), ram);
-    }
-    // ns.setTitle(`${ns.getPurchasedServers().length}`);
-  }
-
-  function upgrade() {
-    let server: string | undefined;
-    let desiredRam: number;
-    while (
-      (server = getSmallestServer()) &&
-      ((desiredRam = ns.getServerMaxRam(server) * 2),
-      canUpgradeServer(server, desiredRam))
-    ) {
-      ns.print(`Upgrading ${server} to ${ns.formatRam(desiredRam)}`);
-      ns.upgradePurchasedServer(server, desiredRam);
-    }
-  }
 
   function list() {
     const servers = ns.getPurchasedServers();
@@ -74,11 +45,9 @@ export async function main(ns: Bitburner.NS) {
 
   async function watch() {
     ns.disableLog("ALL");
-    // ns.enableLog("upgradePurchasedServer");
-    // ns.enableLog("purchaseServer");
     for (;;) {
-      upgrade();
-      buy();
+      while (tryUpgradeServer(ns));
+      while (tryPurchaseServer(ns));
       await ns.sleep(1000);
     }
   }
@@ -86,6 +55,25 @@ export async function main(ns: Bitburner.NS) {
   function moneyFormat(value: number) {
     return `$${ns.formatNumber(value, 0)}`;
   }
+}
+
+export function tryPurchaseServer(ns: Bitburner.NS) {
+  let ram = getBiggestRam();
+  if (!ram) {
+    // ns.tprint("Cannot buy any servers");
+    return false;
+  }
+  const canBuyServer =
+    ns.getPurchasedServerCost(ram) <= ns.getPlayer().money &&
+    ns.getPurchasedServers().length < ns.getPurchasedServerLimit();
+  if (!canBuyServer) {
+    return false;
+  }
+
+  ns.print(`Buying server with ${ns.formatRam(ram)} ram`);
+  ns.purchaseServer(getName(), ram);
+
+  return true;
 
   function getBiggestRam() {
     let ram: number;
@@ -102,6 +90,19 @@ export async function main(ns: Bitburner.NS) {
   function getName() {
     return `purchased_server_${ns.getPurchasedServers().length + 1}`;
   }
+}
+
+export function tryUpgradeServer(ns: Bitburner.NS) {
+  const server = getSmallestServer();
+  if (!server) return false;
+
+  const desiredRam = ns.getServerMaxRam(server) * 2;
+
+  if (!canUpgradeServer(server, desiredRam)) return false;
+
+  ns.print(`Upgrading ${server} to ${ns.formatRam(desiredRam)}`);
+
+  return ns.upgradePurchasedServer(server, desiredRam);
 
   function canUpgradeServer(server: string, desiredRam: number) {
     return (
