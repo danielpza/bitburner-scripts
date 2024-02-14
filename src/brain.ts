@@ -2,8 +2,6 @@ import { nukeAll } from "./nuke-all.ts";
 import { weakenGrowTarget } from "./weaken-grow.ts";
 import { tryPurchaseServer, tryUpgradeServer } from "./servers.ts";
 import { hackTarget } from "./hack.ts";
-import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
-import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 import { GROW_PER_WEAK, HACK_PER_WEAK, Script } from "./utils/constants.ts";
 import { scanAll } from "./utils/scanAll.ts";
 
@@ -31,12 +29,7 @@ export async function main(ns: Bitburner.NS) {
     const target = getHackTarget();
 
     await weakenGrowTarget(ns, target);
-    const hackPromise = hackTarget(ns, target);
-
-    const cluster = getRootAccessServers(ns);
-    const freeThreads = getClusterFreeThreads(ns, cluster, ram);
-
-    await hackPromise;
+    await hackTarget(ns, target);
 
     await ns.asleep(1500);
   }
