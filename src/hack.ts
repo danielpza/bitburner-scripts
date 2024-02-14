@@ -1,4 +1,3 @@
-import { growTarget } from "./grow.ts";
 import { binarySearch } from "./utils/binarySearch.ts";
 import { clusterExec } from "./utils/clusterExec.ts";
 import {
@@ -9,7 +8,6 @@ import {
 } from "./utils/constants.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
-import { weakenTarget } from "./weaken.ts";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
