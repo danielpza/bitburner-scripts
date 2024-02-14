@@ -4,6 +4,8 @@ export function autocomplete() {
   return ["buy", "upgrade", "list", "watch"];
 }
 
+const KEEP_MONEY = 2_000_000; // enough money to buy some essentials
+
 export async function main(ns: Bitburner.NS) {
   const [operation] = ns.args;
 
@@ -64,7 +66,7 @@ export function tryPurchaseServer(ns: Bitburner.NS) {
     return false;
   }
   const canBuyServer =
-    ns.getPurchasedServerCost(ram) <= ns.getPlayer().money &&
+    ns.getPurchasedServerCost(ram) <= ns.getPlayer().money - KEEP_MONEY &&
     ns.getPurchasedServers().length < ns.getPurchasedServerLimit();
   if (!canBuyServer) {
     return false;
@@ -79,7 +81,7 @@ export function tryPurchaseServer(ns: Bitburner.NS) {
     let ram: number;
     for (
       ram = 1;
-      ns.getPurchasedServerCost(ram) <= ns.getPlayer().money;
+      ns.getPurchasedServerCost(ram) <= ns.getPlayer().money - KEEP_MONEY;
       ram *= 2
     ) {}
     if (ram === 1) return 0;
@@ -107,7 +109,7 @@ export function tryUpgradeServer(ns: Bitburner.NS) {
   function canUpgradeServer(server: string, desiredRam: number) {
     return (
       ns.getPurchasedServerUpgradeCost(server, desiredRam) <=
-      ns.getPlayer().money
+      ns.getPlayer().money - KEEP_MONEY
     );
   }
 
