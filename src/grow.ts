@@ -17,7 +17,11 @@ export async function main(ns: Bitburner.NS) {
   await growTarget(ns, target);
 }
 
-export async function growTarget(ns: Bitburner.NS, target: string) {
+export async function growTarget(
+  ns: Bitburner.NS,
+  target: string,
+  { extraDelay = 0 } = {},
+) {
   const ram = ns.getScriptRam(Script.GROW);
 
   while (true) {
@@ -50,7 +54,7 @@ export async function growTarget(ns: Bitburner.NS, target: string) {
 
     const growTime = ns.getGrowTime(target) + SLEEP;
     const weakenTime = ns.getWeakenTime(target);
-    const totalTime = Math.max(growTime, weakenTime);
+    const totalTime = Math.max(growTime, weakenTime) + extraDelay;
 
     const growDelay = totalTime - growTime;
     const weakenDelay = totalTime - weakenTime;
