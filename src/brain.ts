@@ -36,10 +36,10 @@ export async function main(ns: Bitburner.NS) {
 
   function getHackTarget() {
     const servers = scanAll(ns).filter(
-      (server) => ns.getServerMaxMoney(server) > 0,
+      (server) => ns.getServerMaxMoney(server) > 0 && ns.hasRootAccess(server),
     );
     return _.orderBy(servers, [
-      (server) => (ns.getWeakenTime(server) < 1000 * 60 * 10 ? 0 : 1),
+      (server) => Math.floor(ns.getWeakenTime(server) / (1000 * 60 * 5)),
       (server) => {
         const maxMoney = ns.getServerMaxMoney(server);
         const hackThreads = Math.ceil(1 / ns.hackAnalyze(server));
