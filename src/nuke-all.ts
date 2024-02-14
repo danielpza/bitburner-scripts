@@ -15,14 +15,14 @@ export function nukeAll(ns: Bitburner.NS) {
 
 export function nukeTarget(ns: Bitburner.NS, target: string) {
   for (const op of [
-    "brutessh",
-    "ftpcrack",
-    "relaysmtp",
-    "httpworm",
-    "sqlinject",
-  ] as const) {
+    ns.brutessh,
+    ns.ftpcrack,
+    ns.relaysmtp,
+    ns.httpworm,
+    ns.sqlinject,
+  ]) {
     try {
-      ns[op](target);
+      op(target);
     } catch (e) {}
   }
   try {
