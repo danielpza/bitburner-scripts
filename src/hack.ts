@@ -1,3 +1,4 @@
+import { growTarget } from "./grow.ts";
 import { binarySearch } from "./utils/binarySearch.ts";
 import {
   ClusterExecOptions,
@@ -58,12 +59,12 @@ export async function main(ns: Bitburner.NS) {
 
   for (;;) {
     await weakenTarget(ns, target);
-    if (canGrow()) await doGrow();
-    else await doHack();
+    await growTarget(ns, target);
+    await hackTarget();
     await ns.sleep(1500);
   }
 
-  async function doHack() {
+  async function hackTarget() {
     const threads = getBatchThreadForHackProcess();
 
     if (!threads) {
@@ -121,66 +122,6 @@ export async function main(ns: Bitburner.NS) {
     );
 
     await ns.asleep(totalTime + SLEEP * i + 1000);
-  }
-
-  async function doGrow() {
-    let growThreads = Math.ceil(
-      ns.growthAnalyze(
-        target,
-        Math.min(
-          Number.MAX_SAFE_INTEGER,
-          ns.getServerMaxMoney(target) / ns.getServerMoneyAvailable(target),
-        ),
-      ),
-    );
-    let weakenThreads = Math.ceil(growThreads / GROW_PER_WEAK);
-    let targetTotalThreads = growThreads + weakenThreads;
-
-    const freeThreads = getAvailableThreads();
-
-    if (targetTotalThreads > freeThreads) {
-      const ratio = freeThreads / targetTotalThreads;
-      weakenThreads = Math.ceil(weakenThreads * ratio);
-      growThreads = freeThreads - weakenThreads;
-    }
-
-    const { schedule, totalTime } = getOptimalSchedule(
-      [
-        { ...growTask, threads: growThreads },
-        { ...weakenTask, threads: weakenThreads },
-      ],
-      (task) => task.time(target),
-      SLEEP,
-    );
-
-    // title = `grow ${target}`;
-    // titleTime = totalTime;
-    ns.setTitle(`grow ${target} ${ns.tFormat(totalTime)}`);
-    ns.print(
-      [
-        "growing...",
-        ns.formatNumber(ns.getServerMoneyAvailable(target)) +
-          "/" +
-          ns.formatNumber(ns.getServerMaxMoney(target)),
-        `(${growThreads}, ${weakenThreads})`,
-        ns.tFormat(totalTime),
-      ].join(" "),
-    );
-
-    for (const [{ script, threads }, delay] of schedule) {
-      clusterExec(ns, {
-        script,
-        target,
-        threads,
-        delay,
-      });
-    }
-
-    await ns.asleep(totalTime + SLEEP);
-  }
-
-  function canGrow() {
-    return ns.getServerMoneyAvailable(target) < ns.getServerMaxMoney(target);
   }
 
   function getAvailableThreads() {
