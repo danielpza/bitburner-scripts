@@ -1,11 +1,7 @@
-import { SLEEP, Script } from "./utils/constants.ts";
-import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
-import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
-import { scanAll } from "./utils/scanAll.ts";
-
 import { nukeAll } from "./nuke-all.ts";
 import { weakenGrowTarget } from "./weaken-grow.ts";
 import { tryPurchaseServer, tryUpgradeServer } from "./servers.ts";
+import { hackTarget } from "./hack.ts";
 
 export async function main(ns: Bitburner.NS) {
   ns.disableLog("ALL");
@@ -13,45 +9,26 @@ export async function main(ns: Bitburner.NS) {
   ns.tail();
   ns.resizeTail(600, 120);
 
-  const RAM = ns.getScriptRam(Script.WEAKEN);
-
-  let blackList = new Set<string>([]);
-
-  for (;;) {
+  (async () => {
+    // secondary thread
     nukeAll(ns);
 
     while (tryPurchaseServer(ns));
     while (tryUpgradeServer(ns));
 
-    const cluster = getRootAccessServers(ns);
+    await ns.asleep(1000);
+  })();
 
-    const hosts = scanAll(ns);
-    const possibleTargets = hosts.filter(
-      (host) =>
-        !blackList.has(host) &&
-        canLowerSecurity(host) &&
-        ns.getWeakenTime(host) < 1000 * 60 * 20,
-    );
-    const sortedTargets = _.sortBy(possibleTargets, ns.getWeakenTime);
-    Promise.all(
-      sortedTargets.map(async (target) => {
-        const availableThreads = getClusterFreeThreads(ns, cluster, RAM);
+  while (true) {
+    const target = getHackTarget();
 
-        if (availableThreads === 0) return;
+    await weakenGrowTarget(ns, target);
+    await hackTarget(ns, target);
 
-        blackList.add(target);
-
-        await weakenGrowTarget(ns, target);
-      }),
-    );
-
-    await ns.asleep(SLEEP * 5);
+    await ns.asleep(1500);
   }
 
-  function canLowerSecurity(target: string) {
-    return (
-      ns.hasRootAccess(target) &&
-      ns.getServerMinSecurityLevel(target) < ns.getServerSecurityLevel(target)
-    );
+  function getHackTarget() {
+    return "n00dles";
   }
 }
