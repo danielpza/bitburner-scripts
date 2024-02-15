@@ -1,23 +1,24 @@
-import { nukeAll } from "./nuke-all.ts";
-import { tryPurchaseServer, tryUpgradeServer } from "./servers.ts";
-import { hackTarget } from "./hack.ts";
+import { clusterExec } from "./utils/clusterExec.ts";
 import {
   GROW_PER_WEAK,
   HACK_PER_WEAK,
   Jobs,
   TARGET_HACK_PERCENT,
 } from "./utils/constants.ts";
-import { scanAll } from "./utils/scanAll.ts";
-import { clusterExec } from "./utils/clusterExec.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
+import { scanAll } from "./utils/scanAll.ts";
+
+import { canFullyGrow, getRequiredGrowThreads, growTarget } from "./grow.ts";
+import { hackTarget } from "./hack.ts";
+import { nukeAll } from "./nuke-all.ts";
+import { tryPurchaseServer, tryUpgradeServer } from "./servers.ts";
+import { buyPrograms } from "./tor.ts";
 import {
   canFullyWeaken,
   getRequiredWeakenThreads,
   weakenTarget,
 } from "./weaken.ts";
-import { canFullyGrow, getRequiredGrowThreads, growTarget } from "./grow.ts";
-import { buyPrograms } from "./tor.ts";
 
 export async function main(ns: Bitburner.NS) {
   ns.disableLog("ALL");
@@ -80,7 +81,7 @@ async function hackThread(ns: Bitburner.NS) {
     if (freeThreads) {
       ns.print(`sharing ${freeThreads}`);
       clusterExec(ns, cluster, Jobs.Share(freeThreads));
-      return ns.asleep(10_000);
+      return ns.asleep(10_100);
     } else {
       return ns.asleep(100);
     }
