@@ -12,3 +12,5 @@ export enum Script {
   GROW = "scripts/dummy-grow.js",
   WEAKEN = "scripts/dummy-weaken.js",
 }
+
+export const TARGET_HACK_PERCENT = 0.1;

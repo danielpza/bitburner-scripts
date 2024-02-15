@@ -5,6 +5,7 @@ import {
   HACK_PER_WEAK,
   SLEEP,
   Script,
+  TARGET_HACK_PERCENT,
 } from "./utils/constants.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
@@ -107,7 +108,10 @@ export async function hackTarget(
 
   function getBatchThreadForHackProcess(totalAvailableThreads: number) {
     const maxHackThreads = Math.ceil(
-      ns.hackAnalyzeThreads(target, ns.getServerMoneyAvailable(target)),
+      ns.hackAnalyzeThreads(
+        target,
+        ns.getServerMoneyAvailable(target) * TARGET_HACK_PERCENT,
+      ),
     );
 
     const hackThreads = binarySearch(
