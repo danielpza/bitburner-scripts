@@ -35,29 +35,35 @@ async function hackThread(ns: Bitburner.NS) {
   while (true) {
     const target = getHackTarget();
 
-    while (!canFullyWeaken(ns, target))
-      await Promise.all([weakenTarget(ns, target), weakenAll(target)]);
+    while (!canFullyWeaken(ns, target)) await weakenTarget(ns, target);
 
-    if (getRequiredWeakenThreads(ns, target) > 0)
-      await Promise.all([
+    if (getRequiredWeakenThreads(ns, target) > 0) {
+      const weakenGrowPromise = Promise.all([
         weakenTarget(ns, target),
         growTarget(ns, target),
-        weakenAll(target),
       ]);
+      await whileUnresolved(weakenGrowPromise, async () => {
+        await shareAll();
+        await ns.asleep(100);
+      });
+      await weakenGrowPromise;
+    }
 
     while (!canFullyGrow(ns, target))
       await Promise.all([growTarget(ns, target), weakenAll(target)]);
 
-    if (getRequiredGrowThreads(ns, target) > 0)
-      await Promise.all([growTarget(ns, target), weakenAll(target)]);
+    if (getRequiredGrowThreads(ns, target) > 0) {
+      const growPromise = growTarget(ns, target);
+      whileUnresolved(growPromise, async () => {
+        await shareAll();
+        await ns.asleep(100);
+      });
+      await growPromise;
+    }
 
     const hackPromise = hackTarget(ns, target);
 
-    await whileUnresolved(hackPromise, async () => {
-      ns.print(`sharing`);
-      await shareAll();
-      await ns.asleep(100);
-    });
+    await whileUnresolved(hackPromise, shareAll);
 
     await hackPromise;
 
@@ -67,15 +73,17 @@ async function hackThread(ns: Bitburner.NS) {
   async function shareAll() {
     const cluster = getRootAccessServers(ns);
 
-    if (getClusterFreeThreads(ns, cluster, ns.getScriptRam(Script.SHARE))) {
-      clusterExec(
-        ns,
-        cluster,
-        Job.Share(
-          getClusterFreeThreads(ns, cluster, ns.getScriptRam(Script.SHARE)),
-        ),
-      );
+    const freeThreads = getClusterFreeThreads(
+      ns,
+      cluster,
+      ns.getScriptRam(Script.SHARE),
+    );
+    if (freeThreads) {
+      ns.print(`sharing ${freeThreads}`);
+      clusterExec(ns, cluster, Job.Share(freeThreads));
       return ns.asleep(10_000);
+    } else {
+      return ns.asleep(100);
     }
   }
 
@@ -84,11 +92,7 @@ async function hackThread(ns: Bitburner.NS) {
     const freeThreads = getClusterFreeThreads(ns, cluster, RAM);
 
     if (freeThreads)
-      return clusterExecOld(ns, cluster, {
-        script: Script.WEAKEN,
-        target,
-        threads: freeThreads,
-      });
+      return clusterExec(ns, cluster, Job.Weaken(target, freeThreads));
   }
 
   function getHackTarget() {

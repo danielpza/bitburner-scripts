@@ -15,14 +15,20 @@ export enum Script {
 }
 
 const HGW =
-  (script: string) => (target: string, threads: number, delay: number) => ({
+  (script: string) =>
+  (target: string, threads: number, delay: number = 0) => ({
     script,
     threads,
     args: [target, "--delay", delay],
   });
 
 export const Job = {
-  HGW: (script: string, target: string, threads: number, delay: number) => ({
+  HGW: (
+    script: string,
+    target: string,
+    threads: number,
+    delay: number = 0,
+  ) => ({
     script,
     threads,
     args: [target, "--delay", delay],
