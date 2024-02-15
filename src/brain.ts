@@ -18,6 +18,7 @@ import {
   weakenTarget,
 } from "./weaken.ts";
 import { canFullyGrow, getRequiredGrowThreads, growTarget } from "./grow.ts";
+import { buyPrograms } from "./tor.ts";
 
 export async function main(ns: Bitburner.NS) {
   ns.disableLog("ALL");
@@ -121,6 +122,8 @@ async function hackThread(ns: Bitburner.NS) {
 async function secondaryThread(ns: Bitburner.NS) {
   while (true) {
     nukeAll(ns);
+
+    await buyPrograms(ns);
 
     while (tryPurchaseServer(ns));
     while (tryUpgradeServer(ns));
