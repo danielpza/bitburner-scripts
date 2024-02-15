@@ -24,19 +24,11 @@ export async function main(ns: Bitburner.NS) {
   ns.tail();
   ns.resizeTail(800, 120);
 
+  await Promise.all([secondaryThread(ns), hackThread(ns)]);
+}
+
+async function hackThread(ns: Bitburner.NS) {
   const RAM = ns.getScriptRam(Script.WEAKEN);
-
-  (async () => {
-    // secondary thread
-    while (true) {
-      nukeAll(ns);
-
-      while (tryPurchaseServer(ns));
-      while (tryUpgradeServer(ns));
-
-      await ns.asleep(1000);
-    }
-  })();
 
   while (true) {
     const target = getHackTarget();
@@ -82,6 +74,8 @@ export async function main(ns: Bitburner.NS) {
     return _.orderBy(servers, [
       (server) =>
         ns.getServerRequiredHackingLevel(server) < hackLevel / 2 ? 0 : 1,
+      (server) => Math.floor(ns.getWeakenTime(server) / (1000 * 60 * 5)),
+      // (server) => Math.round(Math.log(ns.getWeakenTime(server))),
       (server) => {
         const maxMoney = ns.getServerMaxMoney(server);
         const hackThreads = Math.ceil(
@@ -97,5 +91,16 @@ export async function main(ns: Bitburner.NS) {
         return -(maxMoney / totalThreads);
       },
     ])[0];
+  }
+}
+
+async function secondaryThread(ns: Bitburner.NS) {
+  while (true) {
+    nukeAll(ns);
+
+    while (tryPurchaseServer(ns));
+    while (tryUpgradeServer(ns));
+
+    await ns.asleep(1000);
   }
 }
