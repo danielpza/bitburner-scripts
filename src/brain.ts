@@ -5,7 +5,6 @@ import {
   GROW_PER_WEAK,
   HACK_PER_WEAK,
   Jobs,
-  Script,
   TARGET_HACK_PERCENT,
 } from "./utils/constants.ts";
 import { scanAll } from "./utils/scanAll.ts";
@@ -30,7 +29,7 @@ export async function main(ns: Bitburner.NS) {
 }
 
 async function hackThread(ns: Bitburner.NS) {
-  const RAM = ns.getScriptRam(Script.WEAKEN);
+  const RAM = ns.getScriptRam(Jobs.Weaken.script);
 
   while (true) {
     const target = getHackTarget();
@@ -76,7 +75,7 @@ async function hackThread(ns: Bitburner.NS) {
     const freeThreads = getClusterFreeThreads(
       ns,
       cluster,
-      ns.getScriptRam(Script.SHARE),
+      ns.getScriptRam(Jobs.Share.script),
     );
     if (freeThreads) {
       ns.print(`sharing ${freeThreads}`);
