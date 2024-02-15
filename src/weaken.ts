@@ -71,3 +71,14 @@ export function getRequiredWeakenThreads(ns: Bitburner.NS, target: string) {
 
   return Math.ceil(secToRemove / WEAK_ANALYZE);
 }
+
+export function canFullyWeaken(ns: Bitburner.NS, target: string) {
+  return (
+    getRequiredWeakenThreads(ns, target) <=
+    getClusterFreeThreads(
+      ns,
+      getRootAccessServers(ns),
+      ns.getScriptRam(Script.WEAKEN),
+    )
+  );
+}

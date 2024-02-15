@@ -20,14 +20,14 @@ export async function main(ns: Bitburner.NS) {
 export async function growTarget(
   ns: Bitburner.NS,
   target: string,
-  { extraDelay = 0 } = {},
+  { extraDelay = 0, loop = false } = {},
 ) {
   const ram = Math.max(
     ns.getScriptRam(Script.GROW),
     ns.getScriptRam(Script.WEAKEN),
   );
 
-  while (true) {
+  do {
     let growThreads = getRequiredGrowThreads(ns, target);
 
     if (growThreads == 0) {
@@ -73,7 +73,7 @@ export async function growTarget(
     await ns.asleep(totalTime + SLEEP);
 
     ns.print(`grown ${target}`);
-  }
+  } while (loop);
 }
 
 export function getRequiredGrowThreads(ns: Bitburner.NS, target: string) {
@@ -87,5 +87,16 @@ export function getRequiredGrowThreads(ns: Bitburner.NS, target: string) {
       target,
       Math.min(Number.MAX_SAFE_INTEGER, maxMoney / Math.max(currentMoney, 1)),
     ),
+  );
+}
+
+export function canFullyGrow(ns: Bitburner.NS, target: string) {
+  return (
+    getRequiredGrowThreads(ns, target) <=
+    getClusterFreeThreads(
+      ns,
+      getRootAccessServers(ns),
+      ns.getScriptRam(Script.WEAKEN),
+    )
   );
 }
