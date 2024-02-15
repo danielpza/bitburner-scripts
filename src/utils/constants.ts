@@ -14,22 +14,22 @@ export enum Script {
   SHARE = "scripts/dummy-share.js",
 }
 
+const HGW =
+  (script: string) => (target: string, threads: number, delay: number) => ({
+    script,
+    threads,
+    args: [target, "--delay", delay],
+  });
+
 export const Job = {
-  Weaken: (target: string, threads: number, delay: number) => ({
-    script: Script.WEAKEN,
+  HGW: (script: string, target: string, threads: number, delay: number) => ({
+    script,
     threads,
     args: [target, "--delay", delay],
   }),
-  Grow: (target: string, threads: number, delay: number) => ({
-    script: Script.GROW,
-    threads,
-    args: [target, "--delay", delay],
-  }),
-  Hack: (target: string, threads: number, delay: number) => ({
-    script: Script.HACK,
-    threads,
-    args: [target, "--delay", delay],
-  }),
+  Weaken: HGW(Script.WEAKEN),
+  Grow: HGW(Script.GROW),
+  Hack: HGW(Script.HACK),
   Share: (threads: number) => ({
     script: Script.SHARE,
     threads,
