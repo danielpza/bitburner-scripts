@@ -1,4 +1,4 @@
-import { Job } from "./constants.ts";
+import { Jobs } from "./constants.ts";
 import { getFreeThreads } from "./getFreeThreads.ts";
 import { RemoteExecOptions, remoteExec } from "./remoteExec.ts";
 
@@ -16,7 +16,7 @@ export function clusterExecOld(
   hosts: string[],
   { script, threads = 1, target, delay = 0 }: ClusterExecOptionsOld,
 ) {
-  return clusterExec(ns, hosts, Job.HGW(script, target, threads, delay));
+  return clusterExec(ns, hosts, Jobs.HGW(script, target, threads, delay));
 }
 
 export function clusterExec(

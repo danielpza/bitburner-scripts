@@ -4,7 +4,7 @@ import { hackTarget } from "./hack.ts";
 import {
   GROW_PER_WEAK,
   HACK_PER_WEAK,
-  Job,
+  Jobs,
   Script,
   TARGET_HACK_PERCENT,
 } from "./utils/constants.ts";
@@ -80,7 +80,7 @@ async function hackThread(ns: Bitburner.NS) {
     );
     if (freeThreads) {
       ns.print(`sharing ${freeThreads}`);
-      clusterExec(ns, cluster, Job.Share(freeThreads));
+      clusterExec(ns, cluster, Jobs.Share(freeThreads));
       return ns.asleep(10_000);
     } else {
       return ns.asleep(100);
@@ -92,7 +92,7 @@ async function hackThread(ns: Bitburner.NS) {
     const freeThreads = getClusterFreeThreads(ns, cluster, RAM);
 
     if (freeThreads)
-      return clusterExec(ns, cluster, Job.Weaken(target, freeThreads));
+      return clusterExec(ns, cluster, Jobs.Weaken(freeThreads, target));
   }
 
   function getHackTarget() {

@@ -1,5 +1,5 @@
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
-import { clusterExecOld } from "./utils/clusterExec.ts";
+import { clusterExecOld, clusterExec } from "./utils/clusterExec.ts";
 import { GROW_PER_WEAK, SLEEP, Script } from "./utils/constants.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 

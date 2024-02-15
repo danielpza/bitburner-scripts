@@ -14,15 +14,27 @@ export enum Script {
   SHARE = "scripts/dummy-share.js",
 }
 
-const HGW =
-  (script: string) =>
-  (target: string, threads: number, delay: number = 0) => ({
+function Task<T extends any[] = []>(
+  script: string,
+  cb?: (...args: T) => (string | number | boolean)[],
+) {
+  const func = (threads: number, ...args: T) => ({
     script,
     threads,
-    args: [target, "--delay", delay],
+    args: cb?.(...args) ?? [],
   });
+  func.script = script;
+  return func;
+}
 
-export const Job = {
+const HGW = (script: string) =>
+  Task(script, (target: string, delay: number = 0) => [
+    target,
+    "--delay",
+    delay,
+  ]);
+
+export const Jobs = {
   HGW: (
     script: string,
     target: string,
@@ -36,11 +48,7 @@ export const Job = {
   Weaken: HGW(Script.WEAKEN),
   Grow: HGW(Script.GROW),
   Hack: HGW(Script.HACK),
-  Share: (threads: number) => ({
-    script: Script.SHARE,
-    threads,
-    args: [],
-  }),
+  Share: Task(Script.SHARE),
 } satisfies Record<
   string,
   (...args: any[]) => {
