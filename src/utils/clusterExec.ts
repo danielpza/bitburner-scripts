@@ -2,6 +2,7 @@ import { Job } from "./constants.ts";
 import { getFreeThreads } from "./getFreeThreads.ts";
 import { RemoteExecOptions, remoteExec } from "./remoteExec.ts";
 
+/** @deprecated */
 export interface ClusterExecOptionsOld {
   script: string;
   threads?: number;
@@ -9,6 +10,7 @@ export interface ClusterExecOptionsOld {
   delay?: number;
 }
 
+/** @deprecated */
 export function clusterExecOld(
   ns: Bitburner.NS,
   hosts: string[],
