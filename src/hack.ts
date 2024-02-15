@@ -1,8 +1,9 @@
 import { binarySearch } from "./utils/binarySearch.ts";
-import { clusterExecOld } from "./utils/clusterExec.ts";
+import { clusterExec } from "./utils/clusterExec.ts";
 import {
   GROW_PER_WEAK,
   HACK_PER_WEAK,
+  Jobs,
   SLEEP,
   Script,
   TARGET_HACK_PERCENT,
@@ -60,17 +61,14 @@ export async function hackTarget(
   const growDelay = totalTime - growTime;
   const weakenDelay = totalTime - weakenTime;
 
-  const sexec = (script: string, threads: number, delay: number) =>
-    clusterExecOld(ns, cluster, { script, target, threads, delay });
-
   let i;
 
   let totalThreads = getClusterFreeThreads(ns, cluster, RAM);
 
   for (i = 0; i < maxCycles && requiredThreads <= totalThreads; i++) {
-    sexec(Script.HACK, hackThreads, hackDelay + i * SLEEP);
-    sexec(Script.GROW, growThreads, growDelay + i * SLEEP);
-    sexec(Script.WEAKEN, weakenThreads, weakenDelay + i * SLEEP);
+    clusterExec(ns, cluster, Jobs.Hack(hackThreads, target, hackDelay));
+    clusterExec(ns, cluster, Jobs.Grow(growThreads, target, growDelay));
+    clusterExec(ns, cluster, Jobs.Weaken(weakenThreads, target, weakenDelay));
     totalThreads -= requiredThreads;
   }
 

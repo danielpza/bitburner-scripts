@@ -37,8 +37,8 @@ const HGW = (script: string) =>
 export const Jobs = {
   HGW: (
     script: string,
-    target: string,
     threads: number,
+    target: string,
     delay: number = 0,
   ) => ({
     script,

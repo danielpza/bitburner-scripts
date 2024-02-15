@@ -1,23 +1,5 @@
-import { Jobs } from "./constants.ts";
 import { getFreeThreads } from "./getFreeThreads.ts";
 import { RemoteExecOptions, remoteExec } from "./remoteExec.ts";
-
-/** @deprecated */
-export interface ClusterExecOptionsOld {
-  script: string;
-  threads?: number;
-  target: string;
-  delay?: number;
-}
-
-/** @deprecated */
-export function clusterExecOld(
-  ns: Bitburner.NS,
-  hosts: string[],
-  { script, threads = 1, target, delay = 0 }: ClusterExecOptionsOld,
-) {
-  return clusterExec(ns, hosts, Jobs.HGW(script, target, threads, delay));
-}
 
 export function clusterExec(
   ns: Bitburner.NS,
