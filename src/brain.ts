@@ -9,7 +9,7 @@ import {
   TARGET_HACK_PERCENT,
 } from "./utils/constants.ts";
 import { scanAll } from "./utils/scanAll.ts";
-import { clusterExecOld, clusterExec } from "./utils/clusterExec.ts";
+import { clusterExec } from "./utils/clusterExec.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 import {
