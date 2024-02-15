@@ -85,10 +85,7 @@ export function getRequiredGrowThreads(ns: Bitburner.NS, target: string) {
   return Math.ceil(
     ns.growthAnalyze(
       target,
-      Math.min(
-        Number.MAX_SAFE_INTEGER,
-        maxMoney / Math.max(currentMoney, Number.EPSILON),
-      ),
+      Math.min(Number.MAX_SAFE_INTEGER, maxMoney / Math.max(currentMoney, 1)),
     ),
   );
 }
