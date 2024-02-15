@@ -4,11 +4,12 @@ import { hackTarget } from "./hack.ts";
 import {
   GROW_PER_WEAK,
   HACK_PER_WEAK,
+  Job,
   Script,
   TARGET_HACK_PERCENT,
 } from "./utils/constants.ts";
 import { scanAll } from "./utils/scanAll.ts";
-import { clusterExec } from "./utils/clusterExec.ts";
+import { clusterExec, clusterExec2 } from "./utils/clusterExec.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 import {
@@ -49,9 +50,32 @@ async function hackThread(ns: Bitburner.NS) {
     if (getRequiredGrowThreads(ns, target) > 0)
       await Promise.all([growTarget(ns, target), weakenAll(target)]);
 
-    await Promise.all([hackTarget(ns, target), weakenAll(target)]);
+    const hackPromise = hackTarget(ns, target);
+
+    await whileUnresolved(hackPromise, async () => {
+      ns.print(`sharing`);
+      await shareAll();
+      await ns.asleep(100);
+    });
+
+    await hackPromise;
 
     await ns.asleep(1500);
+  }
+
+  async function shareAll() {
+    const cluster = getRootAccessServers(ns);
+
+    if (getClusterFreeThreads(ns, cluster, ns.getScriptRam(Script.SHARE))) {
+      clusterExec2(
+        ns,
+        cluster,
+        Job.Share(
+          getClusterFreeThreads(ns, cluster, ns.getScriptRam(Script.SHARE)),
+        ),
+      );
+      return ns.asleep(10_000);
+    }
   }
 
   async function weakenAll(target: string) {
@@ -59,7 +83,7 @@ async function hackThread(ns: Bitburner.NS) {
     const freeThreads = getClusterFreeThreads(ns, cluster, RAM);
 
     if (freeThreads)
-      clusterExec(ns, cluster, {
+      return clusterExec(ns, cluster, {
         script: Script.WEAKEN,
         target,
         threads: freeThreads,
@@ -103,4 +127,20 @@ async function secondaryThread(ns: Bitburner.NS) {
 
     await ns.asleep(1000);
   }
+}
+
+async function whileUnresolved(
+  promise: Promise<unknown>,
+  cb: () => Promise<unknown>,
+) {
+  let unresolved = true;
+  promise.finally(() => (unresolved = false));
+  let newPromise = Promise.resolve<unknown>(undefined);
+  (async () => {
+    while (unresolved) {
+      newPromise = cb();
+      await newPromise;
+    }
+  })();
+  return newPromise;
 }

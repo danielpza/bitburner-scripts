@@ -11,6 +11,37 @@ export enum Script {
   HACK = "scripts/dummy-hack.js",
   GROW = "scripts/dummy-grow.js",
   WEAKEN = "scripts/dummy-weaken.js",
+  SHARE = "scripts/dummy-share.js",
 }
+
+export const Job = {
+  Weaken: (target: string, threads: number, delay: number) => ({
+    script: Script.WEAKEN,
+    threads,
+    args: [target, "--delay", delay],
+  }),
+  Grow: (target: string, threads: number, delay: number) => ({
+    script: Script.GROW,
+    threads,
+    args: [target, "--delay", delay],
+  }),
+  Hack: (target: string, threads: number, delay: number) => ({
+    script: Script.HACK,
+    threads,
+    args: [target, "--delay", delay],
+  }),
+  Share: (threads: number) => ({
+    script: Script.SHARE,
+    threads,
+    args: [],
+  }),
+} satisfies Record<
+  string,
+  (...args: any[]) => {
+    threads: number;
+    args: (string | number | boolean)[];
+    script: string;
+  }
+>;
 
 export const TARGET_HACK_PERCENT = 0.1;
