@@ -92,11 +92,11 @@ export async function hackTarget(
   await ns.asleep(totalTime + SLEEP * i + 1000);
 
   function getGrowWeakenThreads(hackThreads: number) {
-    const percentStolen = ns.hackAnalyze(target) * hackThreads;
+    const percentStolen = Math.min(ns.hackAnalyze(target) * hackThreads, 1);
     const growThreads = Math.ceil(
       ns.growthAnalyze(
         target,
-        1 / (1 - _.clamp(percentStolen, 0, 1 - Number.EPSILON)),
+        Math.min(ns.getServerMaxMoney(target), 1 / (1 - percentStolen)),
       ),
     );
     const weakenThreads = Math.ceil(
