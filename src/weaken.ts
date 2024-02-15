@@ -1,6 +1,6 @@
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
-import { clusterExecOld } from "./utils/clusterExec.ts";
-import { SLEEP, Script, WEAK_ANALYZE } from "./utils/constants.ts";
+import { clusterExec } from "./utils/clusterExec.ts";
+import { SLEEP, Script, WEAK_ANALYZE, Jobs } from "./utils/constants.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
@@ -22,7 +22,7 @@ export async function weakenTarget(
   target: string,
   { loop = false }: { loop?: boolean } = {},
 ) {
-  const ram = ns.getScriptRam(Script.WEAKEN);
+  const ram = ns.getScriptRam(Jobs.Weaken.script);
 
   do {
     const currentSecurity = ns.getServerSecurityLevel(target);
@@ -40,11 +40,11 @@ export async function weakenTarget(
     const totalTime = ns.getWeakenTime(target);
     const weakenThreads = Math.ceil(secToRemove / WEAK_ANALYZE);
 
-    clusterExecOld(ns, servers, {
-      script: Script.WEAKEN,
-      target,
-      threads: Math.min(freeThreads, weakenThreads),
-    });
+    clusterExec(
+      ns,
+      servers,
+      Jobs.Weaken(Math.min(freeThreads, weakenThreads), target),
+    );
 
     ns.print(
       [

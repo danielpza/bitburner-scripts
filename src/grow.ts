@@ -1,6 +1,6 @@
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
-import { clusterExecOld, clusterExec } from "./utils/clusterExec.ts";
-import { GROW_PER_WEAK, SLEEP, Script } from "./utils/constants.ts";
+import { clusterExec } from "./utils/clusterExec.ts";
+import { GROW_PER_WEAK, SLEEP, Script, Jobs } from "./utils/constants.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
@@ -53,11 +53,8 @@ export async function growTarget(
     const growDelay = totalTime - growTime;
     const weakenDelay = totalTime - weakenTime;
 
-    const sexec = (script: string, threads: number, delay: number) =>
-      clusterExecOld(ns, cluster, { script, target, threads, delay });
-
-    sexec(Script.GROW, growThreads, growDelay);
-    sexec(Script.WEAKEN, weakenThreads, weakenDelay);
+    clusterExec(ns, cluster, Jobs.Grow(growThreads, target, growDelay));
+    clusterExec(ns, cluster, Jobs.Weaken(weakenThreads, target, weakenDelay));
 
     ns.print(
       [
