@@ -1,5 +1,5 @@
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
-import { clusterExec } from "./utils/clusterExec.ts";
+import { clusterExecOld } from "./utils/clusterExec.ts";
 import { GROW_PER_WEAK, SLEEP, Script } from "./utils/constants.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 
@@ -54,7 +54,7 @@ export async function growTarget(
     const weakenDelay = totalTime - weakenTime;
 
     const sexec = (script: string, threads: number, delay: number) =>
-      clusterExec(ns, cluster, { script, target, threads, delay });
+      clusterExecOld(ns, cluster, { script, target, threads, delay });
 
     sexec(Script.GROW, growThreads, growDelay);
     sexec(Script.WEAKEN, weakenThreads, weakenDelay);

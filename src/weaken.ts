@@ -1,5 +1,5 @@
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
-import { clusterExec } from "./utils/clusterExec.ts";
+import { clusterExecOld } from "./utils/clusterExec.ts";
 import { SLEEP, Script, WEAK_ANALYZE } from "./utils/constants.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 
@@ -40,7 +40,7 @@ export async function weakenTarget(
     const totalTime = ns.getWeakenTime(target);
     const weakenThreads = Math.ceil(secToRemove / WEAK_ANALYZE);
 
-    clusterExec(ns, servers, {
+    clusterExecOld(ns, servers, {
       script: Script.WEAKEN,
       target,
       threads: Math.min(freeThreads, weakenThreads),

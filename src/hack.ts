@@ -1,5 +1,5 @@
 import { binarySearch } from "./utils/binarySearch.ts";
-import { clusterExec } from "./utils/clusterExec.ts";
+import { clusterExecOld } from "./utils/clusterExec.ts";
 import {
   GROW_PER_WEAK,
   HACK_PER_WEAK,
@@ -14,7 +14,7 @@ export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
 }
 
-const MAX_CYCLES = 1000;
+const MAX_CYCLES = 2000;
 
 export async function main(ns: Bitburner.NS) {
   const [target] = ns.args as string[];
@@ -61,7 +61,7 @@ export async function hackTarget(
   const weakenDelay = totalTime - weakenTime;
 
   const sexec = (script: string, threads: number, delay: number) =>
-    clusterExec(ns, cluster, { script, target, threads, delay });
+    clusterExecOld(ns, cluster, { script, target, threads, delay });
 
   let i;
 

@@ -9,7 +9,7 @@ import {
   TARGET_HACK_PERCENT,
 } from "./utils/constants.ts";
 import { scanAll } from "./utils/scanAll.ts";
-import { clusterExec, clusterExec2 } from "./utils/clusterExec.ts";
+import { clusterExecOld, clusterExec } from "./utils/clusterExec.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 import {
@@ -67,7 +67,7 @@ async function hackThread(ns: Bitburner.NS) {
     const cluster = getRootAccessServers(ns);
 
     if (getClusterFreeThreads(ns, cluster, ns.getScriptRam(Script.SHARE))) {
-      clusterExec2(
+      clusterExec(
         ns,
         cluster,
         Job.Share(
@@ -83,7 +83,7 @@ async function hackThread(ns: Bitburner.NS) {
     const freeThreads = getClusterFreeThreads(ns, cluster, RAM);
 
     if (freeThreads)
-      return clusterExec(ns, cluster, {
+      return clusterExecOld(ns, cluster, {
         script: Script.WEAKEN,
         target,
         threads: freeThreads,

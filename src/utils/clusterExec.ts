@@ -1,24 +1,24 @@
 import { getFreeThreads } from "./getFreeThreads.ts";
-import { RemoteExec2Options, remoteExec, remoteExec2 } from "./remoteExec.ts";
+import { RemoteExecOptions, remoteExecOld, remoteExec } from "./remoteExec.ts";
 
-export interface ClusterExecOptions {
+export interface ClusterExecOptionsOld {
   script: string;
   threads?: number;
   target: string;
   delay?: number;
 }
 
-export function clusterExec(
+export function clusterExecOld(
   ns: Bitburner.NS,
   hosts: string[],
-  { script, threads = 1, target, delay = 0 }: ClusterExecOptions,
+  { script, threads = 1, target, delay = 0 }: ClusterExecOptionsOld,
 ) {
   let missingThreads = threads;
   for (const host of hosts) {
     const freeThreads = getFreeThreads(ns, host, ns.getScriptRam(script));
     if (freeThreads > 0) {
       const threadsToUse = Math.min(freeThreads, missingThreads);
-      remoteExec(ns, {
+      remoteExecOld(ns, {
         script,
         host,
         threads: threadsToUse,
@@ -34,17 +34,17 @@ export function clusterExec(
   }
 }
 
-export function clusterExec2(
+export function clusterExec(
   ns: Bitburner.NS,
   hosts: string[],
-  { script, args, threads = 1 }: RemoteExec2Options,
+  { script, args, threads = 1 }: RemoteExecOptions,
 ) {
   let missingThreads = threads;
   for (const host of hosts) {
     const freeThreads = getFreeThreads(ns, host, ns.getScriptRam(script));
     if (freeThreads > 0) {
       const threadsToUse = Math.min(freeThreads, missingThreads);
-      remoteExec2(ns, host, {
+      remoteExec(ns, host, {
         script,
         threads: threadsToUse,
         args,

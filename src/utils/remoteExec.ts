@@ -1,7 +1,7 @@
 import { RunOptions } from "../../NetScriptDefinitions.js";
 import { ProcessCleanup } from "./ProcessCleanup.ts";
 
-export interface RemoteExecOptions {
+export interface RemoteExecOptionsOld {
   script: string;
   host: string;
   threads?: number;
@@ -9,25 +9,25 @@ export interface RemoteExecOptions {
   delay?: number;
 }
 
-export function remoteExec(
+export function remoteExecOld(
   ns: Bitburner.NS,
-  { script, host, threads, target, delay = 0 }: RemoteExecOptions,
+  { script, host, threads, target, delay = 0 }: RemoteExecOptionsOld,
 ) {
   ns.scp(script, host);
   let pid = ns.exec(script, host, { threads }, target, "--delay", delay);
   ProcessCleanup.get(ns).add(pid);
 }
 
-export interface RemoteExec2Options {
+export interface RemoteExecOptions {
   script: string;
   threads?: RunOptions["threads"];
   args: (string | number | boolean)[];
 }
 
-export function remoteExec2(
+export function remoteExec(
   ns: Bitburner.NS,
   host: string,
-  { script, args, threads }: RemoteExec2Options,
+  { script, args, threads }: RemoteExecOptions,
 ) {
   ns.scp(script, host);
   let pid = ns.exec(script, host, { threads }, ...args);
