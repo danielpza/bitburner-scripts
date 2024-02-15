@@ -3,7 +3,8 @@ export function execCommand(command: string) {
   // Acquire a reference to the terminal text field
   const terminalInput = document.getElementById("terminal-input") as any;
 
-  if (!terminalInput) throw new Error("Expected terminal input to exist");
+  if (!terminalInput) return;
+  // if (!terminalInput) throw new Error("Expected terminal input to exist");
 
   // Set the value to the command you want to run.
   terminalInput.value = command;
