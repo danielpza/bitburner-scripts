@@ -1,4 +1,4 @@
-const RAM_BUFFER = 20;
+const RAM_BUFFER = 30;
 
 export function getFreeRam(ns: Bitburner.NS, host: string) {
   const total = ns.getServerMaxRam(host);
