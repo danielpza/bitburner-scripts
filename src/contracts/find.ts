@@ -46,8 +46,11 @@ export async function main(ns: Bitburner.NS) {
 
   do {
     for (const [server, file] of getContracts(ns)) {
-      if (!trySolve(ns, server, file)) {
-        const type = ns.codingcontract.getContractType(file, server);
+      const type = ns.codingcontract.getContractType(file, server);
+      if (excludeSolutions.has(type)) continue;
+      if (trySolve(ns, server, file)) {
+        ns.toast(`Solved contract ${type} in ${server}`);
+      } else {
         excludeSolutions.add(type);
         ns.toast(`Failed to solve contract ${type} in ${server}`);
       }
