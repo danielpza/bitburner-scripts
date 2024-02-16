@@ -31,10 +31,11 @@ export async function main(ns: Bitburner.NS) {
     await useUpThreads(hackTarget(ns, target));
 
     await ns.asleep(1500);
-  }
 
-  async function useUpThreads(promise: Promise<unknown>) {
-    await whileUnresolved(promise, () => shareAll(ns));
+    async function useUpThreads(promise: Promise<unknown>) {
+      await whileUnresolved(promise, () => shareAll(ns));
+      // await Promise.all([promise, weakenAll(target)]);
+    }
   }
 
   async function weakenAll(target: string) {
