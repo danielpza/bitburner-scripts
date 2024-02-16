@@ -21,29 +21,20 @@ export async function main(ns: Bitburner.NS) {
 
     while (!canFullyWeaken(ns, target)) await weakenTarget(ns, target);
 
-    if (getRequiredWeakenThreads(ns, target) > 0) {
-      const weakenGrowPromise = Promise.all([weakenTarget(ns, target), growTarget(ns, target)]);
-      // await whileUnresolved(weakenGrowPromise, async () => {
-      //   await shareAll();
-      //   await ns.asleep(100);
-      // });
-      await weakenGrowPromise;
-    }
+    if (getRequiredWeakenThreads(ns, target) > 0)
+      await useUpThreads(Promise.all([weakenTarget(ns, target), growTarget(ns, target)]));
 
     while (!canFullyGrow(ns, target)) await Promise.all([growTarget(ns, target), weakenAll(target)]);
 
-    if (getRequiredGrowThreads(ns, target) > 0) {
-      const growPromise = growTarget(ns, target);
-      // await whileUnresolved(growPromise, async () => {
-      //   await shareAll();
-      //   await ns.asleep(100);
-      // });
-      await growPromise;
-    }
+    if (getRequiredGrowThreads(ns, target) > 0) await useUpThreads(growTarget(ns, target));
 
-    await whileUnresolved(hackTarget(ns, target), () => shareAll(ns));
+    await useUpThreads(hackTarget(ns, target));
 
     await ns.asleep(1500);
+  }
+
+  async function useUpThreads(promise: Promise<unknown>) {
+    await whileUnresolved(promise, () => shareAll(ns));
   }
 
   async function weakenAll(target: string) {
@@ -72,7 +63,8 @@ export async function main(ns: Bitburner.NS) {
   }
 }
 
-async function whileUnresolved(promise: Promise<unknown>, cb: () => Promise<unknown>) {
+async function whileUnresolved(promise: Promise<unknown>, cb?: () => Promise<unknown>) {
+  if (!cb) return promise;
   let unresolved = true;
   promise.finally(() => (unresolved = false));
   while (unresolved) await cb();
