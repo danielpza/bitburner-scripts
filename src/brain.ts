@@ -54,7 +54,7 @@ async function hackThread(ns: Bitburner.NS) {
 
     if (getRequiredGrowThreads(ns, target) > 0) {
       const growPromise = growTarget(ns, target);
-      whileUnresolved(growPromise, async () => {
+      await whileUnresolved(growPromise, async () => {
         await shareAll();
         await ns.asleep(100);
       });
