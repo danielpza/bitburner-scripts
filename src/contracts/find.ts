@@ -1,12 +1,14 @@
 import { scanAll } from "../utils/scanAll.ts";
 import { stackTail } from "../utils/stackTail.ts";
+import { caesarCipherContract } from "./encryption-i-caesar-cipher.ts";
 
 import { encryptionIIContract } from "./encryption-ii-vigenere-cipher.ts";
 import { largestPrimeFactor } from "./find-largest-prime-factor.ts";
 
 const contracts = {
-  "Find Largest Prime Factor": largestPrimeFactor,
+  "Encryption I: Caesar Cipher": caesarCipherContract,
   "Encryption II: Vigenère Cipher": encryptionIIContract,
+  "Find Largest Prime Factor": largestPrimeFactor,
 };
 
 function getContracts(ns: Bitburner.NS) {
