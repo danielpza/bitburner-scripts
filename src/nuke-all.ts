@@ -1,10 +1,12 @@
 import { scanAll } from "./utils/scanAll.ts";
+import { stackTail } from "./utils/stackTail.ts";
 
 export async function main(ns: Bitburner.NS) {
-  ns.disableLog("ALL");
-  ns.resizeTail(200, 30);
-
   const loop = ns.args.includes("--loop");
+
+  ns.disableLog("ALL");
+
+  if (loop) stackTail(ns, 0);
 
   do {
     nukeAll(ns);
