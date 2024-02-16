@@ -1,7 +1,11 @@
 import { scanAll } from "./utils/scanAll.ts";
 
 export async function main(ns: Bitburner.NS) {
+  ns.disableLog("ALL");
+  ns.resizeTail(200, 30);
+
   const loop = ns.args.includes("--loop");
+
   do {
     nukeAll(ns);
   } while (loop && (await ns.asleep(1000)));
