@@ -6,7 +6,6 @@ import { scanAll } from "./utils/scanAll.ts";
 
 import { canFullyGrow, getRequiredGrowThreads, growTarget } from "./grow.ts";
 import { hackTarget } from "./hack.ts";
-import { tryPurchaseServer, tryUpgradeServer } from "./servers.ts";
 import { canFullyWeaken, getRequiredWeakenThreads, weakenTarget } from "./weaken.ts";
 import { stackTail } from "./utils/stackTail.ts";
 
@@ -15,10 +14,6 @@ export async function main(ns: Bitburner.NS) {
 
   stackTail(ns, 0, 800);
 
-  await Promise.all([secondaryThread(ns), hackThread(ns)]);
-}
-
-async function hackThread(ns: Bitburner.NS) {
   const RAM = ns.getScriptRam(Jobs.Weaken.script);
 
   while (true) {
@@ -74,15 +69,6 @@ async function hackThread(ns: Bitburner.NS) {
         return -(maxMoney / totalThreads);
       },
     ])[0];
-  }
-}
-
-async function secondaryThread(ns: Bitburner.NS) {
-  while (true) {
-    while (tryPurchaseServer(ns));
-    while (tryUpgradeServer(ns));
-
-    await ns.asleep(1000);
   }
 }
 
