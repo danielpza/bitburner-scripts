@@ -13,17 +13,23 @@ export async function main(ns: Bitburner.NS) {
 
   stackTail(ns, 2);
 
-  do {
-    await buyPrograms(ns);
-  } while (loop && (await ns.asleep(1000)));
+  while ((await buyPrograms(ns)) && loop && (await ns.asleep(1000)));
+
+  ns.print("Done buying programs");
 }
 
 export async function buyPrograms(ns: Bitburner.NS) {
+  let missingFile = false;
   for (const { file, cost } of FILES) {
-    if (!ns.fileExists(file) && cost < ns.getPlayer().money) {
-      ns.print(`Buying ${file}`);
-      execCommand(`buy ${file}`);
-      await ns.asleep(1000);
+    if (!ns.fileExists(file)) {
+      if (cost < ns.getPlayer().money) {
+        ns.print(`Buying ${file}`);
+        execCommand(`buy ${file}`);
+        await ns.asleep(1000);
+      } else {
+        missingFile = true;
+      }
     }
   }
+  return missingFile;
 }
