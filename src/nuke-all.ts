@@ -1,7 +1,10 @@
 import { scanAll } from "./utils/scanAll.ts";
 
-export function main(ns: Bitburner.NS) {
-  nukeAll(ns);
+export async function main(ns: Bitburner.NS) {
+  const loop = ns.args.includes("--loop");
+  do {
+    nukeAll(ns);
+  } while (loop && (await ns.asleep(1000)));
 }
 
 export function nukeAll(ns: Bitburner.NS) {
@@ -14,13 +17,7 @@ export function nukeAll(ns: Bitburner.NS) {
 }
 
 export function nukeTarget(ns: Bitburner.NS, target: string) {
-  for (const op of [
-    ns.brutessh,
-    ns.ftpcrack,
-    ns.relaysmtp,
-    ns.httpworm,
-    ns.sqlinject,
-  ]) {
+  for (const op of [ns.brutessh, ns.ftpcrack, ns.relaysmtp, ns.httpworm, ns.sqlinject]) {
     try {
       op(target);
     } catch (e) {}
