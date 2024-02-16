@@ -4,6 +4,7 @@
     "target": "ESNext",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "allowUmdGlobalAccess": true,
     "jsx": "react",
     "jsxFactory": "eval(\"window\").React.createElement",
     "jsxFragmentFactory": "eval(\"window\").React.Fragment"
