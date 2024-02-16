@@ -1,5 +1,5 @@
 import { clusterExec } from "./utils/clusterExec.ts";
-import { GROW_PER_WEAK, HACK_PER_WEAK, Jobs, TARGET_HACK_PERCENT } from "./utils/constants.ts";
+import { GROW_PER_WEAK, HACK_PER_WEAK, Jobs, SHARE_FILE, TARGET_HACK_PERCENT, ShareToggle } from "./utils/constants.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 import { scanAll } from "./utils/scanAll.ts";
@@ -33,8 +33,8 @@ export async function main(ns: Bitburner.NS) {
     await ns.asleep(1500);
 
     async function useUpThreads(promise: Promise<unknown>) {
-      await whileUnresolved(promise, () => shareAll(ns));
-      // await Promise.all([promise, weakenAll(target)]);
+      if (isSharing()) await whileUnresolved(promise, () => shareAll(ns));
+      else await Promise.all([promise, weakenAll(target)]);
     }
   }
 
@@ -61,6 +61,10 @@ export async function main(ns: Bitburner.NS) {
         return -(maxMoney / totalThreads);
       },
     ])[0];
+  }
+
+  function isSharing() {
+    return ns.read(SHARE_FILE) === ShareToggle.off;
   }
 }
 

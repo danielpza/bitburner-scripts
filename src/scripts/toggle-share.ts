@@ -1,4 +1,4 @@
-import { Port, ToggleShare } from "../utils/constants.ts";
+import { ShareToggle, SHARE_FILE } from "../utils/constants.ts";
 import { stackTail } from "../utils/stackTail.ts";
 
 export function main(ns: Bitburner.NS) {
@@ -8,11 +8,10 @@ export function main(ns: Bitburner.NS) {
   const script = ns.getRunningScript();
   if (!script) return;
 
-  const port = ns.getPortHandle(Port.toggle);
-  const isSharing = script.title !== "not sharing";
+  let isSharing = (ns.read(SHARE_FILE) || ShareToggle.on) === ShareToggle.on;
 
-  while (!port.empty()) port.read();
+  isSharing = !isSharing;
 
-  port.tryWrite(isSharing ? ToggleShare.off : ToggleShare.on);
-  ns.setTitle(isSharing ? "not sharing" : "sharing");
+  ns.write(SHARE_FILE, isSharing ? ShareToggle.on : ShareToggle.off, "w");
+  ns.setTitle(isSharing ? "sharing" : "not sharing");
 }

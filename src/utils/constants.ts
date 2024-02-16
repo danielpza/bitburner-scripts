@@ -47,11 +47,9 @@ export const Jobs = {
 
 export const TARGET_HACK_PERCENT = 0.1;
 
-export enum Port {
-  toggle = 1,
-}
+export const SHARE_FILE = "state/share.txt";
 
-export enum ToggleShare {
-  off,
-  on,
+export enum ShareToggle {
+  off = "off",
+  on = "on",
 }
