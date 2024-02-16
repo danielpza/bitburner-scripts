@@ -1,7 +1,8 @@
+import { stackTail } from "./utils/stackTail.ts";
 import { table } from "./utils/table.ts";
 
 export function autocomplete() {
-  return ["buy", "upgrade", "list", "watch"];
+  return ["buy", "upgrade", "list", "loop"];
 }
 
 // const files = [
@@ -18,54 +19,16 @@ function getBufferMoney(_ns: Bitburner.NS) {
 export async function main(ns: Bitburner.NS) {
   const [operation] = ns.args;
 
-  // ns.resizeTail(200, 0);
-
-  if (operation === "watch") {
-    await watch();
-    return;
-  }
-
   if (operation === "buy") while (tryPurchaseServer(ns));
   else if (operation === "upgrade") while (tryUpgradeServer(ns));
 
-  list();
-
-  function list() {
-    const servers = ns.getPurchasedServers();
-    ns.tprint(
-      "\n",
-      table(
-        servers.map((host) => ({
-          name: host,
-          used: ns.getServerUsedRam(host),
-          total: ns.getServerMaxRam(host),
-          upgrade_cost: ns.getPurchasedServerUpgradeCost(
-            host,
-            ns.getServerMaxRam(host) * 2,
-          ),
-        })),
-        [
-          { header: "name", align: "left" },
-          { header: "used", format: ns.formatRam },
-          { header: "total", format: ns.formatRam },
-          { header: "upgrade_cost", format: moneyFormat },
-        ],
-      ),
-    );
-  }
-
-  async function watch() {
-    ns.disableLog("ALL");
-    for (;;) {
-      while (tryUpgradeServer(ns));
-      while (tryPurchaseServer(ns));
-      await ns.sleep(1000);
-    }
-  }
-
-  function moneyFormat(value: number) {
-    return `$${ns.formatNumber(value, 0)}`;
-  }
+  if (operation === "loop") {
+    stackTail(ns, 3);
+    do {
+      tryPurchaseServer(ns);
+      tryUpgradeServer(ns);
+    } while (await ns.asleep(1000));
+  } else list(ns);
 }
 
 export function tryPurchaseServer(ns: Bitburner.NS) {
@@ -75,8 +38,7 @@ export function tryPurchaseServer(ns: Bitburner.NS) {
     return false;
   }
   const canBuyServer =
-    ns.getPurchasedServerCost(ram) <=
-      ns.getPlayer().money - getBufferMoney(ns) &&
+    ns.getPurchasedServerCost(ram) <= ns.getPlayer().money - getBufferMoney(ns) &&
     ns.getPurchasedServers().length < ns.getPurchasedServerLimit();
   if (!canBuyServer) {
     return false;
@@ -89,12 +51,7 @@ export function tryPurchaseServer(ns: Bitburner.NS) {
 
   function getBiggestRam() {
     let ram: number;
-    for (
-      ram = 1;
-      ns.getPurchasedServerCost(ram) <=
-      ns.getPlayer().money - getBufferMoney(ns);
-      ram *= 2
-    ) {}
+    for (ram = 1; ns.getPurchasedServerCost(ram) <= ns.getPlayer().money - getBufferMoney(ns); ram *= 2) {}
     if (ram === 1) return 0;
     ram /= 2;
     return ram;
@@ -118,14 +75,36 @@ export function tryUpgradeServer(ns: Bitburner.NS) {
   return ns.upgradePurchasedServer(server, desiredRam);
 
   function canUpgradeServer(server: string, desiredRam: number) {
-    return (
-      ns.getPurchasedServerUpgradeCost(server, desiredRam) <=
-      ns.getPlayer().money - getBufferMoney(ns)
-    );
+    return ns.getPurchasedServerUpgradeCost(server, desiredRam) <= ns.getPlayer().money - getBufferMoney(ns);
   }
 
   function getSmallestServer() {
     const servers = ns.getPurchasedServers();
     return _.minBy(servers, ns.getServerMaxRam);
+  }
+}
+
+function list(ns: Bitburner.NS) {
+  const servers = ns.getPurchasedServers();
+  ns.tprint(
+    "\n",
+    table(
+      servers.map((host) => ({
+        name: host,
+        used: ns.getServerUsedRam(host),
+        total: ns.getServerMaxRam(host),
+        upgrade_cost: ns.getPurchasedServerUpgradeCost(host, ns.getServerMaxRam(host) * 2),
+      })),
+      [
+        { header: "name", align: "left" },
+        { header: "used", format: ns.formatRam },
+        { header: "total", format: ns.formatRam },
+        { header: "upgrade_cost", format: moneyFormat },
+      ],
+    ),
+  );
+
+  function moneyFormat(value: number) {
+    return `$${ns.formatNumber(value, 0)}`;
   }
 }
