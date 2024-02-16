@@ -14,10 +14,7 @@ export enum Script {
   SHARE = "scripts/dummy-share.js",
 }
 
-function Task<T extends any[] = []>(
-  script: string,
-  cb?: (...args: T) => (string | number | boolean)[],
-) {
+function Task<T extends any[] = []>(script: string, cb?: (...args: T) => (string | number | boolean)[]) {
   const func = (threads: number, ...args: T) => ({
     script,
     threads,
@@ -27,20 +24,10 @@ function Task<T extends any[] = []>(
   return func;
 }
 
-const HGW = (script: string) =>
-  Task(script, (target: string, delay: number = 0) => [
-    target,
-    "--delay",
-    delay,
-  ]);
+const HGW = (script: string) => Task(script, (target: string, delay: number = 0) => [target, "--delay", delay]);
 
 export const Jobs = {
-  HGW: (
-    script: string,
-    threads: number,
-    target: string,
-    delay: number = 0,
-  ) => ({
+  HGW: (script: string, threads: number, target: string, delay: number = 0) => ({
     script,
     threads,
     args: [target, "--delay", delay],
@@ -59,3 +46,12 @@ export const Jobs = {
 >;
 
 export const TARGET_HACK_PERCENT = 0.1;
+
+export enum Port {
+  toggle = 1,
+}
+
+export enum ToggleShare {
+  off,
+  on,
+}
