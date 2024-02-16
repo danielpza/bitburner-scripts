@@ -6,7 +6,7 @@ export async function main(ns: Bitburner.NS) {
 
   ns.disableLog("ALL");
 
-  if (loop) stackTail(ns, 0);
+  if (loop) stackTail(ns, 1);
 
   do {
     nukeAll(ns);

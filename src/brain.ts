@@ -7,14 +7,13 @@ import { scanAll } from "./utils/scanAll.ts";
 import { canFullyGrow, getRequiredGrowThreads, growTarget } from "./grow.ts";
 import { hackTarget } from "./hack.ts";
 import { tryPurchaseServer, tryUpgradeServer } from "./servers.ts";
-import { buyPrograms } from "./tor.ts";
 import { canFullyWeaken, getRequiredWeakenThreads, weakenTarget } from "./weaken.ts";
+import { stackTail } from "./utils/stackTail.ts";
 
 export async function main(ns: Bitburner.NS) {
   ns.disableLog("ALL");
 
-  ns.tail();
-  ns.resizeTail(800, 120);
+  stackTail(ns, 0, 800);
 
   await Promise.all([secondaryThread(ns), hackThread(ns)]);
 }
@@ -80,10 +79,8 @@ async function hackThread(ns: Bitburner.NS) {
 
 async function secondaryThread(ns: Bitburner.NS) {
   while (true) {
-    await buyPrograms(ns);
-
-    // while (tryPurchaseServer(ns));
-    // while (tryUpgradeServer(ns));
+    while (tryPurchaseServer(ns));
+    while (tryUpgradeServer(ns));
 
     await ns.asleep(1000);
   }
