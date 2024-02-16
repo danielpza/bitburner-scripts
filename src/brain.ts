@@ -64,7 +64,7 @@ export async function main(ns: Bitburner.NS) {
   }
 
   function isSharing() {
-    return ns.read(SHARE_FILE) === ShareToggle.off;
+    return ns.read(SHARE_FILE) === ShareToggle.on;
   }
 }
 
