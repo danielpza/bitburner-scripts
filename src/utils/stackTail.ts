@@ -4,8 +4,11 @@ const HEIGHT = 62;
 export function stackTail(ns: Bitburner.NS, pos?: number, width = WIDTH) {
   ns.disableLog("ALL");
   ns.tail();
+
   ns.resizeTail(width, HEIGHT);
+
   if (pos !== undefined) {
-    ns.moveTail(0, pos * HEIGHT);
+    const [ww, _wh] = ns.ui.windowSize();
+    ns.moveTail(ww - width - 200, pos * HEIGHT);
   }
 }
