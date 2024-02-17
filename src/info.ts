@@ -1,5 +1,8 @@
 import { scanAll } from "./utils/scanAll.ts";
 import { formatTable } from "./utils/formatTable.ts";
+import { Jobs, TARGET_HACK_PERCENT } from "./utils/constants.ts";
+import { getRequiredWeakenThreads } from "./weaken.ts";
+import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 
 export function autocomplete() {
   return ["--sec", "--ram", "--extra", "--time", "--threads"];
@@ -21,98 +24,61 @@ export async function main(ns: Bitburner.NS) {
 
   ns.disableLog("ALL");
 
+  function getServers() {
+    const servers = scanAll(ns).filter((server) => ns.getServerMaxMoney(server) > 0 && ns.hasRootAccess(server));
+    const RAM = ns.getScriptRam(Jobs.Weaken.script);
+    const maxThreads = servers.reduce((acc, server) => acc + Math.floor(ns.getServerMaxRam(server) / RAM), 0);
+    const playerHackLevel = ns.getHackingLevel();
+
+    return servers.map((server) => {
+      const hackLevel = ns.getServerRequiredHackingLevel(server);
+      const requiredWeaken = getRequiredWeakenThreads(ns, server);
+      const weakenCycles = Math.ceil(requiredWeaken / maxThreads);
+      const weakenTime = ns.getWeakenTime(server);
+
+      const totalWeakenTime = weakenTime * weakenCycles;
+
+      const maxMoney = ns.getServerMaxMoney(server);
+
+      const hackThreads = Math.ceil(TARGET_HACK_PERCENT / ns.hackAnalyze(server));
+      const growThreads = Math.ceil(ns.growthAnalyze(server, 1 / (1 - TARGET_HACK_PERCENT)));
+      const weakThreads = Math.ceil(hackThreads / HACK_PER_WEAK + growThreads / GROW_PER_WEAK);
+
+      const hgwThreads = hackThreads + growThreads + weakThreads;
+
+      const hasSkill = hackLevel < playerHackLevel / 2.5;
+
+      return {
+        name: server,
+        hackLevel,
+        requiredWeaken,
+        weakenCycles,
+        weakenTime,
+        totalWeakenTime,
+        maxMoney,
+        hackThreads,
+        growThreads,
+        weakThreads,
+        hgwThreads,
+        moneyPerThread: maxMoney / hgwThreads,
+        hasSkill,
+      };
+    });
+  }
+
   function getInfo() {
-    const servers = scanAll(ns)
-      .map((hostname) => {
-        const server = ns.getServer(hostname);
-        const timeRatio =
-          server.minDifficulty && server.hackDifficulty
-            ? server.minDifficulty / server.hackDifficulty
-            : 0;
-
-        const hack_threads = Math.ceil(1 / ns.hackAnalyze(hostname));
-        const grow_threads = Math.ceil(
-          ns.growthAnalyze(hostname, (server.moneyMax || 1) / 0.0000000001),
-        );
-        const weak_threads = Math.ceil(
-          hack_threads / HACK_PER_WEAK + grow_threads / GROW_PER_WEAK,
-        );
-        return {
-          name: server.hostname,
-          money: server.moneyAvailable,
-          max_money: server.moneyMax,
-          sec: server.hackDifficulty,
-          min_sec: server.minDifficulty,
-          hack_skill: server.requiredHackingSkill,
-          growth: server.serverGrowth,
-          ...server,
-          hack_time: ns.getHackTime(hostname),
-          grow_time: ns.getGrowTime(hostname),
-          weak_time: ns.getWeakenTime(hostname),
-          hack_time2: ns.getHackTime(hostname) * timeRatio,
-          grow_time2: ns.getGrowTime(hostname) * timeRatio,
-          weak_time2: ns.getWeakenTime(hostname) * timeRatio,
-          money_per_second:
-            ((server.moneyMax ?? 0) /
-              (ns.getWeakenTime(hostname) * timeRatio)) *
-            1000,
-          money_per_second_per_thread:
-            server.moneyMax && server.moneyMax > 100
-              ? ((server.moneyMax / (ns.getWeakenTime(hostname) * timeRatio)) *
-                  1000) /
-                ns.growthAnalyze(hostname, server.moneyMax / 100)
-              : 0,
-          hack_threads,
-          grow_threads,
-          weak_threads,
-          money_per_thread:
-            (server.moneyMax ?? 0) /
-            (hack_threads + grow_threads + weak_threads),
-        };
-      })
-      .filter(
-        (server) =>
-          server.hasAdminRights &&
-          !server.purchasedByPlayer &&
-          (server.moneyMax ?? 0) > 0,
-      );
-
-    return formatTable(
-      _.chain(servers)
-        .sortBy(
-          (server) => (server.weak_time < 1000 * 60 * 10 ? 1 : 0),
-          "money_per_thread",
-        )
-        .value(),
-      [
-        { header: "name", align: "left" },
-        { header: "money", format: formatMoney },
-        { header: "max_money", format: formatMoney },
-        { header: "sec", format: ns.formatNumber, hide: !sec },
-        { header: "min_sec", format: ns.formatNumber, hide: !sec },
-        { header: "hack_skill", hide: !sec },
-        { header: "ramUsed", format: ns.formatRam, hide: !ram },
-        { header: "maxRam", format: ns.formatRam, hide: !ram },
-        { header: "growth" },
-        { header: "organizationName", align: "left" },
-        { header: "hack_time", format: formatTime, hide: !time },
-        { header: "grow_time", format: formatTime, hide: !time },
-        { header: "weak_time", format: formatTime, hide: !time },
-        // { header: "hack_time2", format: ns.tFormat, hide: !extra },
-        // { header: "grow_time2", format: ns.tFormat, hide: !extra },
-        // { header: "weak_time2", format: ns.tFormat, hide: !extra },
-        // { header: "money_per_second", format: formatMoney, hide: !extra },
-        // {
-        //   header: "money_per_second_per_thread",
-        //   format: formatMoney,
-        //   hide: !extra,
-        // },
-        { header: "hack_threads", format: formatThread, hide: !threads },
-        { header: "grow_threads", format: formatThread, hide: !threads },
-        { header: "weak_threads", format: formatThread, hide: !threads },
-        { header: "money_per_thread", format: formatMoney },
-      ],
-    );
+    return formatTable(_.orderBy(getServers(), ["hasSkill", "moneyPerThread"]), [
+      { header: "name", align: "left" },
+      { header: "maxMoney", format: formatMoney },
+      { header: "hackLevel" },
+      // { header: "requiredWeaken" },
+      // { header: "weakenCycles" },
+      { header: "weakenTime", format: formatTime },
+      { header: "totalWeakenTime", format: formatTime },
+      { header: "hgwThreads", format: formatThread },
+      { header: "hasSkill", format: formatBoolean },
+      { header: "moneyPerThread", format: formatMoney },
+    ]);
 
     function formatMoney(value: number) {
       return "$" + ns.formatNumber(value);
@@ -122,6 +88,9 @@ export async function main(ns: Bitburner.NS) {
     }
     function formatTime(value: number) {
       return Math.floor(value / 1000) + "s";
+    }
+    function formatBoolean(value: boolean) {
+      return value ? "yes" : "no";
     }
   }
 
@@ -135,12 +104,7 @@ export async function main(ns: Bitburner.NS) {
   ns.resizeTail(800, 400);
 
   for (;;) {
-    ns.print(
-      "\n",
-      "-------------------------------------------",
-      "\n",
-      getInfo(),
-    );
+    ns.print("\n", "-------------------------------------------", "\n", getInfo());
     await ns.sleep(1000);
   }
 }
