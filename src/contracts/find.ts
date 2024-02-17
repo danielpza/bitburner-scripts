@@ -7,6 +7,7 @@ import { largestPrimeFactor } from "./find-largest-prime-factor.ts";
 import { generateIpAddresses } from "./ip-address.ts";
 import { totalWaysToSum } from "./total-ways-of-sum.ts";
 import { triangleSumContract } from "./triangle-sum.ts";
+import { uniquePathsIContract } from "./unique-paths-in-a-grid-i.ts";
 
 const contracts = {
   "Encryption I: Caesar Cipher": caesarCipherContract,
@@ -15,6 +16,7 @@ const contracts = {
   "Generate IP Addresses": generateIpAddresses,
   "Total Ways to Sum II": totalWaysToSum,
   "Minimum Path Sum in a Triangle": triangleSumContract,
+  "Unique Paths in a Grid I": uniquePathsIContract,
 } as const;
 
 function getContracts(ns: Bitburner.NS) {
