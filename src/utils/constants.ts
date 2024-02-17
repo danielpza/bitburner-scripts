@@ -1,4 +1,4 @@
-export const SLEEP = 75;
+export const SLEEP = 25;
 
 export const HACK_ANALYZE_SEC = 0.002; // ns.hackAnalyzeSecurity(1);
 export const GROW_ANALYZE_SEC = 0.004; // ns.growthAnalyzeSecurity(1);
