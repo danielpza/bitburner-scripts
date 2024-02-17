@@ -39,6 +39,8 @@ export async function growTarget(ns: Bitburner.NS, target: string, { extraDelay 
       growThreads = freeThreads - weakenThreads;
     }
 
+    if (growThreads === 0 || weakenThreads === 0) continue;
+
     const growTime = ns.getGrowTime(target) + SLEEP;
     const weakenTime = ns.getWeakenTime(target);
     const totalTime = Math.max(growTime, weakenTime) + extraDelay;
