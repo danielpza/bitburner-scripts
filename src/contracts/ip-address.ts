@@ -1,7 +1,5 @@
 /*
 Generate IP Addresses
-You are attempting to solve a Coding Contract. You have 10 tries remaining, after which the contract will self-destruct.
-
 
 Given the following string containing only digits, return an array with all possible valid IP address combinations that can be created from the string:
 

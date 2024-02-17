@@ -5,12 +5,14 @@ import { caesarCipherContract } from "./encryption-i-caesar-cipher.ts";
 import { encryptionIIContract } from "./encryption-ii-vigenere-cipher.ts";
 import { largestPrimeFactor } from "./find-largest-prime-factor.ts";
 import { generateIpAddresses } from "./ip-address.ts";
+import { totalWaysToSum } from "./total-ways-of-sum.ts";
 
 const contracts = {
   "Encryption I: Caesar Cipher": caesarCipherContract,
   "Encryption II: Vigenère Cipher": encryptionIIContract,
   "Find Largest Prime Factor": largestPrimeFactor,
   "Generate IP Addresses": generateIpAddresses,
+  "Total Ways to Sum II": totalWaysToSum,
 } as const;
 
 function getContracts(ns: Bitburner.NS) {
