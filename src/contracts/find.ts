@@ -1,6 +1,7 @@
 import { scanAll } from "../utils/scanAll.ts";
 import { stackTail } from "../utils/stackTail.ts";
 
+import { arrayJumpingGameII } from "./array-jumping-game-ii.ts";
 import { caesarCipherContract } from "./encryption-i-caesar-cipher.ts";
 import { encryptionIIContract } from "./encryption-ii-vigenere-cipher.ts";
 import { largestPrimeFactor } from "./find-largest-prime-factor.ts";
@@ -19,6 +20,7 @@ const contracts = {
   "Minimum Path Sum in a Triangle": triangleSumContract,
   "Unique Paths in a Grid I": uniquePathsIContract,
   "Proper 2-Coloring of a Graph": proper2ColoringOfAGraphContrect,
+  "Array Jumping Game II": arrayJumpingGameII,
 } as const;
 
 function getContracts(ns: Bitburner.NS) {
