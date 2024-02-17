@@ -8,7 +8,7 @@ export function autocomplete() {
   return [];
 }
 
-const TIME_GROUP = 1000 * 60 * 5;
+// const TIME_GROUP = 1000 * 60 * 5;
 
 export async function main(ns: Bitburner.NS) {
   // const sec = ns.args.includes("--sec");
