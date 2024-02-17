@@ -10,6 +10,7 @@ import { proper2ColoringOfAGraphContrect } from "./proper-2-coloring-of-a-graph.
 import { totalWaysToSumII } from "./total-ways-of-sum-ii.ts";
 import { triangleSumContract } from "./triangle-sum.ts";
 import { uniquePathsIContract } from "./unique-paths-in-a-grid-i.ts";
+import { uniquePathsInAGridII } from "./unique-paths-in-a-grid-ii.ts";
 
 const contracts = {
   "Encryption I: Caesar Cipher": caesarCipherContract,
@@ -19,6 +20,7 @@ const contracts = {
   "Total Ways to Sum II": totalWaysToSumII,
   "Minimum Path Sum in a Triangle": triangleSumContract,
   "Unique Paths in a Grid I": uniquePathsIContract,
+  "Unique Paths in a Grid II": uniquePathsInAGridII,
   "Proper 2-Coloring of a Graph": proper2ColoringOfAGraphContrect,
   "Array Jumping Game II": arrayJumpingGameII,
 } as const;
