@@ -1,12 +1,12 @@
 import { scanAll } from "../utils/scanAll.ts";
 import { stackTail } from "../utils/stackTail.ts";
-import { caesarCipherContract } from "./encryption-i-caesar-cipher.ts";
 
+import { caesarCipherContract } from "./encryption-i-caesar-cipher.ts";
 import { encryptionIIContract } from "./encryption-ii-vigenere-cipher.ts";
 import { largestPrimeFactor } from "./find-largest-prime-factor.ts";
 import { generateIpAddresses } from "./ip-address.ts";
 import { proper2ColoringOfAGraphContrect } from "./proper-2-coloring-of-a-graph.ts";
-import { totalWaysToSum } from "./total-ways-of-sum.ts";
+import { totalWaysToSumII } from "./total-ways-of-sum-ii.ts";
 import { triangleSumContract } from "./triangle-sum.ts";
 import { uniquePathsIContract } from "./unique-paths-in-a-grid-i.ts";
 
@@ -15,7 +15,7 @@ const contracts = {
   "Encryption II: Vigenère Cipher": encryptionIIContract,
   "Find Largest Prime Factor": largestPrimeFactor,
   "Generate IP Addresses": generateIpAddresses,
-  "Total Ways to Sum II": totalWaysToSum,
+  "Total Ways to Sum II": totalWaysToSumII,
   "Minimum Path Sum in a Triangle": triangleSumContract,
   "Unique Paths in a Grid I": uniquePathsIContract,
   "Proper 2-Coloring of a Graph": proper2ColoringOfAGraphContrect,

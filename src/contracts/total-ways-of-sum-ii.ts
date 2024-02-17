@@ -9,7 +9,7 @@ You may use each integer in the set zero or more times.
 
  */
 
-export function totalWaysToSum([total, numbers]: [number, number[]]): number {
+export function totalWaysToSumII([total, numbers]: [number, number[]]): number {
   function rec(target: number, index: number): number {
     if (target === 0) return 1;
     if (target < 0 || index === numbers.length) return 0;
