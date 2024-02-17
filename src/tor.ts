@@ -6,6 +6,7 @@ const FILES = [
   { file: "FTPCrack.exe", cost: 1_500_000 },
   { file: "relaySMTP.exe", cost: 5_000_000 },
   { file: "HTTPWorm.exe", cost: 30_000_000 },
+  { file: "SQLInject.exe", cost: 250_000_000 },
 ];
 
 export async function main(ns: Bitburner.NS) {
