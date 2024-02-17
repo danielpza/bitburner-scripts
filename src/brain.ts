@@ -83,7 +83,7 @@ async function shareAll(ns: Bitburner.NS) {
   if (freeThreads) {
     ns.print(`sharing ${freeThreads}`);
     clusterExec(ns, cluster, Jobs.Share(freeThreads));
-    return ns.asleep(15_000);
+    return ns.asleep(10_100);
   } else {
     return ns.asleep(1000);
   }

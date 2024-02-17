@@ -54,6 +54,7 @@ export async function main(ns: Bitburner.NS) {
         ns.toast(`Solved contract ${type} in ${server}`);
       } else {
         excludeSolutions.add(type);
+        ns.print(server, " ", file);
         ns.toast(`Failed to solve contract ${type} in ${server}`);
       }
     }
