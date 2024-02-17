@@ -22,6 +22,8 @@ export async function main(ns: Bitburner.NS) {
   const time = ns.args.includes("--time");
   const threads = ns.args.includes("--threads");
 
+  const TIME_GROUP = 1000 * 60 * 5;
+
   ns.disableLog("ALL");
 
   function getServers() {
@@ -47,6 +49,9 @@ export async function main(ns: Bitburner.NS) {
       const hgwThreads = hackThreads + growThreads + weakThreads;
 
       const hasSkill = hackLevel < playerHackLevel / 2.5;
+      const moneyPerThread = maxMoney / hgwThreads;
+      const weakenScore = -Math.floor((weakenTime * weakenCycles) / TIME_GROUP);
+      const weakenTimeScore = -Math.floor(weakenTime / TIME_GROUP);
 
       return {
         name: server,
@@ -60,8 +65,10 @@ export async function main(ns: Bitburner.NS) {
         growThreads,
         weakThreads,
         hgwThreads,
-        moneyPerThread: maxMoney / hgwThreads,
         hasSkill,
+        moneyPerThread,
+        weakenScore,
+        weakenTimeScore,
       };
     });
   }
@@ -71,13 +78,15 @@ export async function main(ns: Bitburner.NS) {
       { header: "name", align: "left" },
       { header: "maxMoney", format: formatMoney },
       { header: "hackLevel" },
-      // { header: "requiredWeaken" },
-      // { header: "weakenCycles" },
+      { header: "requiredWeaken" },
+      { header: "weakenCycles" },
       { header: "weakenTime", format: formatTime },
       { header: "totalWeakenTime", format: formatTime },
       { header: "hgwThreads", format: formatThread },
       { header: "hasSkill", format: formatBoolean },
       { header: "moneyPerThread", format: formatMoney },
+      { header: "weakenScore" },
+      { header: "weakenTimeScore" },
     ]);
 
     function formatMoney(value: number) {
