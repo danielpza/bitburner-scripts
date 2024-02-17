@@ -49,7 +49,7 @@ export async function main(ns: Bitburner.NS) {
         { header: "hasSkill", format: formatBoolean },
         { header: "moneyPerThread", format: formatMoney },
         { header: "initialWeakenScore" },
-        { header: "weakenTimeScore" },
+        // { header: "weakenTimeScore" },
         { header: "moneyPerThreadScore" },
       ],
     );
@@ -109,8 +109,8 @@ export function getServerInfo(
 
   const initialWeakenTime = weakenTime * weakenCycles;
 
-  const initialWeakenScore = -Math.floor(initialWeakenTime / TIME_GROUP);
-  const weakenTimeScore = -Math.floor(weakenTime / TIME_GROUP);
+  const initialWeakenScore = -Math.floor(Math.log(initialWeakenTime));
+  // const weakenTimeScore = -Math.floor(Math.log(weakenTime));
   const moneyPerThreadScore = Math.ceil(Math.log(moneyPerThread));
 
   return {
@@ -129,7 +129,7 @@ export function getServerInfo(
     hasSkill,
     moneyPerThread,
     initialWeakenScore,
-    weakenTimeScore,
+    // weakenTimeScore,
     moneyPerThreadScore,
   };
 }
