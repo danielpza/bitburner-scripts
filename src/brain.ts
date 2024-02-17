@@ -53,6 +53,7 @@ export async function main(ns: Bitburner.NS) {
 
       const requiredThreads = getRequiredWeakenThreads(ns, server.name);
       if (requiredThreads === 0) continue;
+      if (freeThreads < requiredThreads) continue;
 
       clusterExec(ns, cluster, Jobs.Weaken(requiredThreads, server.name));
       freeThreads -= requiredThreads;
