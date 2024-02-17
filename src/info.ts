@@ -2,6 +2,7 @@ import { scanAll } from "./utils/scanAll.ts";
 import { formatTable } from "./utils/formatTable.ts";
 import { GROW_PER_WEAK, HACK_PER_WEAK, HACK_SKILL_THRESHOLD, Jobs, TARGET_HACK_PERCENT } from "./utils/constants.ts";
 import { getRequiredWeakenThreads } from "./weaken.ts";
+import { getRequiredGrowThreads } from "./grow.ts";
 
 export function autocomplete() {
   // return ["--sec", "--ram", "--extra", "--time", "--threads"];
@@ -89,11 +90,16 @@ export function getServerInfo(
   { maxThreads, playerHackLevel }: { maxThreads: number; playerHackLevel: number },
 ) {
   const hackLevel = ns.getServerRequiredHackingLevel(server);
+
   const requiredWeaken = getRequiredWeakenThreads(ns, server);
   const weakenCycles = Math.ceil(requiredWeaken / maxThreads);
   const weakenTime = ns.getWeakenTime(server);
-
   const totalWeakenTime = weakenTime * weakenCycles;
+
+  const requiredGrow = getRequiredGrowThreads(ns, server);
+  const growCycles = Math.ceil(requiredGrow / maxThreads);
+  const growTime = ns.getGrowTime(server);
+  const totalGrowTime = growTime * growCycles;
 
   const maxMoney = ns.getServerMaxMoney(server);
 
@@ -116,10 +122,17 @@ export function getServerInfo(
   return {
     name: server,
     hackLevel,
+
     requiredWeaken,
     weakenCycles,
     weakenTime,
     totalWeakenTime,
+
+    requiredGrow,
+    growCycles,
+    growTime,
+    totalGrowTime,
+
     maxMoney,
     hackThreads,
     growThreads,
