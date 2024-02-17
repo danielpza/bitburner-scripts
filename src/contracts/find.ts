@@ -26,11 +26,17 @@ function getContracts(ns: Bitburner.NS) {
   return servers.flatMap((server) => ns.ls(server, ".cct").map((file) => [server, file]));
 }
 
+enum Result {
+  Success,
+  Failure,
+  NoSolution,
+}
+
 function trySolve(ns: Bitburner.NS, server: string, file: string) {
   const type = ns.codingcontract.getContractType(file, server);
   const solution = contracts[type as keyof typeof contracts];
   if (!solution) {
-    return false;
+    return Result.NoSolution;
   }
   const input = ns.codingcontract.getData(file, server);
   const output = solution(
@@ -42,11 +48,11 @@ function trySolve(ns: Bitburner.NS, server: string, file: string) {
 
   if (!result) {
     ns.tprint(`Failed to solve ${type} in ${server}`);
-    throw new Error(`Failed to solve ${type} in ${server}`);
+    return Result.Failure;
   }
 
   ns.print(`Solved ${type} in ${server} with input ${input} and output ${output}: ${result}`);
-  return true;
+  return Result.Success;
 }
 
 export async function main(ns: Bitburner.NS) {
@@ -63,12 +69,12 @@ export async function main(ns: Bitburner.NS) {
     for (const [server, file] of getContracts(ns)) {
       const type = ns.codingcontract.getContractType(file, server);
       if (blacklist.has(type)) continue;
-      if (trySolve(ns, server, file)) {
-        ns.toast(`Solved contract ${type} in ${server}`);
-      } else {
+      const result = trySolve(ns, server, file);
+      if (result === Result.Success) ns.toast(`Solved contract ${type} in ${server}`, "success", 10_000);
+      else {
         blacklist.add(type);
-        ns.print(server, " ", file);
-        ns.toast(`Failed to solve contract ${type} in ${server}`, "warning", null);
+        if (result === Result.Failure) ns.toast(`Failed to solve contract ${type} in ${server}`, "error", null);
+        if (result === Result.NoSolution) ns.toast(`No solution for contract ${type} in ${server}`, "warning", null);
       }
     }
   } while (loop && (await ns.asleep(1_000 * 60)));
