@@ -7,6 +7,9 @@ import { encryptionIIContract } from "./encryption-ii-vigenere-cipher.ts";
 import { largestPrimeFactor } from "./find-largest-prime-factor.ts";
 import { generateIpAddresses } from "./ip-address.ts";
 import { proper2ColoringOfAGraphContrect } from "./proper-2-coloring-of-a-graph.ts";
+import { algorithmicStockTraderI } from "./stock-trader-I.ts";
+import { algorithmicStockTraderIII } from "./stock-trader-III.ts";
+import { algorithmicStockTraderIV } from "./stock-trader-IV.ts";
 import { totalWaysToSumII } from "./total-ways-of-sum-ii.ts";
 import { triangleSumContract } from "./triangle-sum.ts";
 import { uniquePathsIContract } from "./unique-paths-in-a-grid-i.ts";
@@ -23,6 +26,9 @@ const contracts = {
   "Unique Paths in a Grid II": uniquePathsInAGridII,
   "Proper 2-Coloring of a Graph": proper2ColoringOfAGraphContrect,
   "Array Jumping Game II": arrayJumpingGameII,
+  "Algorithmic Stock Trader I": algorithmicStockTraderI,
+  "Algorithmic Stock Trader III": algorithmicStockTraderIII,
+  "Algorithmic Stock Trader IV": algorithmicStockTraderIV,
 } as const;
 
 function getContracts(ns: Bitburner.NS) {
