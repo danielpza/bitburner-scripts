@@ -4,12 +4,14 @@ import { caesarCipherContract } from "./encryption-i-caesar-cipher.ts";
 
 import { encryptionIIContract } from "./encryption-ii-vigenere-cipher.ts";
 import { largestPrimeFactor } from "./find-largest-prime-factor.ts";
+import { generateIpAddresses } from "./ip-address.ts";
 
 const contracts = {
   "Encryption I: Caesar Cipher": caesarCipherContract,
   "Encryption II: Vigenère Cipher": encryptionIIContract,
   "Find Largest Prime Factor": largestPrimeFactor,
-};
+  "Generate IP Addresses": generateIpAddresses,
+} as const;
 
 function getContracts(ns: Bitburner.NS) {
   const servers = scanAll(ns);
@@ -23,7 +25,10 @@ function trySolve(ns: Bitburner.NS, server: string, file: string) {
     return false;
   }
   const input = ns.codingcontract.getData(file, server);
-  const output = solution(input);
+  const output = solution(
+    // @ts-expect-error
+    input,
+  );
 
   const result = ns.codingcontract.attempt(output, file, server);
 
