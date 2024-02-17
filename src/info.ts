@@ -74,20 +74,26 @@ export async function main(ns: Bitburner.NS) {
   }
 
   function getInfo() {
-    return formatTable(_.orderBy(getServers(), ["hasSkill", "moneyPerThread"]), [
-      { header: "name", align: "left" },
-      { header: "maxMoney", format: formatMoney },
-      { header: "hackLevel" },
-      { header: "requiredWeaken" },
-      { header: "weakenCycles" },
-      { header: "weakenTime", format: formatTime },
-      { header: "totalWeakenTime", format: formatTime },
-      { header: "hgwThreads", format: formatThread },
-      { header: "hasSkill", format: formatBoolean },
-      { header: "moneyPerThread", format: formatMoney },
-      { header: "weakenScore" },
-      { header: "weakenTimeScore" },
-    ]);
+    return formatTable(
+      _.sortBy(
+        getServers().filter((server) => server.hasSkill),
+        ["hasSkill", "moneyPerThread"],
+      ),
+      [
+        { header: "name", align: "left" },
+        { header: "maxMoney", format: formatMoney },
+        { header: "hackLevel" },
+        { header: "requiredWeaken" },
+        { header: "weakenCycles" },
+        { header: "weakenTime", format: formatTime },
+        { header: "totalWeakenTime", format: formatTime },
+        { header: "hgwThreads", format: formatThread },
+        { header: "hasSkill", format: formatBoolean },
+        { header: "moneyPerThread", format: formatMoney },
+        { header: "weakenScore" },
+        { header: "weakenTimeScore" },
+      ],
+    );
 
     function formatMoney(value: number) {
       return "$" + ns.formatNumber(value);
