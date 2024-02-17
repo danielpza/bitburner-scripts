@@ -1,13 +1,14 @@
 import { clusterExec } from "./utils/clusterExec.ts";
-import { GROW_PER_WEAK, HACK_PER_WEAK, Jobs, SHARE_FILE, TARGET_HACK_PERCENT, ShareToggle } from "./utils/constants.ts";
+import { Jobs, SHARE_FILE, ShareToggle } from "./utils/constants.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 import { scanAll } from "./utils/scanAll.ts";
 
 import { canFullyGrow, getRequiredGrowThreads, growTarget } from "./grow.ts";
 import { hackTarget } from "./hack.ts";
-import { canFullyWeaken, getRequiredWeakenThreads, weakenTarget } from "./weaken.ts";
+import { getServerInfo } from "./info.ts";
 import { stackTail } from "./utils/stackTail.ts";
+import { canFullyWeaken, getRequiredWeakenThreads, weakenTarget } from "./weaken.ts";
 
 export async function main(ns: Bitburner.NS) {
   ns.disableLog("ALL");
@@ -45,22 +46,18 @@ export async function main(ns: Bitburner.NS) {
     if (freeThreads) return clusterExec(ns, cluster, Jobs.Weaken(freeThreads, target));
   }
 
+  function getRankedServers() {
+    const playerHackLevel = ns.getHackingLevel();
+    const servers = scanAll(ns).filter((server) => ns.hasRootAccess(server));
+    const maxThreads = getClusterFreeThreads(ns, servers, RAM);
+    const serverInfo = servers
+      .filter((server) => ns.getServerMaxMoney(server) > 0)
+      .map((server) => getServerInfo(ns, server, { playerHackLevel, maxThreads }));
+    return _.sortBy(serverInfo, ["hasSkill", "initialWeakenScore", "moneyPerThread"]);
+  }
+
   function getHackTarget() {
-    const hackLevel = ns.getHackingLevel();
-    const servers = scanAll(ns).filter((server) => ns.getServerMaxMoney(server) > 0 && ns.hasRootAccess(server));
-    return _.orderBy(servers, [
-      (server) => (ns.getServerRequiredHackingLevel(server) < hackLevel / 2 ? 0 : 1),
-      (server) => Math.floor(ns.getWeakenTime(server) / (1000 * 60 * 5)),
-      // (server) => Math.round(Math.log(ns.getWeakenTime(server))),
-      (server) => {
-        const maxMoney = ns.getServerMaxMoney(server);
-        const hackThreads = Math.ceil(TARGET_HACK_PERCENT / ns.hackAnalyze(server));
-        const growThreads = Math.ceil(ns.growthAnalyze(server, 1 / (1 - TARGET_HACK_PERCENT)));
-        const weakThreads = Math.ceil(hackThreads / HACK_PER_WEAK + growThreads / GROW_PER_WEAK);
-        const totalThreads = hackThreads + growThreads + weakThreads;
-        return -(maxMoney / totalThreads);
-      },
-    ])[0];
+    return getRankedServers().at(-1)!.name;
   }
 
   function isSharing() {
