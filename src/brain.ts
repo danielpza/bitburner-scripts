@@ -41,7 +41,22 @@ export async function main(ns: Bitburner.NS) {
 
   async function weakenAll(target: string) {
     const cluster = getRootAccessServers(ns);
-    const freeThreads = getClusterFreeThreads(ns, cluster, RAM);
+
+    const servers = getRankedServers()
+      .filter((server) => server.hasSkill)
+      .reverse()
+      .slice(1);
+    let freeThreads = getClusterFreeThreads(ns, cluster, RAM);
+
+    for (let server of servers) {
+      if (freeThreads === 0) return;
+
+      const requiredThreads = getRequiredWeakenThreads(ns, server.name);
+      if (requiredThreads === 0) continue;
+
+      clusterExec(ns, cluster, Jobs.Weaken(requiredThreads, server.name));
+      freeThreads -= requiredThreads;
+    }
 
     if (freeThreads) return clusterExec(ns, cluster, Jobs.Weaken(freeThreads, target));
   }
