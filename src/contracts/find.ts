@@ -55,20 +55,16 @@ export async function main(ns: Bitburner.NS) {
     stackTail(ns, 4);
   }
 
-  const excludeSolutions = new Set<string>();
-
   do {
     for (const [server, file] of getContracts(ns)) {
       // ns.print(ns.codingcontract.getData(file, server));
       const type = ns.codingcontract.getContractType(file, server);
-      if (excludeSolutions.has(type)) continue;
       if (trySolve(ns, server, file)) {
         ns.toast(`Solved contract ${type} in ${server}`);
       } else {
-        excludeSolutions.add(type);
         ns.print(server, " ", file);
         ns.toast(`Failed to solve contract ${type} in ${server}`);
       }
     }
-  } while (loop && (await ns.asleep(1000)));
+  } while (loop && (await ns.asleep(1_000 * 60)));
 }
