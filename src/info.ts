@@ -4,17 +4,18 @@ import { GROW_PER_WEAK, HACK_PER_WEAK, HACK_SKILL_THRESHOLD, Jobs, TARGET_HACK_P
 import { getRequiredWeakenThreads } from "./weaken.ts";
 
 export function autocomplete() {
-  return ["--sec", "--ram", "--extra", "--time", "--threads"];
+  // return ["--sec", "--ram", "--extra", "--time", "--threads"];
+  return [];
 }
 
 const TIME_GROUP = 1000 * 60 * 5;
 
 export async function main(ns: Bitburner.NS) {
-  const sec = ns.args.includes("--sec");
-  const ram = ns.args.includes("--ram");
+  // const sec = ns.args.includes("--sec");
+  // const ram = ns.args.includes("--ram");
   // const extra = ns.args.includes("--extra");
-  const time = ns.args.includes("--time");
-  const threads = ns.args.includes("--threads");
+  // const time = ns.args.includes("--time");
+  // const threads = ns.args.includes("--threads");
 
   const RAM = ns.getScriptRam(Jobs.Weaken.script);
 
@@ -33,8 +34,8 @@ export async function main(ns: Bitburner.NS) {
   function getInfo() {
     return formatTable(
       _.sortBy(
-        getServers().filter((server) => server.hasSkill),
-        ["hasSkill", "moneyPerThread"],
+        getServers().filter((server) => server.canHack),
+        ["hasSkill", "initialWeakenScore", "moneyPerThreadScore", "moneyPerThread"],
       ),
       [
         { header: "name", align: "left" },
@@ -47,8 +48,9 @@ export async function main(ns: Bitburner.NS) {
         { header: "hgwThreads", format: formatThread },
         { header: "hasSkill", format: formatBoolean },
         { header: "moneyPerThread", format: formatMoney },
-        { header: "weakenScore" },
+        { header: "initialWeakenScore" },
         { header: "weakenTimeScore" },
+        { header: "moneyPerThreadScore" },
       ],
     );
 
@@ -81,7 +83,7 @@ export async function main(ns: Bitburner.NS) {
   }
 }
 
-function getServerInfo(
+export function getServerInfo(
   ns: Bitburner.NS,
   server: string,
   { maxThreads, playerHackLevel }: { maxThreads: number; playerHackLevel: number },
@@ -101,10 +103,15 @@ function getServerInfo(
 
   const hgwThreads = hackThreads + growThreads + weakThreads;
 
+  const canHack = hackLevel < playerHackLevel;
   const hasSkill = hackLevel < playerHackLevel / HACK_SKILL_THRESHOLD;
   const moneyPerThread = maxMoney / hgwThreads;
-  const weakenScore = -Math.floor((weakenTime * weakenCycles) / TIME_GROUP);
+
+  const initialWeakenTime = weakenTime * weakenCycles;
+
+  const initialWeakenScore = -Math.floor(initialWeakenTime / TIME_GROUP);
   const weakenTimeScore = -Math.floor(weakenTime / TIME_GROUP);
+  const moneyPerThreadScore = Math.ceil(Math.log(moneyPerThread));
 
   return {
     name: server,
@@ -118,9 +125,11 @@ function getServerInfo(
     growThreads,
     weakThreads,
     hgwThreads,
+    canHack,
     hasSkill,
     moneyPerThread,
-    weakenScore,
+    initialWeakenScore,
     weakenTimeScore,
+    moneyPerThreadScore,
   };
 }
