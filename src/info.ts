@@ -49,9 +49,11 @@ export async function main(ns: Bitburner.NS) {
         { header: "hgwThreads", format: formatThread },
         { header: "hasSkill", format: formatBoolean },
         { header: "moneyPerThread", format: formatMoney },
+        { header: "moneyPerTime", format: formatMoney },
         { header: "initialWeakenScore" },
         // { header: "weakenTimeScore" },
         { header: "moneyPerThreadScore" },
+        { header: "moneyPerTimeScore" },
       ],
     );
 
@@ -112,12 +114,14 @@ export function getServerInfo(
   const canHack = hackLevel < playerHackLevel;
   const hasSkill = hackLevel < playerHackLevel / HACK_SKILL_THRESHOLD;
   const moneyPerThread = maxMoney / hgwThreads;
+  const moneyPerTime = maxMoney / weakenTime;
 
   const initialWeakenTime = weakenTime * weakenCycles;
 
   const initialWeakenScore = -Math.floor(Math.log(initialWeakenTime));
   // const weakenTimeScore = -Math.floor(Math.log(weakenTime));
   const moneyPerThreadScore = Math.ceil(Math.log(moneyPerThread));
+  const moneyPerTimeScore = Math.ceil(Math.log(moneyPerTime));
 
   return {
     name: server,
@@ -141,8 +145,11 @@ export function getServerInfo(
     canHack,
     hasSkill,
     moneyPerThread,
+    moneyPerTime,
+
     initialWeakenScore,
     // weakenTimeScore,
     moneyPerThreadScore,
+    moneyPerTimeScore,
   };
 }
