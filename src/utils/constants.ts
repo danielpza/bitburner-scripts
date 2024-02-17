@@ -45,7 +45,9 @@ export const Jobs = {
   }
 >;
 
-export const TARGET_HACK_PERCENT = 0.1;
+export const TARGET_HACK_PERCENT = 0.5;
+
+export const MAX_HACK_CYCLES = 300;
 
 export const HACK_SKILL_THRESHOLD = 2.5;
 
@@ -55,3 +57,5 @@ export enum ShareToggle {
   off = "off",
   on = "on",
 }
+
+export const TARGET_FILE = "state/target.txt";

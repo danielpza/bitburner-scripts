@@ -1,14 +1,20 @@
 import { binarySearch } from "./utils/binarySearch.ts";
 import { clusterExec } from "./utils/clusterExec.ts";
-import { GROW_PER_WEAK, HACK_PER_WEAK, Jobs, SLEEP, Script, TARGET_HACK_PERCENT } from "./utils/constants.ts";
+import {
+  GROW_PER_WEAK,
+  HACK_PER_WEAK,
+  Jobs,
+  MAX_HACK_CYCLES,
+  SLEEP,
+  Script,
+  TARGET_HACK_PERCENT,
+} from "./utils/constants.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
 }
-
-const MAX_CYCLES = 2000;
 
 export async function main(ns: Bitburner.NS) {
   const [target] = ns.args as string[];
@@ -21,7 +27,11 @@ export async function main(ns: Bitburner.NS) {
   await hackTarget(ns, target);
 }
 
-export async function hackTarget(ns: Bitburner.NS, target: string, { maxCycles = MAX_CYCLES } = {}) {
+export async function hackTarget(
+  ns: Bitburner.NS,
+  target: string,
+  { maxCycles = MAX_HACK_CYCLES, targetHackPercent = TARGET_HACK_PERCENT } = {},
+) {
   const RAM = Math.max(ns.getScriptRam(Script.HACK), ns.getScriptRam(Script.GROW), ns.getScriptRam(Script.WEAKEN));
 
   const cluster = getRootAccessServers(ns);
@@ -29,7 +39,8 @@ export async function hackTarget(ns: Bitburner.NS, target: string, { maxCycles =
   const threads = getBatchThreadForHackProcess(freeThreads);
 
   if (!threads) {
-    throw new Error(`invalid threads`);
+    return false;
+    // throw new Error(`invalid threads`);
   }
 
   const { hackThreads, growThreads, weakenThreads } = threads;
@@ -86,7 +97,7 @@ export async function hackTarget(ns: Bitburner.NS, target: string, { maxCycles =
 
   function getBatchThreadForHackProcess(totalAvailableThreads: number) {
     const maxHackThreads = Math.ceil(
-      ns.hackAnalyzeThreads(target, ns.getServerMoneyAvailable(target) * TARGET_HACK_PERCENT),
+      ns.hackAnalyzeThreads(target, ns.getServerMoneyAvailable(target) * targetHackPercent),
     );
 
     const hackThreads = binarySearch(1, Math.min(maxHackThreads + 1, totalAvailableThreads), (hackThreads) => {
