@@ -17,11 +17,7 @@ export async function main(ns: Bitburner.NS) {
   await weakenTarget(ns, target, { loop: true });
 }
 
-export async function weakenTarget(
-  ns: Bitburner.NS,
-  target: string,
-  { loop = false }: { loop?: boolean } = {},
-) {
+export async function weakenTarget(ns: Bitburner.NS, target: string, { loop = false }: { loop?: boolean } = {}) {
   const ram = ns.getScriptRam(Jobs.Weaken.script);
 
   do {
@@ -37,14 +33,12 @@ export async function weakenTarget(
     const servers = getRootAccessServers(ns);
     const freeThreads = getClusterFreeThreads(ns, servers, ram);
 
+    if (freeThreads === 0) continue;
+
     const totalTime = ns.getWeakenTime(target);
     const weakenThreads = Math.ceil(secToRemove / WEAK_ANALYZE);
 
-    clusterExec(
-      ns,
-      servers,
-      Jobs.Weaken(Math.min(freeThreads, weakenThreads), target),
-    );
+    clusterExec(ns, servers, Jobs.Weaken(Math.min(freeThreads, weakenThreads), target));
 
     ns.print(
       [
@@ -75,10 +69,6 @@ export function getRequiredWeakenThreads(ns: Bitburner.NS, target: string) {
 export function canFullyWeaken(ns: Bitburner.NS, target: string) {
   return (
     getRequiredWeakenThreads(ns, target) <=
-    getClusterFreeThreads(
-      ns,
-      getRootAccessServers(ns),
-      ns.getScriptRam(Script.WEAKEN),
-    )
+    getClusterFreeThreads(ns, getRootAccessServers(ns), ns.getScriptRam(Script.WEAKEN))
   );
 }
