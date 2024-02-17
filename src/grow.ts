@@ -17,15 +17,8 @@ export async function main(ns: Bitburner.NS) {
   await growTarget(ns, target);
 }
 
-export async function growTarget(
-  ns: Bitburner.NS,
-  target: string,
-  { extraDelay = 0, loop = false } = {},
-) {
-  const ram = Math.max(
-    ns.getScriptRam(Script.GROW),
-    ns.getScriptRam(Script.WEAKEN),
-  );
+export async function growTarget(ns: Bitburner.NS, target: string, { extraDelay = 0, loop = false } = {}) {
+  const ram = Math.max(ns.getScriptRam(Script.GROW), ns.getScriptRam(Script.WEAKEN));
 
   do {
     let growThreads = getRequiredGrowThreads(ns, target);
@@ -59,9 +52,7 @@ export async function growTarget(
     ns.print(
       [
         `growing ${target}`,
-        ns.formatNumber(ns.getServerMoneyAvailable(target)) +
-          "/" +
-          ns.formatNumber(ns.getServerMaxMoney(target)),
+        ns.formatNumber(ns.getServerMoneyAvailable(target)) + "/" + ns.formatNumber(ns.getServerMaxMoney(target)),
         `(${growThreads}, ${weakenThreads})`,
         ns.tFormat(totalTime),
       ].join(" "),
@@ -79,21 +70,12 @@ export function getRequiredGrowThreads(ns: Bitburner.NS, target: string) {
 
   if (currentMoney === maxMoney) return 0;
 
-  return Math.ceil(
-    ns.growthAnalyze(
-      target,
-      Math.min(Number.MAX_SAFE_INTEGER, maxMoney / Math.max(currentMoney, 1)),
-    ),
-  );
+  return Math.ceil(ns.growthAnalyze(target, Math.min(Number.MAX_SAFE_INTEGER, maxMoney / Math.max(currentMoney, 1))));
 }
 
 export function canFullyGrow(ns: Bitburner.NS, target: string) {
   return (
     getRequiredGrowThreads(ns, target) <=
-    getClusterFreeThreads(
-      ns,
-      getRootAccessServers(ns),
-      ns.getScriptRam(Script.WEAKEN),
-    )
+    getClusterFreeThreads(ns, getRootAccessServers(ns), ns.getScriptRam(Script.WEAKEN))
   );
 }
