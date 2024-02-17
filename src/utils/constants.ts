@@ -47,6 +47,8 @@ export const Jobs = {
 
 export const TARGET_HACK_PERCENT = 0.1;
 
+export const HACK_SKILL_THRESHOLD = 2.5;
+
 export const SHARE_FILE = "state/share.txt";
 
 export enum ShareToggle {

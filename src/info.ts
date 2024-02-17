@@ -1,6 +1,6 @@
 import { scanAll } from "./utils/scanAll.ts";
 import { formatTable } from "./utils/formatTable.ts";
-import { Jobs, TARGET_HACK_PERCENT } from "./utils/constants.ts";
+import { HACK_SKILL_THRESHOLD, Jobs, TARGET_HACK_PERCENT } from "./utils/constants.ts";
 import { getRequiredWeakenThreads } from "./weaken.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 
@@ -48,7 +48,7 @@ export async function main(ns: Bitburner.NS) {
 
       const hgwThreads = hackThreads + growThreads + weakThreads;
 
-      const hasSkill = hackLevel < playerHackLevel / 2.5;
+      const hasSkill = hackLevel < playerHackLevel / HACK_SKILL_THRESHOLD;
       const moneyPerThread = maxMoney / hgwThreads;
       const weakenScore = -Math.floor((weakenTime * weakenCycles) / TIME_GROUP);
       const weakenTimeScore = -Math.floor(weakenTime / TIME_GROUP);
