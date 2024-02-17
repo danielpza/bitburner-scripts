@@ -5,6 +5,7 @@ import { caesarCipherContract } from "./encryption-i-caesar-cipher.ts";
 import { encryptionIIContract } from "./encryption-ii-vigenere-cipher.ts";
 import { largestPrimeFactor } from "./find-largest-prime-factor.ts";
 import { generateIpAddresses } from "./ip-address.ts";
+import { proper2ColoringOfAGraphContrect } from "./proper-2-coloring-of-a-graph.ts";
 import { totalWaysToSum } from "./total-ways-of-sum.ts";
 import { triangleSumContract } from "./triangle-sum.ts";
 import { uniquePathsIContract } from "./unique-paths-in-a-grid-i.ts";
@@ -17,6 +18,7 @@ const contracts = {
   "Total Ways to Sum II": totalWaysToSum,
   "Minimum Path Sum in a Triangle": triangleSumContract,
   "Unique Paths in a Grid I": uniquePathsIContract,
+  "Proper 2-Coloring of a Graph": proper2ColoringOfAGraphContrect,
 } as const;
 
 function getContracts(ns: Bitburner.NS) {
