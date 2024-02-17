@@ -6,6 +6,7 @@ import { encryptionIIContract } from "./encryption-ii-vigenere-cipher.ts";
 import { largestPrimeFactor } from "./find-largest-prime-factor.ts";
 import { generateIpAddresses } from "./ip-address.ts";
 import { totalWaysToSum } from "./total-ways-of-sum.ts";
+import { triangleSumContract } from "./triangle-sum.ts";
 
 const contracts = {
   "Encryption I: Caesar Cipher": caesarCipherContract,
@@ -13,6 +14,7 @@ const contracts = {
   "Find Largest Prime Factor": largestPrimeFactor,
   "Generate IP Addresses": generateIpAddresses,
   "Total Ways to Sum II": totalWaysToSum,
+  "Minimum Path Sum in a Triangle": triangleSumContract,
 } as const;
 
 function getContracts(ns: Bitburner.NS) {
@@ -55,6 +57,7 @@ export async function main(ns: Bitburner.NS) {
 
   do {
     for (const [server, file] of getContracts(ns)) {
+      // ns.print(ns.codingcontract.getData(file, server));
       const type = ns.codingcontract.getContractType(file, server);
       if (excludeSolutions.has(type)) continue;
       if (trySolve(ns, server, file)) {
