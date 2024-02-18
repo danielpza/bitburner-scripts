@@ -47,9 +47,9 @@ export async function main(ns: Bitburner.NS) {
     await ns.asleep(1500);
 
     async function useUpThreads(promise: Promise<unknown>) {
-      if (isSharing()) await Promise.all([whileUnresolved(promise, () => shareAll(ns)), hackOthers()]);
-      else if (canHackOthers) hackOthers();
-      await promise;
+      if (isSharing())
+        return Promise.all([whileUnresolved(promise, () => shareAll(ns)), canHackOthers && hackOthers()]);
+      else return whileUnresolved(Promise.all([promise, canHackOthers && hackOthers()]), () => shareAll(ns));
     }
 
     function hackOthers() {
@@ -109,7 +109,10 @@ async function whileUnresolved(promise: Promise<unknown>, cb?: () => Promise<unk
 async function shareAll(ns: Bitburner.NS) {
   const cluster = getRootAccessServers(ns);
 
-  const freeThreads = getClusterFreeThreads(ns, cluster, ns.getScriptRam(Jobs.Share.script));
+  const freeThreads = Math.min(
+    getClusterFreeThreads(ns, cluster, ns.getScriptRam(Jobs.Share.script)),
+    MAX_SHARE_THREADS,
+  );
 
   if (freeThreads) {
     ns.print(`sharing ${freeThreads}`);
