@@ -30,7 +30,7 @@ export async function main(ns: Bitburner.NS) {
 export async function hackTarget(
   ns: Bitburner.NS,
   target: string,
-  { maxCycles = MAX_HACK_CYCLES, targetHackPercent = TARGET_HACK_PERCENT } = {},
+  { maxCycles = MAX_HACK_CYCLES, targetHackPercent = TARGET_HACK_PERCENT, extraDelay = 0 } = {},
 ) {
   const RAM = Math.max(ns.getScriptRam(Script.HACK), ns.getScriptRam(Script.GROW), ns.getScriptRam(Script.WEAKEN));
 
@@ -51,7 +51,7 @@ export async function hackTarget(
   const growTime = ns.getGrowTime(target) + SLEEP;
   const weakenTime = ns.getWeakenTime(target);
 
-  const totalTime = Math.max(growTime, hackTime, weakenTime);
+  const totalTime = Math.max(growTime, hackTime, weakenTime) + extraDelay;
 
   const hackDelay = totalTime - hackTime;
   const growDelay = totalTime - growTime;

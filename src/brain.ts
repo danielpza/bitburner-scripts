@@ -1,14 +1,14 @@
 import { clusterExec } from "./utils/clusterExec.ts";
-import { Jobs, SHARE_FILE, ShareToggle } from "./utils/constants.ts";
+import { Jobs, SHARE_FILE, SLEEP, ShareToggle } from "./utils/constants.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 import { scanAll } from "./utils/scanAll.ts";
 
-import { canFullyGrow, getRequiredGrowThreads, growTarget } from "./grow.ts";
+import { getRequiredGrowThreads, growTarget } from "./grow.ts";
 import { hackTarget } from "./hack.ts";
 import { getServerInfo } from "./info.ts";
 import { stackTail } from "./utils/stackTail.ts";
-import { canFullyWeaken, getRequiredWeakenThreads, weakenTarget } from "./weaken.ts";
+import { getRequiredWeakenThreads, weakenTarget } from "./weaken.ts";
 
 export async function main(ns: Bitburner.NS) {
   ns.disableLog("ALL");
@@ -17,62 +17,52 @@ export async function main(ns: Bitburner.NS) {
 
   const RAM = ns.getScriptRam(Jobs.Weaken.script);
 
+  let managing = new Set<string>();
+
   while (true) {
-    const target = getHackTarget();
+    const [{ name: target, weakenTime }, ...secondaryTargets] = getRankedServers();
 
-    while (!canFullyWeaken(ns, target)) await weakenTarget(ns, target);
+    const hasToWeaken = getRequiredWeakenThreads(ns, target) > 0;
+    const hasToGrow = getRequiredGrowThreads(ns, target) > 0;
 
-    if (getRequiredWeakenThreads(ns, target) > 0)
-      await useUpThreads(Promise.all([weakenTarget(ns, target), growTarget(ns, target)]), ns.getWeakenTime(target));
+    const canHackOthers = !hasToWeaken && !hasToGrow;
 
-    while (!canFullyGrow(ns, target)) await Promise.all([growTarget(ns, target)]);
-
-    if (getRequiredGrowThreads(ns, target) > 0) await useUpThreads(growTarget(ns, target), ns.getWeakenTime(target));
-
-    await useUpThreads(hackTarget(ns, target));
+    await useUpThreads(handleServer(target, false));
 
     await ns.asleep(1500);
 
-    async function useUpThreads(promise: Promise<unknown>, timeLimit = Infinity) {
+    async function useUpThreads(promise: Promise<unknown>) {
       if (isSharing()) await whileUnresolved(promise, () => shareAll(ns));
       else {
-        Promise.all([promise, weakenAll(timeLimit), growAll(timeLimit), hackAll(timeLimit)]);
+        for (const otherTarget of secondaryTargets) {
+          const canWeakenBefore = otherTarget.weakenTime < weakenTime - SLEEP * 2;
+          handleServer(otherTarget.name, !(canHackOthers || canWeakenBefore));
+        }
         return promise;
       }
     }
   }
 
-  async function weakenAll(timeLimit: number) {
-    const servers = getRankedServers()
-      .filter((server) => server.hasSkill && server.weakenTime <= timeLimit)
-      .reverse()
-      .slice(1);
+  async function handleServer(target: string, onlyWeaken: boolean) {
+    if (!managing.has(target)) {
+      return;
+    }
+    managing.add(target);
 
-    return Promise.all(servers.map((server) => weakenTarget(ns, server.name)));
-  }
+    const hasToWeaken = getRequiredWeakenThreads(ns, target) > 0;
+    const hasToGrow = !onlyWeaken && getRequiredGrowThreads(ns, target) > 0;
 
-  async function growAll(timeLimit) {
-    const servers = getRankedServers()
-      .filter((server) => server.hasSkill && server.totalWeakenTime === 0 && server.weakenTime <= timeLimit)
-      .reverse()
-      .slice(1);
+    const weakenDelay = hasToWeaken ? SLEEP : 0;
+    const growDelay = hasToGrow ? SLEEP : 0;
 
-    return Promise.all(servers.map((server) => growTarget(ns, server.name)));
-  }
+    await Promise.all([
+      hasToWeaken && weakenTarget(ns, target),
+      hasToGrow && growTarget(ns, target, { extraDelay: weakenDelay }),
+      !onlyWeaken && hackTarget(ns, target, { extraDelay: weakenDelay + growDelay }),
+    ]);
 
-  async function hackAll(timeLimit) {
-    const servers = getRankedServers()
-      .filter(
-        (server) =>
-          server.hasSkill &&
-          server.totalWeakenTime === 0 &&
-          server.totalGrowTime === 0 &&
-          server.weakenTime <= timeLimit,
-      )
-      .reverse()
-      .slice(1);
-
-    return Promise.all(servers.map((server) => hackTarget(ns, server.name)));
+    await ns.asleep(1500);
+    managing.delete(target);
   }
 
   function getRankedServers() {
@@ -82,11 +72,7 @@ export async function main(ns: Bitburner.NS) {
     const serverInfo = servers
       .filter((server) => ns.getServerMaxMoney(server) > 0)
       .map((server) => getServerInfo(ns, server, { playerHackLevel, maxThreads }));
-    return _.sortBy(serverInfo, ["hasSkill", "initialWeakenScore", "moneyPerThread"]);
-  }
-
-  function getHackTarget() {
-    return getRankedServers().at(-1)!.name;
+    return _.sortBy(serverInfo, ["hasSkill", "initialWeakenScore", "moneyPerThread"]).reverse();
   }
 
   function isSharing() {
