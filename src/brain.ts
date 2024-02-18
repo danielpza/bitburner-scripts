@@ -20,10 +20,12 @@ export async function main(ns: Bitburner.NS) {
   let managing = new Set<string>();
 
   while (true) {
-    let [firstTarget, ...secondaryTargets] = getRankedServers();
+    ns.print("--> main loop <--");
+    const ranked = getRankedServers().filter((server) => server.canHack);
+    let [firstTarget, ...secondaryTargets] = ranked;
 
     if (managing.has(firstTarget?.name)) {
-      [firstTarget, ...secondaryTargets] = getRankedServers().filter(
+      [firstTarget, ...secondaryTargets] = ranked.filter(
         (server) => !managing.has(server.name) && server.weakenTime < firstTarget.weakenTime + SLEEP * 2,
       );
     }
