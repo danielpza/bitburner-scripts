@@ -1,5 +1,6 @@
 type Column<T> = {
   header: keyof T;
+  label?: string;
   format?: (value: any) => string;
   align?: "left" | "right";
   hide?: boolean;
@@ -11,13 +12,10 @@ export function formatTable<T>(rows: T[], columns: Column<T>[]) {
   columns = columns.filter((column) => !column.hide);
 
   let paddings = Array.from({ length: columns.length }, () => 0);
-  let aligns = Array.from(
-    { length: columns.length },
-    (_v, i) => columns[i].align ?? "right",
-  );
+  let aligns = Array.from({ length: columns.length }, (_v, i) => columns[i].align ?? "right");
 
   const allRows = [
-    columns.map((column) => column.header),
+    columns.map((column) => column.label ?? column.header),
     ...rows.map((row) =>
       columns.map((column) => {
         let value = _.get(row, column.header);
