@@ -60,9 +60,9 @@ export async function hackTarget(
   let totalThreads = getClusterFreeThreads(ns, cluster, RAM);
 
   for (i = 0; i < maxCycles && requiredThreads <= totalThreads; i++) {
-    clusterExec(ns, cluster, Jobs.Hack(hackThreads, target, hackDelay + i * SLEEP));
-    clusterExec(ns, cluster, Jobs.Grow(growThreads, target, growDelay + i * SLEEP));
-    clusterExec(ns, cluster, Jobs.Weaken(weakenThreads, target, weakenDelay + i * SLEEP));
+    clusterExec(ns, cluster, Jobs.Hack(hackThreads, target, hackDelay + i * SLEEP * 3));
+    clusterExec(ns, cluster, Jobs.Grow(growThreads, target, growDelay + i * SLEEP * 3));
+    clusterExec(ns, cluster, Jobs.Weaken(weakenThreads, target, weakenDelay + i * SLEEP * 3));
     totalThreads -= requiredThreads;
   }
 
