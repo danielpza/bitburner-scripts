@@ -36,16 +36,14 @@ export async function hackTarget(
 
   const cluster = getRootAccessServers(ns);
   const freeThreads = getClusterFreeThreads(ns, cluster, RAM);
-  const threads = getBatchThreadForHackProcess(freeThreads);
+  const threads = getBatchThreadForHackProcess(ns, { target, totalAvailableThreads: freeThreads, targetHackPercent });
 
   if (!threads) {
     return false;
     // throw new Error(`invalid threads`);
   }
 
-  const { hackThreads, growThreads, weakenThreads } = threads;
-
-  const requiredThreads = hackThreads + growThreads + weakenThreads;
+  const { hackThreads, growThreads, weakenThreads, totalThreads: requiredThreads } = threads;
 
   const hackTime = ns.getHackTime(target) + SLEEP * 2;
   const growTime = ns.getGrowTime(target) + SLEEP;
@@ -85,6 +83,43 @@ export async function hackTarget(
   );
 
   await ns.asleep(totalTime + SLEEP * i + 1000);
+}
+
+function getBatchThreadForHackProcess(
+  ns: Bitburner.NS,
+  {
+    target,
+    totalAvailableThreads,
+    targetHackPercent,
+  }: {
+    target: string;
+    totalAvailableThreads: number;
+    targetHackPercent: number;
+  },
+) {
+  const maxHackThreads = Math.ceil(
+    ns.hackAnalyzeThreads(target, ns.getServerMoneyAvailable(target) * targetHackPercent),
+  );
+
+  const hackThreads = binarySearch(1, Math.min(maxHackThreads, totalAvailableThreads), (hackThreads) => {
+    const [growThreads, weakenThreads] = getGrowWeakenThreads(hackThreads);
+    return hackThreads + growThreads + weakenThreads <= totalAvailableThreads;
+  });
+
+  const [growThreads, weakenThreads] = getGrowWeakenThreads(hackThreads);
+
+  if (
+    hackThreads <= 0 ||
+    growThreads <= 0 ||
+    weakenThreads <= 0 ||
+    hackThreads + growThreads + weakenThreads > totalAvailableThreads
+  ) {
+    return null;
+  }
+
+  const totalThreads = hackThreads + growThreads + weakenThreads;
+
+  return { hackThreads, growThreads, weakenThreads, totalThreads };
 
   function getGrowWeakenThreads(hackThreads: number) {
     const percentStolen = Math.min(ns.hackAnalyze(target) * hackThreads, 1);
@@ -93,29 +128,5 @@ export async function hackTarget(
     );
     const weakenThreads = Math.ceil(hackThreads / HACK_PER_WEAK + growThreads / GROW_PER_WEAK);
     return [growThreads, weakenThreads];
-  }
-
-  function getBatchThreadForHackProcess(totalAvailableThreads: number) {
-    const maxHackThreads = Math.ceil(
-      ns.hackAnalyzeThreads(target, ns.getServerMoneyAvailable(target) * targetHackPercent),
-    );
-
-    const hackThreads = binarySearch(1, Math.min(maxHackThreads, totalAvailableThreads), (hackThreads) => {
-      const [growThreads, weakenThreads] = getGrowWeakenThreads(hackThreads);
-      return hackThreads + growThreads + weakenThreads <= totalAvailableThreads;
-    });
-
-    const [growThreads, weakenThreads] = getGrowWeakenThreads(hackThreads);
-
-    if (
-      hackThreads <= 0 ||
-      growThreads <= 0 ||
-      weakenThreads <= 0 ||
-      hackThreads + growThreads + weakenThreads > totalAvailableThreads
-    ) {
-      return null;
-    }
-
-    return { hackThreads, growThreads, weakenThreads };
   }
 }
