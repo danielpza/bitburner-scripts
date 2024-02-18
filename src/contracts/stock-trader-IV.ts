@@ -1,6 +1,5 @@
 /*
-You are attempting to solve a Coding Contract. You have 10 tries remaining, after which the contract will self-destruct.
-
+Algorithmic Stock Trader IV
 
 You are given the following array with two elements:
 
@@ -24,7 +23,7 @@ export function algorithmicStockTraderIV([N, arr]: [number, number[]]) {
       for (let jj = 0; jj < j; jj++) {
         const njj = arr[jj];
         const nj = arr[j];
-        const actual = nj - njj + (dp[j - 1] ?? 0);
+        const actual = nj - njj + (dp[jj - 1] ?? 0);
         best = Math.max(best, actual);
       }
       curr[j] = best;
