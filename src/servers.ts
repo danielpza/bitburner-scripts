@@ -1,5 +1,5 @@
+import { formatTable } from "./utils/formatTable.ts";
 import { stackTail } from "./utils/stackTail.ts";
-import { table } from "./utils/table.ts";
 
 export function autocomplete() {
   return ["buy", "upgrade", "list", "loop"];
@@ -88,7 +88,7 @@ function list(ns: Bitburner.NS) {
   const servers = ns.getPurchasedServers();
   ns.tprint(
     "\n",
-    table(
+    formatTable(
       servers.map((host) => ({
         name: host,
         used: ns.getServerUsedRam(host),
