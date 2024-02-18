@@ -1,11 +1,7 @@
 import { getFreeThreads } from "./getFreeThreads.ts";
 import { RemoteExecOptions, remoteExec } from "./remoteExec.ts";
 
-export function clusterExec(
-  ns: Bitburner.NS,
-  hosts: string[],
-  { script, args, threads = 1 }: RemoteExecOptions,
-) {
+export function clusterExec(ns: Bitburner.NS, hosts: string[], { script, args, threads = 1 }: RemoteExecOptions) {
   let missingThreads = threads;
   for (const host of hosts) {
     const freeThreads = getFreeThreads(ns, host, ns.getScriptRam(script));

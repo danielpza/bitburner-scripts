@@ -36,7 +36,7 @@ export async function hackTarget(
 
   const cluster = getRootAccessServers(ns);
   const freeThreads = getClusterFreeThreads(ns, cluster, RAM);
-  const threads = getBatchThreadForHackProcess(ns, { target, totalAvailableThreads: freeThreads, targetHackPercent });
+  const threads = getRequiredHGWThreads(ns, { target, totalAvailableThreads: freeThreads, targetHackPercent });
 
   if (!threads) {
     return false;
@@ -85,12 +85,12 @@ export async function hackTarget(
   await ns.asleep(totalTime + SLEEP * i + 1000);
 }
 
-function getBatchThreadForHackProcess(
+function getRequiredHGWThreads(
   ns: Bitburner.NS,
   {
     target,
-    totalAvailableThreads,
-    targetHackPercent,
+    totalAvailableThreads = Infinity,
+    targetHackPercent = TARGET_HACK_PERCENT,
   }: {
     target: string;
     totalAvailableThreads: number;
