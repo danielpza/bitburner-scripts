@@ -58,4 +58,6 @@ export enum ShareToggle {
   on = "on",
 }
 
+export const MAX_SHARE_THREADS = 100_000;
+
 export const TARGET_FILE = "state/target.txt";

@@ -1,5 +1,5 @@
 import { clusterExec } from "./utils/clusterExec.ts";
-import { Jobs, SHARE_FILE, SLEEP, ShareToggle } from "./utils/constants.ts";
+import { Jobs, MAX_SHARE_THREADS, SHARE_FILE, SLEEP, ShareToggle } from "./utils/constants.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 import { scanAll } from "./utils/scanAll.ts";
@@ -47,16 +47,17 @@ export async function main(ns: Bitburner.NS) {
     await ns.asleep(1500);
 
     async function useUpThreads(promise: Promise<unknown>) {
-      if (isSharing()) await whileUnresolved(promise, () => shareAll(ns));
-      else {
-        if (!canHackOthers) return promise;
-        let cluster = getRootAccessServers(ns);
-        for (const otherTarget of secondaryTargets) {
-          if (getClusterFreeThreads(ns, cluster, RAM) < 5) break;
-          const canWeakenBefore = otherTarget.weakenTime < weakenTime - SLEEP * 2;
-          handleServer(otherTarget.name, !canWeakenBefore);
-        }
-        return promise;
+      if (isSharing()) await Promise.all([whileUnresolved(promise, () => shareAll(ns)), hackOthers()]);
+      else if (canHackOthers) hackOthers();
+      await promise;
+    }
+
+    function hackOthers() {
+      let cluster = getRootAccessServers(ns);
+      for (const otherTarget of secondaryTargets) {
+        if (getClusterFreeThreads(ns, cluster, RAM) < 5) break;
+        const canWeakenBefore = otherTarget.weakenTime < weakenTime - SLEEP * 2;
+        handleServer(otherTarget.name, !canWeakenBefore);
       }
     }
   }
