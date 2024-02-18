@@ -62,7 +62,7 @@ function trySolve(ns: Bitburner.NS, server: string, file: string) {
   );
 
   if (!result) {
-    ns.tprint(`Failed to solve ${type} in ${server}`);
+    ns.print(`Failed to solve ${type} in ${server} with input ${input} and output ${output}`);
     return Result.Failure;
   }
 
