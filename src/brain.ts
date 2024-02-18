@@ -20,7 +20,20 @@ export async function main(ns: Bitburner.NS) {
   let managing = new Set<string>();
 
   while (true) {
-    const [{ name: target, weakenTime }, ...secondaryTargets] = getRankedServers();
+    let [firstTarget, ...secondaryTargets] = getRankedServers();
+
+    if (managing.has(firstTarget?.name)) {
+      [firstTarget, ...secondaryTargets] = getRankedServers().filter(
+        (server) => !managing.has(server.name) && server.weakenTime < firstTarget.weakenTime + SLEEP * 2,
+      );
+    }
+
+    if (!firstTarget) {
+      await ns.asleep(1000);
+      continue;
+    }
+
+    const { name: target, weakenTime } = firstTarget;
 
     const hasToWeaken = getRequiredWeakenThreads(ns, target) > 0;
     const hasToGrow = getRequiredGrowThreads(ns, target) > 0;
@@ -34,9 +47,12 @@ export async function main(ns: Bitburner.NS) {
     async function useUpThreads(promise: Promise<unknown>) {
       if (isSharing()) await whileUnresolved(promise, () => shareAll(ns));
       else {
+        if (!canHackOthers) return promise;
+        let cluster = getRootAccessServers(ns);
         for (const otherTarget of secondaryTargets) {
+          if (getClusterFreeThreads(ns, cluster, RAM) < 5) break;
           const canWeakenBefore = otherTarget.weakenTime < weakenTime - SLEEP * 2;
-          handleServer(otherTarget.name, !(canHackOthers || canWeakenBefore));
+          handleServer(otherTarget.name, !canWeakenBefore);
         }
         return promise;
       }
@@ -44,7 +60,7 @@ export async function main(ns: Bitburner.NS) {
   }
 
   async function handleServer(target: string, onlyWeaken: boolean) {
-    if (!managing.has(target)) {
+    if (managing.has(target)) {
       return;
     }
     managing.add(target);
