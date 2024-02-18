@@ -100,7 +100,7 @@ export async function hackTarget(
       ns.hackAnalyzeThreads(target, ns.getServerMoneyAvailable(target) * targetHackPercent),
     );
 
-    const hackThreads = binarySearch(1, Math.min(maxHackThreads + 1, totalAvailableThreads), (hackThreads) => {
+    const hackThreads = binarySearch(1, Math.min(maxHackThreads, totalAvailableThreads), (hackThreads) => {
       const [growThreads, weakenThreads] = getGrowWeakenThreads(hackThreads);
       return hackThreads + growThreads + weakenThreads <= totalAvailableThreads;
     });
