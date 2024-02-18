@@ -75,9 +75,26 @@ export function getRequiredGrowThreads(ns: Bitburner.NS, target: string) {
   return Math.ceil(ns.growthAnalyze(target, Math.min(Number.MAX_SAFE_INTEGER, maxMoney / Math.max(currentMoney, 1))));
 }
 
-export function canFullyGrow(ns: Bitburner.NS, target: string) {
-  return (
-    getRequiredGrowThreads(ns, target) <=
-    getClusterFreeThreads(ns, getRootAccessServers(ns), ns.getScriptRam(Script.WEAKEN))
-  );
+export function getRequiredGWThreads(
+  ns: Bitburner.NS,
+  { target, maxThreads = Infinity }: { target: string; maxThreads?: number },
+) {
+  let growThreads = getRequiredGrowThreads(ns, target);
+  let weakenThreads = Math.ceil(growThreads / GROW_PER_WEAK);
+
+  let totalThreads = growThreads + weakenThreads;
+
+  let optimal = true;
+  if (totalThreads > maxThreads) {
+    optimal = false;
+    const ratio = maxThreads / totalThreads;
+    weakenThreads = Math.ceil(weakenThreads * ratio);
+    growThreads = maxThreads - weakenThreads;
+  }
+
+  totalThreads = growThreads + weakenThreads;
+
+  if (growThreads === 0 || weakenThreads === 0) return null;
+
+  return { growThreads, weakenThreads, totalThreads, optimal };
 }

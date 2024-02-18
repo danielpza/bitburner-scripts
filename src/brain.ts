@@ -4,8 +4,8 @@ import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 import { scanAll } from "./utils/scanAll.ts";
 
-import { getRequiredGrowThreads, growTarget } from "./grow.ts";
-import { hackTarget } from "./hack.ts";
+import { getRequiredGWThreads, getRequiredGrowThreads, growTarget } from "./grow.ts";
+import { getRequiredHGWThreads, hackTarget } from "./hack.ts";
 import { getServerInfo } from "./info.ts";
 import { stackTail } from "./utils/stackTail.ts";
 import { getRequiredWeakenThreads, weakenTarget } from "./weaken.ts";
@@ -37,27 +37,29 @@ export async function main(ns: Bitburner.NS) {
 
     const { name: target, weakenTime } = firstTarget;
 
-    const hasToWeaken = getRequiredWeakenThreads(ns, target) > 0;
-    const hasToGrow = getRequiredGrowThreads(ns, target) > 0;
+    const cluster = getRootAccessServers(ns);
+    const freeThreads = getClusterFreeThreads(ns, cluster, RAM);
 
-    const canHackOthers = !hasToWeaken && !hasToGrow;
+    const weakenThreads = getRequiredWeakenThreads(ns, target);
+    const growThreads = getRequiredGWThreads(ns, { target })?.totalThreads ?? 0;
+    const hackThreads = getRequiredHGWThreads(ns, { target })?.totalThreads ?? 0;
+
+    const canFullHack = weakenThreads + growThreads + hackThreads <= freeThreads;
 
     await useUpThreads(handleServer(target, false));
-
     await ns.asleep(1500);
 
     async function useUpThreads(promise: Promise<unknown>) {
-      if (isSharing())
-        return Promise.all([whileUnresolved(promise, () => shareAll(ns)), canHackOthers && hackOthers()]);
-      else return whileUnresolved(Promise.all([promise, canHackOthers && hackOthers()]), () => shareAll(ns));
+      if (isSharing()) return Promise.all([whileUnresolved(promise, () => shareAll(ns)), hackOthers()]);
+      // else return whileUnresolved(Promise.all([promise, hackOthers()]), () => shareAll(ns));
+      else return Promise.all([promise, hackOthers()]);
     }
 
     function hackOthers() {
-      let cluster = getRootAccessServers(ns);
       for (const otherTarget of secondaryTargets) {
         if (getClusterFreeThreads(ns, cluster, RAM) < 5) break;
         const canWeakenBefore = otherTarget.weakenTime < weakenTime - SLEEP * 2;
-        handleServer(otherTarget.name, !canWeakenBefore);
+        handleServer(otherTarget.name, !(canFullHack || canWeakenBefore));
       }
     }
   }
