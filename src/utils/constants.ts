@@ -45,7 +45,7 @@ export const Jobs = {
   }
 >;
 
-export const TARGET_HACK_PERCENT = 0.5;
+export const TARGET_HACK_PERCENT = 0.1;
 
 export const MAX_HACK_CYCLES = 300;
 
