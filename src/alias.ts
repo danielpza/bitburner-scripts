@@ -7,7 +7,7 @@ export function main(ns: Bitburner.NS) {
 
   const commands = (commands: string[]) => commands.join(";");
 
-  const connect = (target: string) =>
+  const cconnect = (target: string) =>
     "home; " +
     trace(ns, target)
       ?.map((p) => `connect ${p}`)
@@ -22,11 +22,14 @@ export function main(ns: Bitburner.NS) {
         alias("i", "./info.js"),
         alias("a", "./alias.js"),
         ...["CSEC", "avmnite-02h", "I.I.I.I", "run4theh111z", "The-Cave"].map((target) =>
-          alias(target, connect(target)),
+          alias(target, cconnect(target)),
         ),
         alias(
           "b",
-          commands(["BruteSSH.exe", "FTPCrack.exe", "relaySMTP.exe", "HTTPWorm.exe", "SQLInject.exe"].map(buyCommand)),
+          commands([
+            ...["BruteSSH.exe", "FTPCrack.exe", "relaySMTP.exe", "HTTPWorm.exe", "SQLInject.exe"].map(buyCommand),
+            "buy -l",
+          ]),
         ),
       ].join(";\n"),
   );
