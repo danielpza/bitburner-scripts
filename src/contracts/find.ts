@@ -1,11 +1,12 @@
 import { scanAll } from "../utils/scanAll.ts";
 
-import { arrayJumpingGame } from "./array-jumping-game.ts";
 import { arrayJumpingGameII } from "./array-jumping-game-ii.ts";
+import { arrayJumpingGame } from "./array-jumping-game.ts";
 import { caesarCipherContract } from "./encryption-i-caesar-cipher.ts";
 import { encryptionIIContract } from "./encryption-ii-vigenere-cipher.ts";
 import { largestPrimeFactor } from "./find-largest-prime-factor.ts";
 import { generateIpAddresses } from "./ip-address.ts";
+import { mergeOverlappingIntervals } from "./merge-overlapping-intervals.ts";
 import { proper2ColoringOfAGraphContrect } from "./proper-2-coloring-of-a-graph.ts";
 import { algorithmicStockTraderI } from "./stock-trader-I.ts";
 import { algorithmicStockTraderIII } from "./stock-trader-III.ts";
@@ -16,20 +17,21 @@ import { uniquePathsIContract } from "./unique-paths-in-a-grid-i.ts";
 import { uniquePathsInAGridII } from "./unique-paths-in-a-grid-ii.ts";
 
 const contracts = {
+  "Algorithmic Stock Trader I": algorithmicStockTraderI,
+  "Algorithmic Stock Trader III": algorithmicStockTraderIII,
+  "Algorithmic Stock Trader IV": algorithmicStockTraderIV,
+  "Array Jumping Game II": arrayJumpingGameII,
+  "Array Jumping Game": arrayJumpingGame,
   "Encryption I: Caesar Cipher": caesarCipherContract,
   "Encryption II: Vigenère Cipher": encryptionIIContract,
   "Find Largest Prime Factor": largestPrimeFactor,
   "Generate IP Addresses": generateIpAddresses,
-  "Total Ways to Sum II": totalWaysToSumII,
+  "Merge Overlapping Intervals": mergeOverlappingIntervals,
   "Minimum Path Sum in a Triangle": triangleSumContract,
+  "Proper 2-Coloring of a Graph": proper2ColoringOfAGraphContrect,
+  "Total Ways to Sum II": totalWaysToSumII,
   "Unique Paths in a Grid I": uniquePathsIContract,
   "Unique Paths in a Grid II": uniquePathsInAGridII,
-  "Proper 2-Coloring of a Graph": proper2ColoringOfAGraphContrect,
-  "Array Jumping Game": arrayJumpingGame,
-  "Array Jumping Game II": arrayJumpingGameII,
-  "Algorithmic Stock Trader I": algorithmicStockTraderI,
-  "Algorithmic Stock Trader III": algorithmicStockTraderIII,
-  "Algorithmic Stock Trader IV": algorithmicStockTraderIV,
 } as const;
 
 function getContracts(ns: Bitburner.NS) {
