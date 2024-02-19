@@ -1,5 +1,4 @@
 import { formatTable } from "./utils/formatTable.ts";
-import { stackTail } from "./utils/stackTail.ts";
 
 export function autocomplete() {
   return ["buy", "upgrade", "list", "loop"];
@@ -23,7 +22,6 @@ export async function main(ns: Bitburner.NS) {
   else if (operation === "upgrade") while (tryUpgradeServer(ns));
 
   if (operation === "loop") {
-    stackTail(ns, 3);
     do {
       tryPurchaseServer(ns);
       tryUpgradeServer(ns);

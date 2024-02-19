@@ -1,5 +1,4 @@
 import { scanAll } from "../utils/scanAll.ts";
-import { stackTail } from "../utils/stackTail.ts";
 
 import { arrayJumpingGame } from "./array-jumping-game.ts";
 import { arrayJumpingGameII } from "./array-jumping-game-ii.ts";
@@ -77,7 +76,6 @@ export async function main(ns: Bitburner.NS) {
 
   if (loop) {
     ns.disableLog("ALL");
-    stackTail(ns, 4);
   }
 
   let blacklist = new Set<string>();

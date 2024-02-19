@@ -7,13 +7,10 @@ import { scanAll } from "./utils/scanAll.ts";
 import { getRequiredGWThreads, getRequiredGrowThreads, growTarget } from "./grow.ts";
 import { getRequiredHGWThreads, hackTarget } from "./hack.ts";
 import { getServerInfo } from "./info.ts";
-import { stackTail } from "./utils/stackTail.ts";
 import { getRequiredWeakenThreads, weakenTarget } from "./weaken.ts";
 
 export async function main(ns: Bitburner.NS) {
   ns.disableLog("ALL");
-
-  stackTail(ns, 0, 800);
 
   const RAM = ns.getScriptRam(Jobs.Weaken.script);
 
@@ -34,6 +31,7 @@ export async function main(ns: Bitburner.NS) {
       await ns.asleep(1000);
       continue;
     }
+    ns.setTitle(`${firstTarget.name} - ${ns.tFormat(firstTarget.weakenTime)}`);
 
     const { name: target, weakenTime } = firstTarget;
 

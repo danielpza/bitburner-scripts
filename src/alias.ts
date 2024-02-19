@@ -20,6 +20,7 @@ export function main(ns: Bitburner.NS) {
       [
         "unalias --all",
         alias("i", "./info.js"),
+        alias("s", "./start.js"),
         alias("a", "./alias.js"),
         ...["CSEC", "avmnite-02h", "I.I.I.I", "run4theh111z", "The-Cave"].map((target) =>
           alias(target, cconnect(target)),
@@ -29,8 +30,9 @@ export function main(ns: Bitburner.NS) {
           commands([
             ...["BruteSSH.exe", "FTPCrack.exe", "relaySMTP.exe", "HTTPWorm.exe", "SQLInject.exe"].map(buyCommand),
             "buy -l",
+            "./nuke-all.js",
           ]),
         ),
-      ].join(";\n"),
+      ].join(";"),
   );
 }

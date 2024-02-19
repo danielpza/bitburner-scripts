@@ -27,11 +27,6 @@ function Task<T extends any[] = []>(script: string, cb?: (...args: T) => (string
 const HGW = (script: string) => Task(script, (target: string, delay: number = 0) => [target, "--delay", delay]);
 
 export const Jobs = {
-  HGW: (script: string, threads: number, target: string, delay: number = 0) => ({
-    script,
-    threads,
-    args: [target, "--delay", delay],
-  }),
   Weaken: HGW(Script.WEAKEN),
   Grow: HGW(Script.GROW),
   Hack: HGW(Script.HACK),
