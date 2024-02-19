@@ -4,15 +4,8 @@ export function autocomplete() {
   return ["buy", "upgrade", "list", "loop"];
 }
 
-// const files = [
-//   { file: "BruteSSH.exe", cost: 500_000 },
-//   { file: "FTPCrack.exe", cost: 1_500_000 },
-//   { file: "relaySMTP.exe", cost: 5_000_000 },
-//   { file: "HTTPWorm.exe", cost: 30_000_000 },
-// ];
-
 function getBufferMoney(_ns: Bitburner.NS) {
-  return 500_000;
+  return 0;
 }
 
 export async function main(ns: Bitburner.NS) {
