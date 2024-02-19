@@ -1,17 +1,32 @@
-async function start(ns: Bitburner.NS, script: string, args: string[]) {
-  const isRunning = ns.scriptRunning(script, "home");
+const WIDTH = 200;
+const HEIGHT = 62;
+
+function start(ns: Bitburner.NS, script: string, args: string[], i: number, w = WIDTH) {
+  let runningScript = ns.getRunningScript(script, "home", ...args);
+  let isRunning = !!runningScript;
 
   if (!isRunning) {
     const pid = ns.run(script, 1, ...args);
-    await ns.asleep(500);
-    ns.kill(pid);
+    runningScript = ns.getRunningScript(pid, "home");
+    ns.tail(pid);
+    ns.resizeTail(w, HEIGHT, pid);
+    runningScript = ns.getRunningScript(pid, "home");
   }
+
+  if (!runningScript) return;
+
+  const [ww, _wh] = ns.ui.windowSize();
+
+  // ns.tail(process.pid);
+  ns.moveTail(ww - (runningScript.tailProperties?.width ?? 0) - 200, i * HEIGHT, runningScript.pid);
+
+  if (!isRunning) ns.kill(runningScript!.pid);
 }
 
 export async function main(ns: Bitburner.NS) {
-  await start(ns, "nuke-all.js", ["--loop"]);
-  await start(ns, "brain.js", ["--loop"]);
-  await start(ns, "servers.js", ["loop"]);
-  await start(ns, "contracts/find.js", ["--loop"]);
-  await start(ns, "scripts/toggle-share.js", ["--loop"]);
+  start(ns, "brain.js", ["--loop"], 0);
+  start(ns, "nuke-all.js", ["--loop"], 1);
+  start(ns, "servers.js", ["loop"], 2);
+  start(ns, "contracts/find.js", ["--loop"], 3);
+  start(ns, "scripts/toggle-share.js", ["--loop"], 4);
 }
