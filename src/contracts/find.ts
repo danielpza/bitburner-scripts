@@ -1,6 +1,7 @@
 import { scanAll } from "../utils/scanAll.ts";
 import { stackTail } from "../utils/stackTail.ts";
 
+import { arrayJumpingGame } from "./array-jumping-game.ts";
 import { arrayJumpingGameII } from "./array-jumping-game-ii.ts";
 import { caesarCipherContract } from "./encryption-i-caesar-cipher.ts";
 import { encryptionIIContract } from "./encryption-ii-vigenere-cipher.ts";
@@ -25,6 +26,7 @@ const contracts = {
   "Unique Paths in a Grid I": uniquePathsIContract,
   "Unique Paths in a Grid II": uniquePathsInAGridII,
   "Proper 2-Coloring of a Graph": proper2ColoringOfAGraphContrect,
+  "Array Jumping Game": arrayJumpingGame,
   "Array Jumping Game II": arrayJumpingGameII,
   "Algorithmic Stock Trader I": algorithmicStockTraderI,
   "Algorithmic Stock Trader III": algorithmicStockTraderIII,
