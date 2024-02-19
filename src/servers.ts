@@ -18,13 +18,15 @@ function getBufferMoney(_ns: Bitburner.NS) {
 export async function main(ns: Bitburner.NS) {
   const [operation] = ns.args;
 
+  ns.disableLog("ALL");
+
   if (operation === "buy") while (tryPurchaseServer(ns));
   else if (operation === "upgrade") while (tryUpgradeServer(ns));
 
   if (operation === "loop") {
     do {
-      tryPurchaseServer(ns);
-      tryUpgradeServer(ns);
+      while (tryPurchaseServer(ns));
+      while (tryUpgradeServer(ns));
     } while (await ns.asleep(1000));
   } else list(ns);
 }
