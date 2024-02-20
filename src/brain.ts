@@ -83,7 +83,7 @@ export async function main(ns: Bitburner.NS) {
     const hasToGrow = !onlyWeaken && getRequiredGrowThreads(ns, target) > 0;
 
     const weakenDelay = hasToWeaken ? SLEEP : 0;
-    const growDelay = hasToGrow ? SLEEP : 0;
+    const growDelay = hasToGrow ? SLEEP * 3 : 0;
 
     await Promise.all([
       hasToWeaken && weakenTarget(ns, target),
