@@ -1,8 +1,9 @@
 import { scanAll } from "./utils/scanAll.ts";
 import { formatTable } from "./utils/formatTable.ts";
-import { GROW_PER_WEAK, HACK_PER_WEAK, HACK_SKILL_THRESHOLD, Jobs, TARGET_HACK_PERCENT } from "./utils/constants.ts";
+import { HACK_SKILL_THRESHOLD, Jobs, TARGET_HACK_PERCENT } from "./utils/constants.ts";
 import { getRequiredWeakenThreads } from "./weaken.ts";
 import { getRequiredGrowThreads } from "./grow.ts";
+import { hgwAnalyze } from "./utils/hgwAnalyze.ts";
 
 export function autocomplete() {
   // return ["--sec", "--ram", "--extra", "--time", "--threads"];
@@ -105,11 +106,12 @@ export function getServerInfo(
 
   const maxMoney = ns.getServerMaxMoney(server);
 
-  const hackThreads = Math.ceil(TARGET_HACK_PERCENT / ns.hackAnalyze(server));
-  const growThreads = Math.ceil(ns.growthAnalyze(server, 1 / (1 - TARGET_HACK_PERCENT)));
-  const weakThreads = Math.ceil(hackThreads / HACK_PER_WEAK + growThreads / GROW_PER_WEAK);
-
-  const hgwThreads = hackThreads + growThreads + weakThreads;
+  const {
+    growThreads,
+    hackThreads,
+    weakenThreads: weakThreads,
+    totalThreads: hgwThreads,
+  } = hgwAnalyze(ns, server, TARGET_HACK_PERCENT);
 
   const canHack = hackLevel < playerHackLevel;
   const hasSkill = hackLevel < playerHackLevel / HACK_SKILL_THRESHOLD;
