@@ -5,9 +5,10 @@ import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
 import { scanAll } from "./utils/scanAll.ts";
 
 import { getRequiredGWThreads, getRequiredGrowThreads, growTarget } from "./grow.ts";
-import { getRequiredHGWThreads, hackTarget } from "./hack.ts";
+import { hackTarget } from "./hack.ts";
 import { getServerInfo } from "./info.ts";
 import { getRequiredWeakenThreads, weakenTarget } from "./weaken.ts";
+import { hgwAnalyze } from "./utils/hgwAnalyze.ts";
 
 export async function main(ns: Bitburner.NS) {
   ns.disableLog("ALL");
@@ -41,7 +42,7 @@ export async function main(ns: Bitburner.NS) {
     const weakenThreads = getRequiredWeakenThreads(ns, target);
     const growThreads = getRequiredGWThreads(ns, { target })?.totalThreads ?? 0;
     const targetHackPercent = getHackPercent(ns, target);
-    const hackThreads = getRequiredHGWThreads(ns, { target, targetHackPercent })?.totalThreads ?? 0;
+    const hackThreads = hgwAnalyze(ns, target, targetHackPercent).totalThreads;
 
     const canFullHack = weakenThreads + growThreads + hackThreads <= freeThreads;
 
@@ -88,7 +89,10 @@ export async function main(ns: Bitburner.NS) {
     await Promise.all([
       hasToWeaken && weakenTarget(ns, target),
       hasToGrow && growTarget(ns, target, { extraDelay: weakenDelay }),
-      !onlyWeaken && hackTarget(ns, target, { extraDelay: weakenDelay + growDelay, targetHackPercent }),
+      !onlyWeaken &&
+        !hasToGrow &&
+        !hasToWeaken &&
+        hackTarget(ns, target, { extraDelay: weakenDelay + growDelay, targetHackPercent }),
     ]);
 
     await ns.asleep(1500);
@@ -141,13 +145,11 @@ function getHackPercent(ns: Bitburner.NS, target: string) {
   ].reverse();
   // const freeThreads = getClusterFreeThreads(ns, getRootAccessServers(ns), ns.getScriptRam(Jobs.Hack.script));
   return _.maxBy(percents, (percent) => {
-    const threads = getRequiredHGWThreads(ns, { target, targetHackPercent: percent });
-
-    if (!threads) return 0;
+    const threads = hgwAnalyze(ns, target, percent);
 
     const currentMoney = ns.getServerMoneyAvailable(target);
     const moneyStolen = currentMoney * percent;
 
     return moneyStolen / threads.totalThreads;
-  });
+  })!;
 }

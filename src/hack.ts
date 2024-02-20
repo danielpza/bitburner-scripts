@@ -86,29 +86,3 @@ export async function hackTarget(
 
   await ns.asleep(sleepTime);
 }
-
-export function getRequiredHGWThreads(
-  ns: Bitburner.NS,
-  {
-    target,
-    maxThreads = Infinity,
-    targetHackPercent = TARGET_HACK_PERCENT,
-  }: {
-    target: string;
-    maxThreads?: number;
-    targetHackPercent?: number;
-  },
-) {
-  const { hackThreads, growThreads, weakenThreads, totalThreads } = hgwAnalyze(ns, target, targetHackPercent);
-
-  if (
-    hackThreads <= 0 ||
-    growThreads <= 0 ||
-    weakenThreads <= 0 ||
-    hackThreads + growThreads + weakenThreads > maxThreads
-  ) {
-    return null;
-  }
-
-  return { hackThreads, growThreads, weakenThreads, totalThreads };
-}
