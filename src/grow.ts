@@ -72,7 +72,7 @@ export function getRequiredGrowThreads(ns: Bitburner.NS, target: string) {
 
   if (currentMoney === maxMoney) return 0;
 
-  return Math.ceil(ns.growthAnalyze(target, Math.min(Number.MAX_SAFE_INTEGER, maxMoney / Math.max(currentMoney, 1))));
+  return Math.ceil(ns.growthAnalyze(target, maxMoney / Math.max(currentMoney, 1)));
 }
 
 export function getRequiredGWThreads(

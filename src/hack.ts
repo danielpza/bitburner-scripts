@@ -59,7 +59,11 @@ export async function hackTarget(
 
   let totalThreads = getClusterFreeThreads(ns, cluster, RAM);
 
-  for (i = 0; i < maxCycles && requiredThreads <= totalThreads; i++) {
+  for (
+    i = 0;
+    i < Math.min(maxCycles, Math.max(Math.floor(weakenTime / (SLEEP * 4)), 1)) && requiredThreads <= totalThreads;
+    i++
+  ) {
     clusterExec(ns, cluster, Jobs.Hack(hackThreads, target, hackDelay + i * SLEEP * 3));
     clusterExec(ns, cluster, Jobs.Grow(growThreads, target, growDelay + i * SLEEP * 3));
     clusterExec(ns, cluster, Jobs.Weaken(weakenThreads, target, weakenDelay + i * SLEEP * 3));
@@ -72,17 +76,19 @@ export async function hackTarget(
   );
   const moneyAvailable = ns.getServerMoneyAvailable(target);
 
+  const sleepTime = totalTime + SLEEP * i + 1000;
+
   ns.print(
     [
       `hacking ${target}`,
       ns.formatNumber(moneyStolen) + "/" + ns.formatNumber(moneyAvailable),
       `(${hackThreads}, ${growThreads}, ${weakenThreads})`,
       `x${i}`,
-      ns.tFormat(totalTime),
+      ns.tFormat(sleepTime),
     ].join(" "),
   );
 
-  await ns.asleep(totalTime + SLEEP * i + 1000);
+  await ns.asleep(sleepTime);
 }
 
 export function getRequiredHGWThreads(

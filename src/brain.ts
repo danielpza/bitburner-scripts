@@ -48,11 +48,18 @@ export async function main(ns: Bitburner.NS) {
     await ns.asleep(1500);
 
     async function useUpThreads(promise: Promise<unknown>) {
-      if (isSharing()) return Promise.all([whileUnresolved(promise, () => shareAll(ns)), hackOthers()]);
+      // return promise;
+      if (isSharing()) return Promise.all([whileUnresolved(promise, () => shareAll(ns)), weakenOthers(), hackOthers()]);
       // else return whileUnresolved(Promise.all([promise, hackOthers()]), () => shareAll(ns));
-      else return Promise.all([promise, hackOthers()]);
+      else return Promise.all([promise, weakenOthers(), hackOthers()]);
     }
 
+    function weakenOthers() {
+      for (const otherTarget of secondaryTargets) {
+        if (getClusterFreeThreads(ns, cluster, RAM) < 5) break;
+        handleServer(otherTarget.name, true);
+      }
+    }
     function hackOthers() {
       for (const otherTarget of secondaryTargets) {
         if (getClusterFreeThreads(ns, cluster, RAM) < 5) break;
