@@ -75,7 +75,7 @@ export async function hackTarget(
   );
   const moneyAvailable = ns.getServerMoneyAvailable(target);
 
-  const sleepTime = totalTime + SLEEP * i + 1000;
+  const sleepTime = totalTime + SLEEP * i * 3 + 1000;
 
   ns.print(
     [
