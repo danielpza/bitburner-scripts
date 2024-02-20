@@ -81,7 +81,7 @@ export async function main(ns: Bitburner.NS) {
 
   ns.resizeTail(800, 400);
 
-  for (;;) {
+  while (true) {
     ns.print("\n", "-------------------------------------------", "\n", getInfo());
     await ns.sleep(1000);
   }
