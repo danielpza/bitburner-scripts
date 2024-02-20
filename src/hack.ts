@@ -1,15 +1,8 @@
 import { clusterExec } from "./utils/clusterExec.ts";
-import {
-  GROW_PER_WEAK,
-  HACK_PER_WEAK,
-  Jobs,
-  MAX_HACK_CYCLES,
-  SLEEP,
-  Script,
-  TARGET_HACK_PERCENT,
-} from "./utils/constants.ts";
+import { Jobs, MAX_HACK_CYCLES, SLEEP, Script, TARGET_HACK_PERCENT } from "./utils/constants.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
 import { getRootAccessServers } from "./utils/getRootAccessServers.ts";
+import { hgwAnalyze } from "./utils/hgwAnalyze.ts";
 
 export function autocomplete(data: Bitburner.AutocompleteData) {
   return data.servers;
@@ -35,14 +28,18 @@ export async function hackTarget(
 
   const cluster = getRootAccessServers(ns);
   const freeThreads = getClusterFreeThreads(ns, cluster, RAM);
-  const threads = getRequiredHGWThreads(ns, { target, maxThreads: freeThreads, targetHackPercent });
 
-  if (!threads) {
+  const {
+    hackThreads,
+    growThreads,
+    weakenThreads,
+    totalThreads: requiredThreads,
+  } = hgwAnalyze(ns, target, targetHackPercent);
+
+  if (requiredThreads > freeThreads) {
     return false;
     // throw new Error(`invalid threads`);
   }
-
-  const { hackThreads, growThreads, weakenThreads, totalThreads: requiredThreads } = threads;
 
   const hackTime = ns.getHackTime(target) + SLEEP * 2;
   const growTime = ns.getGrowTime(target) + SLEEP;
@@ -102,9 +99,7 @@ export function getRequiredHGWThreads(
     targetHackPercent?: number;
   },
 ) {
-  const hackThreads = Math.min(Math.ceil(targetHackPercent / ns.hackAnalyze(target)), maxThreads);
-  const growThreads = Math.ceil(ns.growthAnalyze(target, 1 / (1 - targetHackPercent)));
-  const weakenThreads = Math.ceil(hackThreads / HACK_PER_WEAK + growThreads / GROW_PER_WEAK);
+  const { hackThreads, growThreads, weakenThreads, totalThreads } = hgwAnalyze(ns, target, targetHackPercent);
 
   if (
     hackThreads <= 0 ||
@@ -114,8 +109,6 @@ export function getRequiredHGWThreads(
   ) {
     return null;
   }
-
-  const totalThreads = hackThreads + growThreads + weakenThreads;
 
   return { hackThreads, growThreads, weakenThreads, totalThreads };
 }
