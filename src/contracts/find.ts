@@ -9,6 +9,7 @@ import { generateIpAddresses } from "./ip-address.ts";
 import { mergeOverlappingIntervals } from "./merge-overlapping-intervals.ts";
 import { proper2ColoringOfAGraphContrect } from "./proper-2-coloring-of-a-graph.ts";
 import { algorithmicStockTraderI } from "./stock-trader-I.ts";
+import { algorithmicStockTraderII } from "./stock-trader-II.ts";
 import { algorithmicStockTraderIII } from "./stock-trader-III.ts";
 import { algorithmicStockTraderIV } from "./stock-trader-IV.ts";
 import { totalWaysToSumII } from "./total-ways-of-sum-ii.ts";
@@ -18,6 +19,7 @@ import { uniquePathsInAGridII } from "./unique-paths-in-a-grid-ii.ts";
 
 const contracts = {
   "Algorithmic Stock Trader I": algorithmicStockTraderI,
+  "Algorithmic Stock Trader II": algorithmicStockTraderII,
   "Algorithmic Stock Trader III": algorithmicStockTraderIII,
   "Algorithmic Stock Trader IV": algorithmicStockTraderIV,
   "Array Jumping Game II": arrayJumpingGameII,

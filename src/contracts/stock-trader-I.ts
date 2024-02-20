@@ -1,9 +1,6 @@
 /*
 Algorithmic Stock Trader I
 
-You are attempting to solve a Coding Contract. You have 5 tries remaining, after which the contract will self-destruct.
-
-
 You are given the following array of stock prices (which are numbers) where the i-th element represents the stock price on day i:
 
 95,41,84,102,187,118,63,153,162,175,102,90,79
