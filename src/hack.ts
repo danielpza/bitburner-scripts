@@ -1,4 +1,3 @@
-import { binarySearch } from "./utils/binarySearch.ts";
 import { clusterExec } from "./utils/clusterExec.ts";
 import {
   GROW_PER_WEAK,
@@ -103,16 +102,9 @@ export function getRequiredHGWThreads(
     targetHackPercent?: number;
   },
 ) {
-  const maxHackThreads = Math.ceil(
-    ns.hackAnalyzeThreads(target, ns.getServerMoneyAvailable(target) * targetHackPercent),
-  );
-
-  const hackThreads = binarySearch(1, Math.min(maxHackThreads, maxThreads), (hackThreads) => {
-    const [growThreads, weakenThreads] = getGrowWeakenThreads(hackThreads);
-    return hackThreads + growThreads + weakenThreads <= maxThreads;
-  });
-
-  const [growThreads, weakenThreads] = getGrowWeakenThreads(hackThreads);
+  const hackThreads = Math.min(Math.ceil(targetHackPercent / ns.hackAnalyze(target)), maxThreads);
+  const growThreads = Math.ceil(ns.growthAnalyze(target, 1 / (1 - targetHackPercent)));
+  const weakenThreads = Math.ceil(hackThreads / HACK_PER_WEAK + growThreads / GROW_PER_WEAK);
 
   if (
     hackThreads <= 0 ||
@@ -126,13 +118,4 @@ export function getRequiredHGWThreads(
   const totalThreads = hackThreads + growThreads + weakenThreads;
 
   return { hackThreads, growThreads, weakenThreads, totalThreads };
-
-  function getGrowWeakenThreads(hackThreads: number) {
-    const percentStolen = Math.min(ns.hackAnalyze(target) * hackThreads, 1);
-    const growThreads = Math.ceil(
-      ns.growthAnalyze(target, Math.min(ns.getServerMaxMoney(target), 1 / (1 - percentStolen))),
-    );
-    const weakenThreads = Math.ceil(hackThreads / HACK_PER_WEAK + growThreads / GROW_PER_WEAK);
-    return [growThreads, weakenThreads];
-  }
 }

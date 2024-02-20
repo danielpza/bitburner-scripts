@@ -40,11 +40,12 @@ export async function main(ns: Bitburner.NS) {
 
     const weakenThreads = getRequiredWeakenThreads(ns, target);
     const growThreads = getRequiredGWThreads(ns, { target })?.totalThreads ?? 0;
-    const hackThreads = getRequiredHGWThreads(ns, { target })?.totalThreads ?? 0;
+    const targetHackPercent = getHackPercent(ns, target);
+    const hackThreads = getRequiredHGWThreads(ns, { target, targetHackPercent })?.totalThreads ?? 0;
 
     const canFullHack = weakenThreads + growThreads + hackThreads <= freeThreads;
 
-    await useUpThreads(handleServer(target, false));
+    await useUpThreads(handleServer(target, { targetHackPercent }));
     await ns.asleep(1500);
 
     async function useUpThreads(promise: Promise<unknown>) {
@@ -57,19 +58,22 @@ export async function main(ns: Bitburner.NS) {
     function weakenOthers() {
       for (const otherTarget of secondaryTargets) {
         if (getClusterFreeThreads(ns, cluster, RAM) < 5) break;
-        handleServer(otherTarget.name, true);
+        handleServer(otherTarget.name, { onlyWeaken: true });
       }
     }
     function hackOthers() {
       for (const otherTarget of secondaryTargets) {
         if (getClusterFreeThreads(ns, cluster, RAM) < 5) break;
         const canWeakenBefore = otherTarget.weakenTime < weakenTime - SLEEP * 2;
-        handleServer(otherTarget.name, !(canFullHack || canWeakenBefore));
+        handleServer(otherTarget.name, { onlyWeaken: !(canFullHack || canWeakenBefore) });
       }
     }
   }
 
-  async function handleServer(target: string, onlyWeaken: boolean) {
+  async function handleServer(
+    target: string,
+    { onlyWeaken = false, targetHackPercent }: { onlyWeaken?: boolean; targetHackPercent?: number } = {},
+  ) {
     if (managing.has(target)) {
       return;
     }
@@ -84,7 +88,7 @@ export async function main(ns: Bitburner.NS) {
     await Promise.all([
       hasToWeaken && weakenTarget(ns, target),
       hasToGrow && growTarget(ns, target, { extraDelay: weakenDelay }),
-      !onlyWeaken && hackTarget(ns, target, { extraDelay: weakenDelay + growDelay }),
+      !onlyWeaken && hackTarget(ns, target, { extraDelay: weakenDelay + growDelay, targetHackPercent }),
     ]);
 
     await ns.asleep(1500);
@@ -128,4 +132,22 @@ async function shareAll(ns: Bitburner.NS) {
   } else {
     return ns.asleep(1000);
   }
+}
+
+function getHackPercent(ns: Bitburner.NS, target: string) {
+  let percents = [
+    // 0.001, 0.005,
+    0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.9,
+  ].reverse();
+  // const freeThreads = getClusterFreeThreads(ns, getRootAccessServers(ns), ns.getScriptRam(Jobs.Hack.script));
+  return _.maxBy(percents, (percent) => {
+    const threads = getRequiredHGWThreads(ns, { target, targetHackPercent: percent });
+
+    if (!threads) return 0;
+
+    const currentMoney = ns.getServerMoneyAvailable(target);
+    const moneyStolen = currentMoney * percent;
+
+    return moneyStolen / threads.totalThreads;
+  });
 }
