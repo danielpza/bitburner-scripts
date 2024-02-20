@@ -42,10 +42,10 @@ function acceptInvites(ns: Bitburner.NS) {
 }
 
 async function backdoorServer(ns: Bitburner.NS, target: string) {
-  if (ns.hasRootAccess(target)) return false;
-
   const server = ns.getServer(target);
-  if ((server.openPortCount ?? 0) < (server.numOpenPortsRequired ?? 0)) return false;
+
+  if (server.backdoorInstalled) return false;
+  if (!server.hasAdminRights) return false;
   if ((server.requiredHackingSkill ?? 0) > ns.getHackingLevel()) return false;
 
   connectTo(ns, target);
@@ -59,7 +59,7 @@ async function backdoorServer(ns: Bitburner.NS, target: string) {
 }
 
 function connectTo(ns: Bitburner.NS, target: string) {
-  const path = trace(ns, target)?.slice(1);
+  const path = trace(ns, target, ns.getHostname())?.slice(1);
 
   if (!path) {
     throw new Error(`Cannot reach ${target}`);
