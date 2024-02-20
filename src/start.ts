@@ -24,7 +24,7 @@ function start(ns: Bitburner.NS, script: string, args: string[], i: number, w = 
 }
 
 export async function main(ns: Bitburner.NS) {
-  start(ns, "brain.js", ["--loop"], 0, 1000);
+  start(ns, "brain.js", [], 0, 1000);
   start(ns, "servers.js", ["loop"], 1);
   start(ns, "contracts/find.js", ["--loop"], 2);
   start(ns, "scripts/toggle-share.js", ["--loop"], 3);
