@@ -32,8 +32,8 @@ export async function main(ns: Bitburner.NS) {
 }
 
 function upgradeHome(ns: Bitburner.NS) {
-  // if (ns.singularity.upgradeHomeRam()) ns.print("Upgrade home ram");
-  // if (ns.singularity.upgradeHomeCores()) ns.print("Upgrade home cores");
+  if (ns.singularity.upgradeHomeRam()) ns.print("Upgrade home ram");
+  if (ns.singularity.upgradeHomeCores()) ns.print("Upgrade home cores");
 }
 
 function acceptInvites(ns: Bitburner.NS) {
