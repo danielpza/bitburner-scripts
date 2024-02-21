@@ -139,16 +139,18 @@ async function shareAll(ns: Bitburner.NS) {
 }
 
 function getHackPercent(ns: Bitburner.NS, target: string) {
-  let percents = [
-    // 0.001, 0.005,
-    0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.9,
-  ].reverse();
-  // const freeThreads = getClusterFreeThreads(ns, getRootAccessServers(ns), ns.getScriptRam(Jobs.Hack.script));
+  let percents = [0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.9].reverse();
+  const freeThreads = getClusterFreeThreads(ns, getRootAccessServers(ns), ns.getScriptRam(Jobs.Hack.script));
+
   return _.maxBy(percents, (percent) => {
     const threads = hgwAnalyze(ns, target, percent);
 
     const currentMoney = ns.getServerMoneyAvailable(target);
     const moneyStolen = currentMoney * percent;
+
+    // ns.print(`percent: ${percent} | threads: ${threads.totalThreads} | money: ${moneyStolen}`);
+
+    if (freeThreads < threads.totalThreads) return 0;
 
     return moneyStolen / threads.totalThreads;
   })!;
