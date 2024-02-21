@@ -57,7 +57,7 @@ export async function hackTarget(
 
   for (
     i = 0;
-    i < Math.min(maxCycles, Math.max(Math.floor(weakenTime / (SLEEP * 4)), 1)) && requiredThreads <= totalThreads;
+    i < Math.min(maxCycles, Math.max(Math.floor(weakenTime / (SLEEP * 3)), 1)) && requiredThreads <= totalThreads;
     i++
   ) {
     clusterExec(ns, cluster, Jobs.Hack(hackThreads, target, hackDelay + i * SLEEP * 3));
