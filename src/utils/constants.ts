@@ -56,3 +56,15 @@ export enum ShareToggle {
 export const MAX_SHARE_THREADS = 100_000;
 
 export const TARGET_FILE = "state/target.txt";
+
+export const Colors = {
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  blue: "\x1b[34m",
+  cyan: "\x1b[36m",
+  magenta: "\x1b[35m",
+  yellow: "\x1b[33m",
+  black: "\x1b[30m",
+  white: "\x1b[37m",
+  default: "\x1b[0m",
+};

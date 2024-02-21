@@ -2,6 +2,7 @@ import { scanAll } from "./utils/scanAll.ts";
 import { formatTable } from "./utils/formatTable.ts";
 import { HACK_SKILL_THRESHOLD, Jobs, TARGET_HACK_PERCENT } from "./utils/constants.ts";
 import { hgwAnalyze } from "./utils/hgwAnalyze.ts";
+import { Colors } from "./utils/constants.ts";
 
 export async function main(ns: Bitburner.NS) {
   const RAM = ns.getScriptRam(Jobs.Weaken.script);
@@ -73,7 +74,12 @@ export async function main(ns: Bitburner.NS) {
           // { header: "hgwThreads", label: "hgwThr", format: formatThread },
           // { header: "moneyPerTime", label: "mny/s", format: formatMoney },
           { header: "moneyPerThread", label: "mny/Thr", format: formatMoney },
-          { header: "security", label: "sec", format: (n) => ns.formatNumber(n, 2) },
+          {
+            header: "security",
+            label: "sec",
+            format: (n) => ns.formatNumber(n, 2),
+            afterFormat: (str, v) => (v > 0 ? yellow(str) : str),
+          },
           { header: "moneyPercent", label: "mny%", format: formatPercent },
         ],
       ),
@@ -102,6 +108,7 @@ export async function main(ns: Bitburner.NS) {
     }
   }
 
+  // formatters
   function formatMoney(value: number) {
     return "$" + ns.formatNumber(value);
   }
@@ -118,3 +125,8 @@ export async function main(ns: Bitburner.NS) {
     return (value * 100).toFixed(2) + "%";
   }
 }
+
+const wrap = (color: string) => (value: string) => color + value + Colors.default;
+const red = wrap(Colors.red);
+const green = wrap(Colors.green);
+const yellow = wrap(Colors.yellow);

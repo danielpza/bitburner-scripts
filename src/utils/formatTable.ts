@@ -4,6 +4,7 @@ type Column<T> = {
   format?: (value: any) => string;
   align?: "left" | "right";
   hide?: boolean;
+  afterFormat?: (str: string, val: any, row: T) => string;
 };
 
 export function formatTable<T>(rows: T[], columns: Column<T>[]) {
@@ -31,14 +32,15 @@ export function formatTable<T>(rows: T[], columns: Column<T>[]) {
     }
   }
 
-  for (const row of allRows) {
-    for (const [i, value] of row.entries()) {
-      if (aligns[i] === "left") {
-        result += String(value).padEnd(paddings[i]);
-      } else {
-        result += String(value).padStart(paddings[i]);
-      }
-      result += " ";
+  for (const [i, row] of allRows.entries()) {
+    for (const [j, value] of row.entries()) {
+      const afterFormat = columns[j].afterFormat;
+      const padding = paddings[j];
+
+      const withPadding = aligns[j] === "left" ? String(value).padEnd(padding) : String(value).padStart(padding);
+      const withExtraFormat = i > 0 ? afterFormat?.(withPadding, value, row as T) ?? withPadding : withPadding;
+
+      result += withExtraFormat + " ";
     }
     result += "\n";
   }
