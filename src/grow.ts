@@ -82,6 +82,8 @@ export function getRequiredGWThreads(
   let growThreads = getRequiredGrowThreads(ns, target);
   let weakenThreads = Math.ceil(growThreads / GROW_PER_WEAK);
 
+  // ns.print(`getRequiredGWThreads(${target}, ${maxThreads}) = ${growThreads} + ${weakenThreads}`);
+
   let totalThreads = growThreads + weakenThreads;
 
   let optimal = true;

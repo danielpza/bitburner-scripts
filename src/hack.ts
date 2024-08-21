@@ -55,14 +55,16 @@ export async function hackTarget(
 
   let totalThreads = getClusterFreeThreads(ns, cluster, RAM);
 
+  const LONG_SLEEP = SLEEP * 4;
+
   for (
     i = 0;
-    i < Math.min(maxCycles, Math.max(Math.floor(weakenTime / (SLEEP * 3)), 1)) && requiredThreads <= totalThreads;
+    i < Math.min(maxCycles, Math.max(Math.floor(weakenTime / LONG_SLEEP), 1)) && requiredThreads <= totalThreads;
     i++
   ) {
-    clusterExec(ns, cluster, Jobs.Hack(hackThreads, target, hackDelay + i * SLEEP * 3));
-    clusterExec(ns, cluster, Jobs.Grow(growThreads, target, growDelay + i * SLEEP * 3));
-    clusterExec(ns, cluster, Jobs.Weaken(weakenThreads, target, weakenDelay + i * SLEEP * 3));
+    clusterExec(ns, cluster, Jobs.Hack(hackThreads, target, hackDelay + i * LONG_SLEEP));
+    clusterExec(ns, cluster, Jobs.Grow(growThreads, target, growDelay + i * LONG_SLEEP));
+    clusterExec(ns, cluster, Jobs.Weaken(weakenThreads, target, weakenDelay + i * LONG_SLEEP));
     totalThreads -= requiredThreads;
   }
 
@@ -72,7 +74,7 @@ export async function hackTarget(
   );
   const moneyAvailable = ns.getServerMoneyAvailable(target);
 
-  const sleepTime = totalTime + SLEEP * i * 3 + 1000;
+  const sleepTime = totalTime + LONG_SLEEP * i + 1000;
 
   ns.print(
     [

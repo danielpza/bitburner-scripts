@@ -11,6 +11,8 @@ export async function main(ns: Bitburner.NS) {
     upgradeHome(ns);
     acceptInvites(ns);
 
+    getBusy(ns);
+
     await ns.asleep(1000);
   }
 
@@ -37,7 +39,10 @@ function upgradeHome(ns: Bitburner.NS) {
 }
 
 function acceptInvites(ns: Bitburner.NS) {
-  // TODO implement
+  const invitations = ns.singularity.checkFactionInvitations();
+  for (const invitation of invitations) {
+    ns.singularity.joinFaction(invitation);
+  }
 }
 
 async function backdoorServer(ns: Bitburner.NS, target: string) {
@@ -55,4 +60,26 @@ async function backdoorServer(ns: Bitburner.NS, target: string) {
       ns.print(`Backdoor installed on ${target}`);
     })
     .catch(() => {});
+}
+
+function getBusy(ns: Bitburner.NS) {
+  if (ns.singularity.isBusy()) return;
+
+  const player = ns.getPlayer();
+  const factions = player.factions;
+  // player.mults.
+
+  for (const faction of factions) {
+    const augmentations = ns.singularity
+      .getAugmentationsFromFaction(faction)
+      .filter((aug) => ns.singularity.getUpgradeHomeRamCost());
+    for (const augmentation of augmentations) {
+      ns.singularity.joinFaction(faction);
+    }
+  }
+
+  // getAugmentationsFromFaction
+  // ns.singularity.joinFaction(faction);
+
+  // ns.singularity;
 }

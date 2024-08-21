@@ -90,8 +90,8 @@ export async function main(ns: Bitburner.NS) {
       hasToWeaken && weakenTarget(ns, target),
       hasToGrow && growTarget(ns, target, { extraDelay: weakenDelay }),
       !onlyWeaken &&
-        !hasToGrow &&
-        !hasToWeaken &&
+        // !hasToGrow &&
+        // !hasToWeaken &&
         hackTarget(ns, target, { extraDelay: weakenDelay + growDelay, targetHackPercent }),
     ]);
 
