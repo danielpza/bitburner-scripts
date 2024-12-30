@@ -71,7 +71,6 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
               </>
             ),
           },
-          { label: "MxMny", getValue: (host) => ns.getServerMaxMoney(host), formatter: formatMoney },
           { label: "HckT", getValue: (host) => ns.getHackTime(host), formatter: formatTime },
           { label: "GrwT", getValue: (host) => ns.getGrowTime(host), formatter: formatTime },
           { label: "WknT", getValue: (host) => ns.getWeakenTime(host), formatter: formatTime },
