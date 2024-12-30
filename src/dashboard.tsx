@@ -1,8 +1,6 @@
 import Table from "./components/Table";
 import { useForceRender } from "./hooks/useForceRender";
 import { useInterval } from "./hooks/useInterval";
-import { Jobs } from "./utils/constants";
-import { getFreeThreads } from "./utils/getFreeThreads";
 import { render } from "./utils/render";
 import { scanAll } from "./utils/scanAll";
 
@@ -10,10 +8,10 @@ import { growTarget } from "./grow";
 import { hackTarget } from "./hack";
 import { nukeAll } from "./nuke-all";
 import { weakenTarget } from "./weaken";
+import { getClusterLoad } from "./utils/getClusterLoad";
 
 function Dashboard({ ns }: { ns: Bitburner.NS }) {
   const [nuked, setNuked] = React.useState<string[]>([]);
-  const hackRam = ns.getScriptRam(Jobs.Hack.script);
   const refresh = useForceRender();
   const [targets, setTargets] = React.useState<
     Array<{
@@ -24,6 +22,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     }>
   >([]);
   const loopRef = React.useRef(false);
+  const load = getClusterLoad(ns);
 
   useInterval(refresh, 1000);
 
@@ -32,6 +31,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     ...scanAll(ns),
   ]
     .filter((server) => ns.hasRootAccess(server))
+    .sort((a, b) => ns.getWeakenTime(a) - ns.getWeakenTime(b))
     .slice(0, 10);
 
   return (
@@ -41,6 +41,9 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       <label>
         Loop
         <input type="checkbox" onChange={handleCheckbox} />
+      </label>
+      <label>
+        Load ({load.total - load.free}/{load.total}) {progress(load.total - load.free, load.total)}
       </label>
       {nuked.length ? "Nuked: " + nuked.join(", ") : ""}
       <br />
@@ -63,13 +66,13 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
             getValue: (host) => [ns.getServerSecurityLevel(host), ns.getServerMinSecurityLevel(host)],
             formatter: ([current, min]) => `${formatSec(current)}/${formatSec(min)}`,
           },
-          { label: "Max RAM", getValue: (host) => ns.getServerMaxRam(host), formatter: formatRam },
-          { label: "Threads", getValue: (host) => getFreeThreads(ns, host, hackRam), formatter: formatThread },
-          {
-            label: "Load",
-            getValue: (host) => ns.getServerUsedRam(host),
-            formatter: (value, host) => progress(value, ns.getServerMaxRam(host)),
-          },
+          // { label: "Max RAM", getValue: (host) => ns.getServerMaxRam(host), formatter: formatRam },
+          // { label: "Threads", getValue: (host) => getFreeThreads(ns, host, hackRam), formatter: formatThread },
+          // {
+          //   label: "Load",
+          //   getValue: (host) => ns.getServerUsedRam(host),
+          //   formatter: (value, host) => progress(value, ns.getServerMaxRam(host)),
+          // },
           {
             label: "Actions",
             getValue: (host) => host,
