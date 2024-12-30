@@ -57,12 +57,6 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       </label>
       {nuked.length ? "Nuked: " + nuked.join(", ") : ""}
       <br />
-      {targets.map((target) => (
-        <div key={target.host}>
-          {target.host} {target.action} {formatTime(target.endTime - Date.now())}{" "}
-          {progress(Date.now() - target.startTime, target.endTime - target.startTime)}
-        </div>
-      ))}
       <Table
         columns={[
           { label: "Server", getValue: (host) => host, formatter: (value) => value },
@@ -87,22 +81,34 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
             label: "Actions",
             getValue: (host) => host,
             formatter: (host) => {
-              const disabled = targets.some((target) => target.host === host);
+              const target = targets.find((target) => target.host === host);
+              if (target) {
+                return (
+                  <>
+                    {target.action} {formatTime(target.endTime - Date.now())}{" "}
+                    {progress(Date.now() - target.startTime, target.endTime - target.startTime)}
+                  </>
+                );
+              }
+
               return (
                 <div>
-                  <button disabled={disabled} onClick={() => handleHack(host)}>
-                    H
-                  </button>
-                  <button disabled={disabled} onClick={() => handleGrow(host)}>
-                    G
-                  </button>
-                  <button disabled={disabled} onClick={() => handleWeaken(host)}>
-                    W
-                  </button>
+                  <button onClick={() => handleHack(host)}>H</button>
+                  <button onClick={() => handleGrow(host)}>G</button>
+                  <button onClick={() => handleWeaken(host)}>W</button>
                 </div>
               );
             },
           },
+          // {
+          //   label: "Progress",
+          //   getValue: (host) => host,
+          //   formatter: (host) => {
+          //     const target = targets.find((target) => target.host === host);
+          //     if (!target) return null;
+          //     return progress(Date.now() - target.startTime, target.endTime - target.startTime);
+          //   },
+          // },
         ]}
         data={servers}
       />
