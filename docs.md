@@ -1,6 +1,6 @@
 # Bitburner resources and tips
 
-- [NS Entry Point](https://github.com/bitburner-official/bitburner-src/blob/bec737a25307be29c7efef147fc31effca65eedc/markdown/bitburner.ns.md)
+- [NS Entry Point](https://github.com/bitburner-official/bitburner-src/blob/master/markdown/bitburner.ns.md)
 
 - programs
   - brutessh
