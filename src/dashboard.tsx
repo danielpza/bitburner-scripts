@@ -115,6 +115,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
 
               return (
                 <div>
+                  <button onClick={() => handleAuto(host)}>A</button>
                   <button
                     style={{ color: easyHack && moneyFull && secMin ? "green" : "red" }}
                     onClick={() => handleHack(host)}
@@ -182,6 +183,16 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     await ns.asleep(sleepTime);
     setTargets((prev) => prev.filter((target) => target.host !== host));
     return true;
+  }
+
+  async function handleAuto(server: string) {
+    do {
+      const fullMoney = ns.getServerMoneyAvailable(server) === ns.getServerMaxMoney(server);
+      const minSec = ns.getServerSecurityLevel(server) === ns.getServerMinSecurityLevel(server);
+      if (!minSec) await handleActionResult(server, "weaken", weakenTarget(ns, server));
+      else if (!fullMoney) await handleActionResult(server, "grow", growTarget(ns, server));
+      else await handleActionResult(server, "hack", hackTarget(ns, server));
+    } while (loopRef.current);
   }
 
   async function handleHack(server: string) {
