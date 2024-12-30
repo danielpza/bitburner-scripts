@@ -35,11 +35,12 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   servers = _.orderBy(
     servers,
     [
+      (server) => targets.some((target) => target.host === server),
       (server) => canEasyHack(ns, server),
-      (server) => (ns.getServerMoneyAvailable(server) > 0 ? 1 : 0),
+      (server) => ns.getServerMoneyAvailable(server) > 0,
       (server) => ns.getWeakenTime(server),
     ],
-    ["desc", "desc", "asc"],
+    ["desc", "desc", "desc", "asc"],
   );
   servers = servers.slice(0, 10);
 
@@ -85,13 +86,22 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
           {
             label: "Actions",
             getValue: (host) => host,
-            formatter: (host) => (
-              <div>
-                <button onClick={() => handleHack(host)}>H</button>
-                <button onClick={() => handleGrow(host)}>G</button>
-                <button onClick={() => handleWeaken(host)}>W</button>
-              </div>
-            ),
+            formatter: (host) => {
+              const disabled = targets.some((target) => target.host === host);
+              return (
+                <div>
+                  <button disabled={disabled} onClick={() => handleHack(host)}>
+                    H
+                  </button>
+                  <button disabled={disabled} onClick={() => handleGrow(host)}>
+                    G
+                  </button>
+                  <button disabled={disabled} onClick={() => handleWeaken(host)}>
+                    W
+                  </button>
+                </div>
+              );
+            },
           },
         ]}
         data={servers}
