@@ -20,6 +20,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       action: "hack" | "grow" | "weaken";
       startTime: number;
       endTime: number;
+      abortController: AbortController;
     }>
   >([]);
   const loopRef = React.useRef(false);
@@ -163,6 +164,9 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     for (const host of getRootAccessServers(ns)) {
       ns.killall(host, true);
     }
+    for (const target of targets) {
+      target.abortController.abort();
+    }
     setTargets([]);
   }
 
@@ -180,8 +184,10 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     const { sleepTime } = result;
     const startTime = Date.now();
     const endTime = startTime + sleepTime;
-    setTargets((prev) => [...prev, { host, action, startTime, endTime }]);
+    const abortController = new AbortController();
+    setTargets((prev) => [...prev, { host, action, startTime, endTime, abortController }]);
     await ns.asleep(sleepTime);
+    if (abortController.signal.aborted) return false;
     setTargets((prev) => prev.filter((target) => target.host !== host));
     return true;
   }
@@ -191,6 +197,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     if (!target) return;
     for (const host of getRootAccessServers(ns))
       for (const process of ns.ps(host)) if (process.args.includes(server)) ns.kill(process.pid);
+    target.abortController.abort();
     setTargets((prev) => prev.filter((target) => target.host !== server));
   }
 
