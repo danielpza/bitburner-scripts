@@ -63,13 +63,11 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
           { label: "Server", getValue: (host) => host, formatter: (value) => value, align: "left" },
           {
             label: "Mny",
-            getValue: (host) => ns.getServerMoneyAvailable(host),
-            formatter: (value, host) => (
+            getValue: (host) => [ns.getServerMoneyAvailable(host), ns.getServerMaxMoney(host)],
+            formatter: ([money, maxMoney]) => (
               <>
-                <span style={value === ns.getServerMaxMoney(host) ? { color: "green" } : { color: "red" }}>
-                  {formatMoney(value)}
-                </span>
-                /{formatMoney(ns.getServerMaxMoney(host))}
+                {color(formatMoney(money), money === 0 ? "red" : money === maxMoney ? "green" : "yellow")}/
+                {formatMoney(maxMoney)}
               </>
             ),
           },
@@ -80,7 +78,11 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
           {
             label: "Sec",
             getValue: (host) => [ns.getServerSecurityLevel(host), ns.getServerMinSecurityLevel(host)],
-            formatter: ([current, min]) => `${formatSec(current)}/${formatSec(min)}`,
+            formatter: ([current, min]) => (
+              <>
+                {color(formatSec(current), current === min ? "green" : "yellow")}/{formatSec(min)}
+              </>
+            ),
           },
           // { label: "Max RAM", getValue: (host) => ns.getServerMaxRam(host), formatter: formatRam },
           // { label: "Threads", getValue: (host) => getFreeThreads(ns, host, hackRam), formatter: formatThread },
@@ -107,11 +109,28 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
                 );
               }
 
+              const money = ns.getServerMoneyAvailable(host);
+              const moneyFull = money === ns.getServerMaxMoney(host) && money > 0;
+              const secMin = ns.getServerSecurityLevel(host) === ns.getServerMinSecurityLevel(host);
+              const easyHack = canEasyHack(ns, host);
+
               return (
                 <div>
-                  <button onClick={() => handleHack(host)}>H</button>
-                  <button onClick={() => handleGrow(host)}>G</button>
-                  <button onClick={() => handleWeaken(host)}>W</button>
+                  <button
+                    style={{ color: easyHack && moneyFull && secMin ? "green" : "red" }}
+                    onClick={() => handleHack(host)}
+                  >
+                    H
+                  </button>
+                  <button
+                    style={{ color: !moneyFull && money > 0 && secMin && easyHack ? "green" : "red" }}
+                    onClick={() => handleGrow(host)}
+                  >
+                    G
+                  </button>
+                  <button style={{ color: easyHack && !secMin ? "green" : "red" }} onClick={() => handleWeaken(host)}>
+                    W
+                  </button>
                 </div>
               );
             },
@@ -198,6 +217,9 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   }
   function formatSec(value: number) {
     return ns.formatNumber(value, 2);
+  }
+  function color(value: any, color: string) {
+    return <span style={{ color }}>{value}</span>;
   }
   function bucket(value: number) {
     return Math.floor(Math.log(value));
