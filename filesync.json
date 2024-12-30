@@ -1,8 +1,8 @@
 {
-  "allowedFiletypes": [".js", ".script", ".txt"],
+  "allowedFiletypes": [".ts", ".script", ".txt", "tsx"],
   "allowDeletingFiles": true,
   "port": 12525,
-  "scriptsFolder": "lib",
+  "scriptsFolder": "src",
   "quiet": false,
   "dry": false,
   "definitionFile": {
