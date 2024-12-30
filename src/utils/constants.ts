@@ -8,10 +8,10 @@ export const GROW_PER_WEAK = WEAK_ANALYZE / GROW_ANALYZE_SEC;
 export const HACK_PER_WEAK = WEAK_ANALYZE / HACK_ANALYZE_SEC;
 
 export enum Script {
-  HACK = "scripts/dummy-hack.js",
-  GROW = "scripts/dummy-grow.js",
-  WEAKEN = "scripts/dummy-weaken.js",
-  SHARE = "scripts/dummy-share.js",
+  HACK = "scripts/dummy-hack.ts",
+  GROW = "scripts/dummy-grow.ts",
+  WEAKEN = "scripts/dummy-weaken.ts",
+  SHARE = "scripts/dummy-share.ts",
 }
 
 function Task<T extends any[] = []>(script: string, cb?: (...args: T) => (string | number | boolean)[]) {
