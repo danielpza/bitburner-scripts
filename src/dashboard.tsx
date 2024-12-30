@@ -192,8 +192,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       if (!minSec) await handleActionResult(server, "weaken", weakenTarget(ns, server));
       else if (!fullMoney) await handleActionResult(server, "grow", growTarget(ns, server));
       else await handleActionResult(server, "hack", hackTarget(ns, server));
-      await ns.asleep(200);
-    } while (loopRef.current);
+    } while (loopRef.current && (await ns.asleep(50)));
   }
 
   async function handleHack(server: string) {
