@@ -2,7 +2,6 @@ import Table from "./components/Table";
 import { useForceRender } from "./hooks/useForceRender";
 import { useInterval } from "./hooks/useInterval";
 import { render } from "./utils/render";
-import { scanAll } from "./utils/scanAll";
 
 import { growTarget } from "./grow";
 import { hackTarget } from "./hack";
@@ -10,6 +9,7 @@ import { nukeAll } from "./nuke-all";
 import { weakenTarget } from "./weaken";
 import { getClusterLoad } from "./utils/getClusterLoad";
 import { getRootAccessServers } from "./utils/getRootAccessServers";
+import { canEasyHack } from "./utils/info/canEasyHack";
 
 function Dashboard({ ns }: { ns: Bitburner.NS }) {
   const [nuked, setNuked] = React.useState<string[]>([]);
@@ -27,10 +27,21 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
 
   useInterval(refresh, 1000);
 
-  const servers = getRootAccessServers(ns)
-    .filter((server) => ns.hasRootAccess(server) && ns.getServerMoneyAvailable(server) > 0 && server !== "home")
-    .sort((a, b) => ns.getWeakenTime(a) - ns.getWeakenTime(b))
-    .slice(0, 10);
+  let servers = getRootAccessServers(ns).filter((server) => {
+    if (server === "home") return false;
+    if (!ns.hasRootAccess(server)) return false;
+    return true;
+  });
+  servers = _.orderBy(
+    servers,
+    [
+      (server) => canEasyHack(ns, server),
+      (server) => (ns.getServerMoneyAvailable(server) > 0 ? 1 : 0),
+      (server) => ns.getWeakenTime(server),
+    ],
+    ["desc", "desc", "asc"],
+  );
+  servers = servers.slice(0, 10);
 
   return (
     <>
