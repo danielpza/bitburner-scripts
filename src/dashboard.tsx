@@ -59,7 +59,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       <br />
       <Table
         columns={[
-          { label: "Server", getValue: (host) => host, formatter: (value) => value },
+          { label: "Server", getValue: (host) => host, formatter: (value) => value, align: "left" },
           { label: "Money", getValue: (host) => ns.getServerMoneyAvailable(host), formatter: formatMoney },
           { label: "Max Money", getValue: (host) => ns.getServerMaxMoney(host), formatter: formatMoney },
           { label: "Hack Time", getValue: (host) => ns.getHackTime(host), formatter: formatTime },
@@ -99,6 +99,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
                 </div>
               );
             },
+            align: "left",
           },
           // {
           //   label: "Progress",

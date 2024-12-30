@@ -3,7 +3,7 @@ function Table<T>(props: {
     label: string;
     align?: "left" | "right";
     getValue: (value: T) => any;
-    formatter: (value: any, row: T) => any;
+    formatter?: (value: any, row: T) => any;
   }[];
   data: T[];
 }) {
@@ -12,16 +12,17 @@ function Table<T>(props: {
       <thead>
         <tr>
           {props.columns.map((column) => (
-            <th style={{ textAlign: column.align || "left" }}>{column.label}</th>
+            <th style={{ textAlign: column.align || "right" }}>{column.label}</th>
           ))}
         </tr>
       </thead>
       <tbody>
         {props.data.map((row) => (
           <tr>
-            {props.columns.map((column) => (
-              <td style={{ textAlign: column.align || "left" }}>{column.formatter(column.getValue(row), row)}</td>
-            ))}
+            {props.columns.map((column) => {
+              const value = column.getValue(row);
+              return <td style={{ textAlign: column.align || "right" }}>{column.formatter?.(value, row) ?? value}</td>;
+            })}
           </tr>
         ))}
       </tbody>
