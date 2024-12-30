@@ -1,9 +1,3 @@
 {
-  "extends": "@tsconfig/vite-react/tsconfig.json",
-  "compilerOptions": {
-    "target": "ESNext",
-    "lib": ["ESNext"],
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext"
-  }
+  "extends": "@tsconfig/vite-react"
 }

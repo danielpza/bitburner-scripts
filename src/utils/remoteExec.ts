@@ -1,9 +1,8 @@
-import { RunOptions } from "../../NetScriptDefinitions.js";
 import { ProcessCleanup } from "./ProcessCleanup.ts";
 
 export interface RemoteExecOptions {
   script: string;
-  threads?: RunOptions["threads"];
+  threads?: Bitburner.RunOptions["threads"];
   args: (string | number | boolean)[];
 }
 
