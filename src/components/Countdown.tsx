@@ -1,3 +1,6 @@
+import { useForceRender } from "../hooks/useForceRender";
+import { useInterval } from "../hooks/useInterval";
+
 interface Props {
   time: number;
   ns: Bitburner.NS;
@@ -5,22 +8,26 @@ interface Props {
 }
 
 function Countdown(props: Props) {
-  const [time, setTime] = React.useState(props.time);
+  const [{ startTime, endTime }] = React.useState(() => {
+    const now = Date.now();
+    return {
+      startTime: now,
+      endTime: now + props.time,
+    };
+  });
 
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setTime((prevTime) => {
-        if (prevTime >= 0) return prevTime - 1000;
-        clearInterval(interval);
-        return 0;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const refresh = useForceRender();
+  useInterval(refresh, 1000);
 
-  if (props.progress) return <progress value={props.time - time} max={props.time}></progress>;
+  const now = Date.now();
 
-  return <>{props.ns.tFormat(time)}</>;
+  if (props.progress) return <progress value={now - startTime} max={endTime - startTime}></progress>;
+
+  return formatTime(endTime - now);
+
+  function formatTime(value: number) {
+    return Math.floor(value / 1000) + "s";
+  }
 }
 
 export default Countdown;
