@@ -61,13 +61,24 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       <Table
         columns={[
           { label: "Server", getValue: (host) => host, formatter: (value) => value, align: "left" },
-          { label: "Money", getValue: (host) => ns.getServerMoneyAvailable(host), formatter: formatMoney },
-          { label: "Max Money", getValue: (host) => ns.getServerMaxMoney(host), formatter: formatMoney },
-          { label: "Hack Time", getValue: (host) => ns.getHackTime(host), formatter: formatTime },
-          { label: "Grow Time", getValue: (host) => ns.getGrowTime(host), formatter: formatTime },
-          { label: "Weaken Time", getValue: (host) => ns.getWeakenTime(host), formatter: formatTime },
           {
-            label: "Security",
+            label: "Mny",
+            getValue: (host) => ns.getServerMoneyAvailable(host),
+            formatter: (value, host) => (
+              <>
+                <span style={value === ns.getServerMaxMoney(host) ? { color: "green" } : { color: "red" }}>
+                  {formatMoney(value)}
+                </span>
+                /{formatMoney(ns.getServerMaxMoney(host))}
+              </>
+            ),
+          },
+          { label: "MxMny", getValue: (host) => ns.getServerMaxMoney(host), formatter: formatMoney },
+          { label: "HckT", getValue: (host) => ns.getHackTime(host), formatter: formatTime },
+          { label: "GrwT", getValue: (host) => ns.getGrowTime(host), formatter: formatTime },
+          { label: "WknT", getValue: (host) => ns.getWeakenTime(host), formatter: formatTime },
+          {
+            label: "Sec",
             getValue: (host) => [ns.getServerSecurityLevel(host), ns.getServerMinSecurityLevel(host)],
             formatter: ([current, min]) => `${formatSec(current)}/${formatSec(min)}`,
           },
@@ -79,7 +90,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
           //   formatter: (value, host) => progress(value, ns.getServerMaxRam(host)),
           // },
           {
-            label: "Time Score",
+            label: "TScore",
             getValue: (host) => bucket(ns.getWeakenTime(host)),
           },
           {
@@ -171,7 +182,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     return <progress style={{ width: "40px" }} value={value} max={max} />;
   }
   function formatMoney(value: number) {
-    return "$" + ns.formatNumber(value);
+    return "$" + ns.formatNumber(value, 0);
   }
   function formatThread(value: number) {
     return ns.formatNumber(value, 0);
