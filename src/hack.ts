@@ -20,7 +20,7 @@ export async function main(ns: Bitburner.NS) {
   await hackTarget(ns, target);
 }
 
-export async function hackTarget(
+export function hackTarget(
   ns: Bitburner.NS,
   target: string,
   { maxCycles = MAX_HACK_CYCLES, targetHackPercent = TARGET_HACK_PERCENT, extraDelay = 0 } = {},
@@ -69,13 +69,17 @@ export async function hackTarget(
     totalThreads -= requiredThreads;
   }
 
-  const moneyStolen = Math.min(
-    ns.hackAnalyze(target) * hackThreads * ns.getServerMoneyAvailable(target),
-    ns.getServerMoneyAvailable(target),
-  );
-  const moneyAvailable = ns.getServerMoneyAvailable(target);
+  // const moneyStolen = Math.min(
+  //   ns.hackAnalyze(target) * hackThreads * ns.getServerMoneyAvailable(target),
+  //   ns.getServerMoneyAvailable(target),
+  // );
+  // const moneyAvailable = ns.getServerMoneyAvailable(target);
 
   const sleepTime = totalTime + LONG_SLEEP * i + 1000;
+
+  return {
+    sleepTime,
+  };
 
   // [
   //   `hacking ${target}`,
@@ -92,5 +96,5 @@ export async function hackTarget(
   //   </p>,
   // );
 
-  await ns.asleep(sleepTime);
+  // await ns.asleep(sleepTime);
 }

@@ -11,8 +11,14 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   const [nuked, setNuked] = React.useState<string[]>([]);
   const hackRam = ns.getScriptRam(Jobs.Hack.script);
   const refresh = useForceRender();
+  const [target, setTarget] = React.useState<null | {
+    host: string;
+    action: "hack" | "grow" | "weaken";
+    startTime: number;
+    endTime: number;
+  }>(null);
 
-  useInterval(refresh, 2000);
+  useInterval(refresh, 1000);
 
   const servers = [
     // "home",
@@ -25,6 +31,13 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     <>
       <button onClick={handleStop}>Stop</button>
       <button onClick={handleNukeAll}>Nuke</button> {nuked.length ? "Nuked: " + nuked.join(", ") : ""}
+      <br />
+      {target && (
+        <div>
+          {target.host} {target.action} {formatTime(target.endTime - Date.now())}{" "}
+          {progress(Date.now() - target.startTime, target.endTime - target.startTime)}
+        </div>
+      )}
       <table>
         <thead>
           <tr>
@@ -32,6 +45,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
             <th style={{ textAlign: "right" }}>Money</th>
             <th style={{ textAlign: "right" }}>Max Money</th>
             <th style={{ textAlign: "right" }}>Grow Time</th>
+            <th style={{ textAlign: "right" }}>Level</th>
             <th style={{ textAlign: "right" }}>Max RAM</th>
             <th style={{ textAlign: "right" }}>Threads</th>
             <th>Load</th>
@@ -45,6 +59,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
               <td style={{ textAlign: "right" }}>{formatMoney(ns.getServerMoneyAvailable(host))}</td>
               <td style={{ textAlign: "right" }}>{formatMoney(ns.getServerMaxMoney(host))}</td>
               <td style={{ textAlign: "right" }}>{formatTime(ns.getGrowTime(host))}</td>
+              <td style={{ textAlign: "right" }}>{ns.getServerRequiredHackingLevel(host)}</td>
               <td style={{ textAlign: "right" }}>{formatRam(ns.getServerMaxRam(host))}</td>
               <td style={{ textAlign: "right" }}>{getFreeThreads(ns, host, hackRam)}</td>
               <td>{progress(ns.getServerUsedRam(host), ns.getServerMaxRam(host))}</td>
@@ -73,7 +88,12 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   }
 
   function handleHack(server: string) {
-    hackTarget(ns, server);
+    const hackResult = hackTarget(ns, server);
+    if (!hackResult) return;
+    const { sleepTime } = hackResult;
+    const startTime = Date.now();
+    const endTime = startTime + sleepTime;
+    setTarget({ host: server, action: "hack", startTime, endTime });
     refresh();
     // TODO
   }
