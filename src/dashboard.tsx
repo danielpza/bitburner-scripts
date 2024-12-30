@@ -15,12 +15,14 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   const [nuked, setNuked] = React.useState<string[]>([]);
   const hackRam = ns.getScriptRam(Jobs.Hack.script);
   const refresh = useForceRender();
-  const [target, setTarget] = React.useState<null | {
-    host: string;
-    action: "hack" | "grow" | "weaken";
-    startTime: number;
-    endTime: number;
-  }>(null);
+  const [targets, setTargets] = React.useState<
+    Array<{
+      host: string;
+      action: "hack" | "grow" | "weaken";
+      startTime: number;
+      endTime: number;
+    }>
+  >([]);
   const loopRef = React.useRef(false);
 
   useInterval(refresh, 1000);
@@ -42,12 +44,12 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       </label>
       {nuked.length ? "Nuked: " + nuked.join(", ") : ""}
       <br />
-      {target && (
-        <div>
+      {targets.map((target) => (
+        <div key={target.host}>
           {target.host} {target.action} {formatTime(target.endTime - Date.now())}{" "}
           {progress(Date.now() - target.startTime, target.endTime - target.startTime)}
         </div>
-      )}
+      ))}
       <Table
         columns={[
           { label: "Server", getValue: (host) => host, formatter: (value) => value },
@@ -85,7 +87,10 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     </>
   );
 
-  function handleCheckbox(ev: React.ChangeEvent<HTMLInputElement>) {
+  function handleCheckbox(
+    ev: // @ts-expect-error -- TODO fix later
+    React.ChangeEvent<HTMLInputElement>,
+  ) {
     loopRef.current = ev.target.checked;
   }
 
@@ -93,7 +98,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     for (const host of servers) {
       ns.killall(host, true);
     }
-    setTarget(null);
+    setTargets([]);
   }
 
   function handleNukeAll() {
@@ -110,24 +115,22 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     const { sleepTime } = result;
     const startTime = Date.now();
     const endTime = startTime + sleepTime;
-    setTarget({ host, action, startTime, endTime });
+    setTargets((prev) => [...prev, { host, action, startTime, endTime }]);
     await ns.asleep(sleepTime);
+    setTargets((prev) => prev.filter((target) => target.host !== host));
     return true;
   }
 
   async function handleHack(server: string) {
     while ((await handleActionResult(server, "hack", hackTarget(ns, server))) && loopRef.current);
-    setTarget(null);
   }
 
   async function handleGrow(server: string) {
     while ((await handleActionResult(server, "grow", growTarget(ns, server))) && loopRef.current);
-    setTarget(null);
   }
 
   async function handleWeaken(server: string) {
     while ((await handleActionResult(server, "weaken", weakenTarget(ns, server))) && loopRef.current);
-    setTarget(null);
   }
 
   function progress(value: number, max: number) {
