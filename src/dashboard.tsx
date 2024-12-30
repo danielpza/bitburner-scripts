@@ -50,11 +50,11 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       <button onClick={handleStop}>Stop</button>
       <button onClick={handleNukeAll}>Nuke</button>
       <label>
-        Loop
+        Loop:
         <input type="checkbox" onChange={handleCheckbox} />
       </label>
       <label>
-        Load ({load.total - load.free}/{load.total}) {progress(load.total - load.free, load.total)}
+        Load: ({load.total - load.free}/{load.total}) {progress(load.total - load.free, load.total)}
       </label>
       {nuked.length ? "Nuked: " + nuked.join(", ") : ""}
       <br />
