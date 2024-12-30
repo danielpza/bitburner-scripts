@@ -9,6 +9,7 @@ import { hackTarget } from "./hack";
 import { nukeAll } from "./nuke-all";
 import { weakenTarget } from "./weaken";
 import { getClusterLoad } from "./utils/getClusterLoad";
+import { getRootAccessServers } from "./utils/getRootAccessServers";
 
 function Dashboard({ ns }: { ns: Bitburner.NS }) {
   const [nuked, setNuked] = React.useState<string[]>([]);
@@ -26,11 +27,8 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
 
   useInterval(refresh, 1000);
 
-  const servers = [
-    // "home",
-    ...scanAll(ns),
-  ]
-    .filter((server) => ns.hasRootAccess(server) && ns.getServerMoneyAvailable(server) > 0)
+  const servers = getRootAccessServers(ns)
+    .filter((server) => ns.hasRootAccess(server) && ns.getServerMoneyAvailable(server) > 0 && server !== "home")
     .sort((a, b) => ns.getWeakenTime(a) - ns.getWeakenTime(b))
     .slice(0, 10);
 
@@ -98,7 +96,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   }
 
   function handleStop() {
-    for (const host of servers) {
+    for (const host of getRootAccessServers(ns)) {
       ns.killall(host, true);
     }
     setTargets([]);

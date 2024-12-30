@@ -7,6 +7,7 @@ export function getClusterLoad(ns: Bitburner.NS) {
   let free = 0;
   let total = 0;
   for (const server of cluster) {
+    if (server === "home") continue;
     const totalRam = ns.getServerMaxRam(server);
     const usedRam = ns.getServerUsedRam(server);
     const freeRam = totalRam - usedRam;
