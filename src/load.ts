@@ -12,7 +12,5 @@ export async function main(ns: Bitburner.NS) {
     totalRam += maxRam;
   }
 
-  ns.tprint(
-    `${ns.formatRam(usedRam, 0)}/${ns.formatRam(totalRam, 0)} = ${ns.formatNumber(usedRam / totalRam)}%`,
-  );
+  ns.tprint(`${ns.formatRam(usedRam, 0)}/${ns.formatRam(totalRam, 0)} = ${ns.formatNumber(usedRam / totalRam)}%`);
 }

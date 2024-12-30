@@ -38,7 +38,7 @@ export function formatTable<T>(rows: T[], columns: Column<T>[]) {
       const padding = paddings[j];
 
       const withPadding = aligns[j] === "left" ? String(value).padEnd(padding) : String(value).padStart(padding);
-      const withExtraFormat = i > 0 ? afterFormat?.(withPadding, value, row as T) ?? withPadding : withPadding;
+      const withExtraFormat = i > 0 ? (afterFormat?.(withPadding, value, row as T) ?? withPadding) : withPadding;
 
       result += withExtraFormat + " ";
     }

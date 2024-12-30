@@ -1,9 +1,7 @@
 /** @see https://bitburner.readthedocs.io/en/latest/netscript/advancedfunctions/inject_html.html */
 export function execCommand(command: string) {
   // Acquire a reference to the terminal text field
-  const terminalInput = eval("document").getElementById(
-    "terminal-input",
-  ) as any;
+  const terminalInput = eval("document").getElementById("terminal-input") as any;
 
   if (!terminalInput) return;
   // if (!terminalInput) throw new Error("Expected terminal input to exist");

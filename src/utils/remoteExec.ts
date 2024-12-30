@@ -7,11 +7,7 @@ export interface RemoteExecOptions {
   args: (string | number | boolean)[];
 }
 
-export function remoteExec(
-  ns: Bitburner.NS,
-  host: string,
-  { script, args, threads }: RemoteExecOptions,
-) {
+export function remoteExec(ns: Bitburner.NS, host: string, { script, args, threads }: RemoteExecOptions) {
   ns.scp(script, host);
   let pid = ns.exec(script, host, { threads }, ...args);
   ProcessCleanup.get(ns).add(pid);
