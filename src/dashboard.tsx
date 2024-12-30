@@ -90,10 +90,10 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
           //   getValue: (host) => ns.getServerUsedRam(host),
           //   formatter: (value, host) => progress(value, ns.getServerMaxRam(host)),
           // },
-          {
-            label: "TScore",
-            getValue: (host) => bucket(ns.getWeakenTime(host)),
-          },
+          // {
+          //   label: "TScore",
+          //   getValue: (host) => bucket(ns.getWeakenTime(host)),
+          // },
           {
             label: "Actions",
             getValue: (host) => host,
