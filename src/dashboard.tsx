@@ -19,13 +19,9 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     startTime: number;
     endTime: number;
   }>(null);
+  const loopRef = React.useRef(false);
 
-  useInterval(() => {
-    refresh();
-    if (target && Date.now() > target.endTime) {
-      setTarget(null);
-    }
-  }, 1000);
+  useInterval(refresh, 1000);
 
   const servers = [
     // "home",
@@ -37,7 +33,12 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   return (
     <>
       <button onClick={handleStop}>Stop</button>
-      <button onClick={handleNukeAll}>Nuke</button> {nuked.length ? "Nuked: " + nuked.join(", ") : ""}
+      <button onClick={handleNukeAll}>Nuke</button>
+      <label>
+        Loop
+        <input type="checkbox" onChange={handleCheckbox} />
+      </label>
+      {nuked.length ? "Nuked: " + nuked.join(", ") : ""}
       <br />
       {target && (
         <div>
@@ -51,6 +52,8 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
             <th style={{ textAlign: "left" }}>Server</th>
             <th style={{ textAlign: "right" }}>Money</th>
             <th style={{ textAlign: "right" }}>Max Money</th>
+            <th style={{ textAlign: "right" }}>Hack Time</th>
+            <th style={{ textAlign: "right" }}>Grow Time</th>
             <th style={{ textAlign: "right" }}>Weaken Time</th>
             <th style={{ textAlign: "right" }}>Level</th>
             <th style={{ textAlign: "right" }}>Max RAM</th>
@@ -64,15 +67,19 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
             const currentSecurity = ns.getServerSecurityLevel(host);
             const minSecurity = ns.getServerMinSecurityLevel(host);
             const hackLevel = ns.getServerRequiredHackingLevel(host);
+            const hackTime = ns.getHackTime(host);
             const growTime = ns.getGrowTime(host);
+            const weakenTime = ns.getWeakenTime(host);
             return (
               <tr key={host}>
                 <td>{host}</td>
                 <td style={{ textAlign: "right" }}>{formatMoney(ns.getServerMoneyAvailable(host))}</td>
                 <td style={{ textAlign: "right" }}>{formatMoney(ns.getServerMaxMoney(host))}</td>
+                <td style={{ textAlign: "right" }}>{formatTime(hackTime)}</td>
                 <td style={{ textAlign: "right" }}>{formatTime(growTime)}</td>
+                <td style={{ textAlign: "right" }}>{formatTime(weakenTime)}</td>
                 <td style={{ textAlign: "right" }}>
-                  {currentSecurity}/{minSecurity}
+                  {formatSec(currentSecurity)}/{formatSec(minSecurity)}
                 </td>
                 <td style={{ textAlign: "right" }}>{formatRam(ns.getServerMaxRam(host))}</td>
                 <td style={{ textAlign: "right" }}>{getFreeThreads(ns, host, hackRam)}</td>
@@ -90,6 +97,10 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     </>
   );
 
+  function handleCheckbox(ev: React.ChangeEvent<HTMLInputElement>) {
+    loopRef.current = ev.target.checked;
+  }
+
   function handleStop() {
     for (const host of servers) {
       ns.killall(host, true);
@@ -102,28 +113,33 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     refresh();
   }
 
-  function handleActionResult(
+  async function handleActionResult(
     host: string,
     action: "hack" | "grow" | "weaken",
     result: false | undefined | { sleepTime: number },
   ) {
-    if (!result) return;
+    if (!result) return false;
     const { sleepTime } = result;
     const startTime = Date.now();
     const endTime = startTime + sleepTime;
     setTarget({ host, action, startTime, endTime });
+    await ns.asleep(sleepTime);
+    return true;
   }
 
-  function handleHack(server: string) {
-    handleActionResult(server, "hack", hackTarget(ns, server));
+  async function handleHack(server: string) {
+    while ((await handleActionResult(server, "hack", hackTarget(ns, server))) && loopRef.current);
+    setTarget(null);
   }
 
-  function handleGrow(server: string) {
-    handleActionResult(server, "grow", growTarget(ns, server));
+  async function handleGrow(server: string) {
+    while ((await handleActionResult(server, "grow", growTarget(ns, server))) && loopRef.current);
+    setTarget(null);
   }
 
-  function handleWeaken(server: string) {
-    handleActionResult(server, "weaken", weakenTarget(ns, server));
+  async function handleWeaken(server: string) {
+    while ((await handleActionResult(server, "weaken", weakenTarget(ns, server))) && loopRef.current);
+    setTarget(null);
   }
 
   function progress(value: number, max: number) {
@@ -143,6 +159,9 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   }
   function formatBoolean(value: boolean) {
     return value ? "yes" : "no";
+  }
+  function formatSec(value: number) {
+    return ns.formatNumber(value, 2);
   }
 }
 
