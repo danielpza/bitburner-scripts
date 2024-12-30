@@ -30,7 +30,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     // "home",
     ...scanAll(ns),
   ]
-    .filter((server) => ns.hasRootAccess(server))
+    .filter((server) => ns.hasRootAccess(server) && ns.getServerMoneyAvailable(server) > 0)
     .sort((a, b) => ns.getWeakenTime(a) - ns.getWeakenTime(b))
     .slice(0, 10);
 
