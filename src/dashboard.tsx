@@ -104,6 +104,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
                   <>
                     {target.action} {formatTime(target.endTime - Date.now())}{" "}
                     {progress(Date.now() - target.startTime, target.endTime - target.startTime)}
+                    <button onClick={() => handleCancel(host)}>X</button>
                   </>
                 );
               }
@@ -183,6 +184,14 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     await ns.asleep(sleepTime);
     setTargets((prev) => prev.filter((target) => target.host !== host));
     return true;
+  }
+
+  function handleCancel(server: string) {
+    const target = targets.find((target) => target.host === server);
+    if (!target) return;
+    for (const host of getRootAccessServers(ns))
+      for (const process of ns.ps(host)) if (process.args.includes(server)) ns.kill(process.pid);
+    setTargets((prev) => prev.filter((target) => target.host !== server));
   }
 
   async function handleAuto(server: string) {
