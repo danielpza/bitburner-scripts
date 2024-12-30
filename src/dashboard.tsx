@@ -1,5 +1,6 @@
 import { hackTarget } from "./hack";
 import { useForceRender } from "./hooks/useForceRender";
+import { useInterval } from "./hooks/useInterval";
 import { nukeAll } from "./nuke-all";
 import { Jobs } from "./utils/constants";
 import { getFreeThreads } from "./utils/getFreeThreads";
@@ -10,6 +11,8 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   const [nuked, setNuked] = React.useState<string[]>([]);
   const hackRam = ns.getScriptRam(Jobs.Hack.script);
   const refresh = useForceRender();
+
+  useInterval(refresh, 2000);
 
   const servers = [
     // "home",
@@ -25,11 +28,12 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       <table>
         <thead>
           <tr>
-            <th>Server</th>
-            <th style={{ textAlign: "right" }}>Used RAM</th>
+            <th style={{ textAlign: "left" }}>Server</th>
+            <th style={{ textAlign: "right" }}>Money</th>
+            <th style={{ textAlign: "right" }}>Max Money</th>
+            <th style={{ textAlign: "right" }}>Grow Time</th>
             <th style={{ textAlign: "right" }}>Max RAM</th>
             <th style={{ textAlign: "right" }}>Threads</th>
-            <th style={{ textAlign: "right" }}>Grow Time</th>
             <th>Load</th>
             <th>Actions</th>
           </tr>
@@ -38,13 +42,12 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
           {servers.map((host) => (
             <tr key={host}>
               <td>{host}</td>
-              <td style={{ textAlign: "right" }}>{formatRam(ns.getServerUsedRam(host))}</td>
+              <td style={{ textAlign: "right" }}>{formatMoney(ns.getServerMoneyAvailable(host))}</td>
+              <td style={{ textAlign: "right" }}>{formatMoney(ns.getServerMaxMoney(host))}</td>
+              <td style={{ textAlign: "right" }}>{formatTime(ns.getGrowTime(host))}</td>
               <td style={{ textAlign: "right" }}>{formatRam(ns.getServerMaxRam(host))}</td>
               <td style={{ textAlign: "right" }}>{getFreeThreads(ns, host, hackRam)}</td>
-              <td style={{ textAlign: "right" }}>{formatTime(ns.getGrowTime(host))}</td>
-              <td>
-                <progress style={{ width: "40px" }} value={ns.getServerUsedRam(host)} max={ns.getServerMaxRam(host)} />
-              </td>
+              <td>{progress(ns.getServerUsedRam(host), ns.getServerMaxRam(host))}</td>
               <td>
                 <button onClick={() => handleHack(host)}>H</button>
                 <button onClick={() => handleGrow(host)}>G</button>
@@ -83,6 +86,9 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     // TODO
   }
 
+  function progress(value: number, max: number) {
+    return <progress style={{ width: "40px" }} value={value} max={max} />;
+  }
   function formatMoney(value: number) {
     return "$" + ns.formatNumber(value);
   }
