@@ -196,15 +196,27 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   }
 
   async function handleHack(server: string) {
-    while ((await handleActionResult(server, "hack", hackTarget(ns, server))) && loopRef.current);
+    while (
+      (await handleActionResult(server, "hack", hackTarget(ns, server))) &&
+      loopRef.current &&
+      (await ns.asleep(50))
+    );
   }
 
   async function handleGrow(server: string) {
-    while ((await handleActionResult(server, "grow", growTarget(ns, server))) && loopRef.current);
+    while (
+      (await handleActionResult(server, "grow", growTarget(ns, server))) &&
+      loopRef.current &&
+      (await ns.asleep(50))
+    );
   }
 
   async function handleWeaken(server: string) {
-    while ((await handleActionResult(server, "weaken", weakenTarget(ns, server))) && loopRef.current);
+    while (
+      (await handleActionResult(server, "weaken", weakenTarget(ns, server))) &&
+      loopRef.current &&
+      (await ns.asleep(50))
+    );
   }
 
   function progress(value: number, max: number) {
