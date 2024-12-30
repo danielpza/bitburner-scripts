@@ -18,6 +18,11 @@
     "url": "https://github.com/danielpza/bitburner-scripts/issues"
   },
   "homepage": "https://github.com/danielpza/bitburner-scripts#readme",
+  "prettier": {
+    "plugins": [
+      "prettier-plugin-jsdoc"
+    ]
+  },
   "devDependencies": {
     "@tsconfig/vite-react": "^3.4.0",
     "@types/lodash": "^4.17.13",
