@@ -1,3 +1,4 @@
+import Countdown from "./components/Countdown.tsx";
 import { clusterExec } from "./utils/clusterExec.ts";
 import { Jobs, MAX_HACK_CYCLES, SLEEP, Script, TARGET_HACK_PERCENT } from "./utils/constants.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";
@@ -76,15 +77,20 @@ export async function hackTarget(
 
   const sleepTime = totalTime + LONG_SLEEP * i + 1000;
 
-  ns.print(
-    [
-      `hacking ${target}`,
-      ns.formatNumber(moneyStolen) + "/" + ns.formatNumber(moneyAvailable),
-      `(${hackThreads}, ${growThreads}, ${weakenThreads})`,
-      `x${i}`,
-      ns.tFormat(sleepTime),
-    ].join(" "),
-  );
+  // [
+  //   `hacking ${target}`,
+  //   ns.formatNumber(moneyStolen) + "/" + ns.formatNumber(moneyAvailable),
+  //   `(${hackThreads}, ${growThreads}, ${weakenThreads})`,
+  //   `x${i}`,
+  //   <Countdown ns={ns} time={sleepTime} />,
+  //   // ns.tFormat(sleepTime),
+  // ].join(" "),
+  // ns.printRaw(
+  //   <p>
+  //     Hacking {target} {ns.formatNumber(moneyStolen) + "/" + ns.formatNumber(moneyAvailable)}({hackThreads},{" "}
+  //     {growThreads}, {weakenThreads}) x{i} <Countdown progress ns={ns} time={sleepTime} />
+  //   </p>,
+  // );
 
   await ns.asleep(sleepTime);
 }

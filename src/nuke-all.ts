@@ -9,15 +9,17 @@ export async function main(ns: Bitburner.NS) {
   if (loop) stackTail(ns, 1);
 
   do {
-    nukeAll(ns);
+    for (const target of nukeAll(ns)) {
+      ns.print(`Nuked ${target}`);
+    }
   } while (loop && (await ns.asleep(1000)));
 }
 
-export function nukeAll(ns: Bitburner.NS) {
+export function* nukeAll(ns: Bitburner.NS) {
   const servers = scanAll(ns).filter((server) => !ns.hasRootAccess(server));
   for (const target of servers) {
     if (nukeTarget(ns, target)) {
-      ns.print(`Nuked ${target}`);
+      yield target;
     }
   }
 }
