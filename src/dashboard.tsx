@@ -38,9 +38,10 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       (server) => targets.some((target) => target.host === server),
       (server) => canEasyHack(ns, server),
       (server) => ns.getServerMoneyAvailable(server) > 0,
-      (server) => ns.getWeakenTime(server),
+      (server) => bucket(ns.getWeakenTime(server)),
+      (server) => bucket(ns.getServerMoneyAvailable(server)),
     ],
-    ["desc", "desc", "desc", "asc"],
+    ["desc", "desc", "desc", "asc", "desc"],
   );
   servers = servers.slice(0, 10);
 
@@ -77,6 +78,10 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
           //   getValue: (host) => ns.getServerUsedRam(host),
           //   formatter: (value, host) => progress(value, ns.getServerMaxRam(host)),
           // },
+          {
+            label: "Time Score",
+            getValue: (host) => bucket(ns.getWeakenTime(host)),
+          },
           {
             label: "Actions",
             getValue: (host) => host,
@@ -182,6 +187,9 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   }
   function formatSec(value: number) {
     return ns.formatNumber(value, 2);
+  }
+  function bucket(value: number) {
+    return Math.floor(Math.log(value));
   }
 }
 
