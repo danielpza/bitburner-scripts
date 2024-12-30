@@ -29,6 +29,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   useInterval(refresh, 1000);
 
   let servers = getRootAccessServers(ns).filter((server) => {
+    if (server.startsWith("purchased_server_")) return false;
     if (server === "home") return false;
     if (!ns.hasRootAccess(server)) return false;
     return true;
