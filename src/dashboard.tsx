@@ -1,12 +1,14 @@
-import { growTarget } from "./grow";
-import { hackTarget } from "./hack";
+import Table from "./components/Table";
 import { useForceRender } from "./hooks/useForceRender";
 import { useInterval } from "./hooks/useInterval";
-import { nukeAll } from "./nuke-all";
 import { Jobs } from "./utils/constants";
 import { getFreeThreads } from "./utils/getFreeThreads";
 import { render } from "./utils/render";
 import { scanAll } from "./utils/scanAll";
+
+import { growTarget } from "./grow";
+import { hackTarget } from "./hack";
+import { nukeAll } from "./nuke-all";
 import { weakenTarget } from "./weaken";
 
 function Dashboard({ ns }: { ns: Bitburner.NS }) {
@@ -46,54 +48,40 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
           {progress(Date.now() - target.startTime, target.endTime - target.startTime)}
         </div>
       )}
-      <table>
-        <thead>
-          <tr>
-            <th style={{ textAlign: "left" }}>Server</th>
-            <th style={{ textAlign: "right" }}>Money</th>
-            <th style={{ textAlign: "right" }}>Max Money</th>
-            <th style={{ textAlign: "right" }}>Hack Time</th>
-            <th style={{ textAlign: "right" }}>Grow Time</th>
-            <th style={{ textAlign: "right" }}>Weaken Time</th>
-            <th style={{ textAlign: "right" }}>Level</th>
-            <th style={{ textAlign: "right" }}>Max RAM</th>
-            <th style={{ textAlign: "right" }}>Threads</th>
-            <th>Load</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {servers.map((host) => {
-            const currentSecurity = ns.getServerSecurityLevel(host);
-            const minSecurity = ns.getServerMinSecurityLevel(host);
-            const hackLevel = ns.getServerRequiredHackingLevel(host);
-            const hackTime = ns.getHackTime(host);
-            const growTime = ns.getGrowTime(host);
-            const weakenTime = ns.getWeakenTime(host);
-            return (
-              <tr key={host}>
-                <td>{host}</td>
-                <td style={{ textAlign: "right" }}>{formatMoney(ns.getServerMoneyAvailable(host))}</td>
-                <td style={{ textAlign: "right" }}>{formatMoney(ns.getServerMaxMoney(host))}</td>
-                <td style={{ textAlign: "right" }}>{formatTime(hackTime)}</td>
-                <td style={{ textAlign: "right" }}>{formatTime(growTime)}</td>
-                <td style={{ textAlign: "right" }}>{formatTime(weakenTime)}</td>
-                <td style={{ textAlign: "right" }}>
-                  {formatSec(currentSecurity)}/{formatSec(minSecurity)}
-                </td>
-                <td style={{ textAlign: "right" }}>{formatRam(ns.getServerMaxRam(host))}</td>
-                <td style={{ textAlign: "right" }}>{getFreeThreads(ns, host, hackRam)}</td>
-                <td>{progress(ns.getServerUsedRam(host), ns.getServerMaxRam(host))}</td>
-                <td>
-                  <button onClick={() => handleHack(host)}>H</button>
-                  <button onClick={() => handleGrow(host)}>G</button>
-                  <button onClick={() => handleWeaken(host)}>W</button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <Table
+        columns={[
+          { label: "Server", getValue: (host) => host, formatter: (value) => value },
+          { label: "Money", getValue: (host) => ns.getServerMoneyAvailable(host), formatter: formatMoney },
+          { label: "Max Money", getValue: (host) => ns.getServerMaxMoney(host), formatter: formatMoney },
+          { label: "Hack Time", getValue: (host) => ns.getHackTime(host), formatter: formatTime },
+          { label: "Grow Time", getValue: (host) => ns.getGrowTime(host), formatter: formatTime },
+          { label: "Weaken Time", getValue: (host) => ns.getWeakenTime(host), formatter: formatTime },
+          {
+            label: "Security",
+            getValue: (host) => [ns.getServerSecurityLevel(host), ns.getServerMinSecurityLevel(host)],
+            formatter: ([current, min]) => `${formatSec(current)}/${formatSec(min)}`,
+          },
+          { label: "Max RAM", getValue: (host) => ns.getServerMaxRam(host), formatter: formatRam },
+          { label: "Threads", getValue: (host) => getFreeThreads(ns, host, hackRam), formatter: formatThread },
+          {
+            label: "Load",
+            getValue: (host) => ns.getServerUsedRam(host),
+            formatter: (value, host) => progress(value, ns.getServerMaxRam(host)),
+          },
+          {
+            label: "Actions",
+            getValue: (host) => host,
+            formatter: (host) => (
+              <div>
+                <button onClick={() => handleHack(host)}>H</button>
+                <button onClick={() => handleGrow(host)}>G</button>
+                <button onClick={() => handleWeaken(host)}>W</button>
+              </div>
+            ),
+          },
+        ]}
+        data={servers}
+      />
     </>
   );
 
