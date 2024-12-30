@@ -17,7 +17,7 @@ export async function main(ns: Bitburner.NS) {
   await growTarget(ns, target);
 }
 
-export async function growTarget(ns: Bitburner.NS, target: string, { extraDelay = 0, loop = false } = {}) {
+export function growTarget(ns: Bitburner.NS, target: string, { extraDelay = 0, loop = false } = {}) {
   const ram = Math.max(ns.getScriptRam(Script.GROW), ns.getScriptRam(Script.WEAKEN));
 
   do {
@@ -51,18 +51,19 @@ export async function growTarget(ns: Bitburner.NS, target: string, { extraDelay 
     clusterExec(ns, cluster, Jobs.Grow(growThreads, target, growDelay));
     clusterExec(ns, cluster, Jobs.Weaken(weakenThreads, target, weakenDelay));
 
-    ns.print(
-      [
-        `growing ${target}`,
-        ns.formatNumber(ns.getServerMoneyAvailable(target)) + "/" + ns.formatNumber(ns.getServerMaxMoney(target)),
-        `(${growThreads}, ${weakenThreads})`,
-        ns.tFormat(totalTime),
-      ].join(" "),
-    );
+    // ns.print(
+    //   [
+    //     `growing ${target}`,
+    //     ns.formatNumber(ns.getServerMoneyAvailable(target)) + "/" + ns.formatNumber(ns.getServerMaxMoney(target)),
+    //     `(${growThreads}, ${weakenThreads})`,
+    //     ns.tFormat(totalTime),
+    //   ].join(" "),
+    // );
 
-    await ns.asleep(totalTime + SLEEP);
+    // await ns.asleep(totalTime + SLEEP);
 
-    ns.print(`grown ${target}`);
+    // ns.print(`grown ${target}`);
+    return { sleepTime: totalTime };
   } while (loop);
 }
 

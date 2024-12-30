@@ -1,4 +1,3 @@
-import Countdown from "./components/Countdown.tsx";
 import { clusterExec } from "./utils/clusterExec.ts";
 import { Jobs, MAX_HACK_CYCLES, SLEEP, Script, TARGET_HACK_PERCENT } from "./utils/constants.ts";
 import { getClusterFreeThreads } from "./utils/getClusterFreeThreads.ts";

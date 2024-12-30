@@ -17,7 +17,7 @@ export async function main(ns: Bitburner.NS) {
   await weakenTarget(ns, target, { loop: true });
 }
 
-export async function weakenTarget(ns: Bitburner.NS, target: string, { loop = false }: { loop?: boolean } = {}) {
+export function weakenTarget(ns: Bitburner.NS, target: string, { loop = false }: { loop?: boolean } = {}) {
   const ram = ns.getScriptRam(Jobs.Weaken.script);
 
   do {
@@ -40,20 +40,21 @@ export async function weakenTarget(ns: Bitburner.NS, target: string, { loop = fa
 
     clusterExec(ns, servers, Jobs.Weaken(Math.min(freeThreads, weakenThreads), target));
 
-    ns.print(
-      [
-        `weakening ${target}`,
-        ns.formatNumber(ns.getServerSecurityLevel(target)) +
-          "/" +
-          ns.formatNumber(ns.getServerMinSecurityLevel(target)),
-        `(${weakenThreads})`,
-        ns.tFormat(totalTime),
-      ].join(" "),
-    );
+    // ns.print(
+    //   [
+    //     `weakening ${target}`,
+    //     ns.formatNumber(ns.getServerSecurityLevel(target)) +
+    //       "/" +
+    //       ns.formatNumber(ns.getServerMinSecurityLevel(target)),
+    //     `(${weakenThreads})`,
+    //     ns.tFormat(totalTime),
+    //   ].join(" "),
+    // );
 
-    await ns.asleep(totalTime + SLEEP);
+    // await ns.asleep(totalTime + SLEEP);
+    return { sleepTime: totalTime };
 
-    ns.print(`weakened ${target}`);
+    // ns.print(`weakened ${target}`);
   } while (loop);
 }
 
