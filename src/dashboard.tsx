@@ -5,7 +5,6 @@ import { render } from "./utils/render";
 
 import { growTarget } from "./grow";
 import { hackTarget } from "./hack";
-import { nukeAll } from "./nuke-all";
 import { weakenTarget } from "./weaken";
 import { getClusterLoad } from "./utils/getClusterLoad";
 import { getRootAccessServers } from "./utils/getRootAccessServers";
@@ -24,7 +23,6 @@ interface Task {
 }
 
 function Dashboard({ ns }: { ns: Bitburner.NS }) {
-  const [nuked, setNuked] = React.useState<string[]>([]);
   const refresh = useForceRender();
   const [targets, setTargets] = React.useState<Task[]>([]);
   const loopRef = React.useRef(true);
@@ -64,7 +62,6 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   return (
     <>
       <button onClick={handleStop}>Stop</button>
-      <button onClick={handleNukeAll}>Nuke</button>
       {shareTask ? (
         <label>
           sharing {progress(Date.now() - shareTask.startTime, shareTask.endTime - shareTask.startTime)}
@@ -80,7 +77,6 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       <label>
         Load: ({load.total - load.free}/{load.total}) {progress(load.total - load.free, load.total)}
       </label>
-      {nuked.length ? "Nuked: " + nuked.join(", ") : ""}
       <br />
       <Table
         columns={[
@@ -167,11 +163,6 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       target.abortController.abort();
     }
     setTargets([]);
-  }
-
-  function handleNukeAll() {
-    setNuked(Array.from(nukeAll(ns)));
-    refresh();
   }
 
   async function handleActionResult(
