@@ -107,17 +107,6 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
               </>
             ),
           },
-          // { label: "Max RAM", getValue: (host) => ns.getServerMaxRam(host), formatter: formatRam },
-          // { label: "Threads", getValue: (host) => getFreeThreads(ns, host, hackRam), formatter: formatThread },
-          // {
-          //   label: "Load",
-          //   getValue: (host) => ns.getServerUsedRam(host),
-          //   formatter: (value, host) => progress(value, ns.getServerMaxRam(host)),
-          // },
-          // {
-          //   label: "TScore",
-          //   getValue: (host) => bucket(ns.getWeakenTime(host)),
-          // },
           {
             label: "Actions",
             getValue: (host) => host,
@@ -161,15 +150,6 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
             },
             align: "left",
           },
-          // {
-          //   label: "Progress",
-          //   getValue: (host) => host,
-          //   formatter: (host) => {
-          //     const target = targets.find((target) => target.host === host);
-          //     if (!target) return null;
-          //     return progress(Date.now() - target.startTime, target.endTime - target.startTime);
-          //   },
-          // },
         ]}
         data={servers}
       />
