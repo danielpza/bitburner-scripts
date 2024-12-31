@@ -162,9 +162,8 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   }
 
   function handleStop() {
-    for (const host of getRootAccessServers(ns)) {
-      ns.killall(host, true);
-    }
+    for (const host of getRootAccessServers(ns))
+      for (const process of ns.ps(host)) if (ns.pid !== process.pid) ns.kill(process.pid);
     for (const target of targets) {
       target.abortController.abort();
     }
