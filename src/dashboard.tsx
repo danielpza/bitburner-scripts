@@ -26,11 +26,20 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
   const loopRef = React.useRef(false);
   const load = getClusterLoad(ns);
 
-  useInterval(refresh, 1000);
+  useInterval(() => {
+    refresh();
+    const [target] = targets;
+    if (target) {
+      ns.setTitle(`Dashboard (${target.action} ${target.host} ${formatTime(target.endTime - Date.now())})`);
+    } else {
+      ns.setTitle("Dashboard");
+    }
+  }, 1000);
 
   let servers = getRootAccessServers(ns).filter((server) => {
     if (server.startsWith("purchased_server_")) return false;
     if (server === "home") return false;
+    if (ns.getServerMoneyAvailable(server) === 0) return false;
     if (!ns.hasRootAccess(server)) return false;
     return true;
   });
