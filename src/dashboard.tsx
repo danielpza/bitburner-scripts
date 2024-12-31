@@ -74,9 +74,9 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
         <button onClick={() => handleShare()}>Share</button>
       )}
       <label>
-        Loop:
         <input type="checkbox" defaultChecked={loopRef.current} onChange={handleCheckbox} />
-      </label>
+        Loop
+      </label>{" "}
       <label>
         Load: ({load.total - load.free}/{load.total}) {progress(load.total - load.free, load.total)}
       </label>
