@@ -1,7 +1,8 @@
 import { scanAll } from "./utils/scanAll.ts";
 import { stackTail } from "./utils/stackTail.ts";
+import { Script } from "./utils/constants.ts";
 
-export async function main(ns: Bitburner.NS) {
+export async function main(ns: NS) {
   const loop = ns.args.includes("--loop");
 
   ns.disableLog("ALL");
@@ -16,10 +17,11 @@ export async function main(ns: Bitburner.NS) {
 }
 
 export function* nukeAll(ns: Bitburner.NS) {
-  const servers = scanAll(ns).filter((server) => !ns.hasRootAccess(server));
-  for (const target of servers) {
-    if (nukeTarget(ns, target)) {
+  for (const target of scanAll(ns)) {
+    if (ns.hasRootAccess(target)) ns.scp(Object.values(Script), target);
+    else if (nukeTarget(ns, target)) {
       yield target;
+      ns.scp(Object.values(Script), target);
     }
   }
 }
