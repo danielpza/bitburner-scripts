@@ -1,3 +1,6 @@
 export async function main(ns: Bitburner.NS) {
-  await ns.share();
+  const loop = ns.args.includes("--loop");
+  do {
+    await ns.share();
+  } while (loop);
 }

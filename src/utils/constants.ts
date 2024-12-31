@@ -30,7 +30,7 @@ export const Jobs = {
   Weaken: HGW(Script.WEAKEN),
   Grow: HGW(Script.GROW),
   Hack: HGW(Script.HACK),
-  Share: Task(Script.SHARE),
+  Share: Task(Script.SHARE, ({ loop }: { loop?: boolean } = {}) => (loop ? ["--loop"] : [])),
 } satisfies Record<
   string,
   (...args: any[]) => {
