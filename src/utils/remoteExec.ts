@@ -10,4 +10,5 @@ export function remoteExec(ns: Bitburner.NS, host: string, { script, args, threa
   ns.scp(script, host);
   let pid = ns.exec(script, host, { threads }, ...args);
   ProcessCleanup.get(ns).add(pid);
+  return pid;
 }

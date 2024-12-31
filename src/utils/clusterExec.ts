@@ -20,7 +20,10 @@ export function clusterExec(
     if (missingThreads <= 0) break;
   }
   signal?.addEventListener("abort", () => {
-    for (const pid of pids) ns.kill(pid);
+    for (const pid of pids)
+      try {
+        ns.kill(pid);
+      } catch {}
   });
   if (missingThreads > 0) {
     throw new Error("no enough free threads");
