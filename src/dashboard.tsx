@@ -10,21 +10,26 @@ import { weakenTarget } from "./weaken";
 import { getClusterLoad } from "./utils/getClusterLoad";
 import { getRootAccessServers } from "./utils/getRootAccessServers";
 import { canEasyHack } from "./utils/info/canEasyHack";
+import { clusterExec } from "./utils/clusterExec";
+import { Jobs } from "./utils/constants";
+import { getClusterFreeThreads } from "./utils/getClusterFreeThreads";
+import { getOwnServers } from "./utils/getOwnServers";
+
+interface Task {
+  host: string;
+  action: string;
+  startTime: number;
+  endTime: number;
+  abortController: AbortController;
+}
 
 function Dashboard({ ns }: { ns: Bitburner.NS }) {
   const [nuked, setNuked] = React.useState<string[]>([]);
   const refresh = useForceRender();
-  const [targets, setTargets] = React.useState<
-    Array<{
-      host: string;
-      action: "hack" | "grow" | "weaken";
-      startTime: number;
-      endTime: number;
-      abortController: AbortController;
-    }>
-  >([]);
-  const loopRef = React.useRef(false);
+  const [targets, setTargets] = React.useState<Task[]>([]);
+  const loopRef = React.useRef(true);
   const load = getClusterLoad(ns);
+  const [shareTask, setShareTask] = React.useState<Task | null>(null);
 
   useInterval(() => {
     refresh();
@@ -60,9 +65,17 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     <>
       <button onClick={handleStop}>Stop</button>
       <button onClick={handleNukeAll}>Nuke</button>
+      {shareTask ? (
+        <label>
+          sharing {progress(Date.now() - shareTask.startTime, shareTask.endTime - shareTask.startTime)}
+          <button onClick={() => handleCancelShare()}>X</button>
+        </label>
+      ) : (
+        <button onClick={() => handleShare()}>Share</button>
+      )}
       <label>
         Loop:
-        <input type="checkbox" onChange={handleCheckbox} />
+        <input type="checkbox" defaultChecked={loopRef.current} onChange={handleCheckbox} />
       </label>
       <label>
         Load: ({load.total - load.free}/{load.total}) {progress(load.total - load.free, load.total)}
@@ -242,6 +255,30 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
       loopRef.current &&
       (await ns.asleep(50))
     );
+  }
+
+  async function handleShare() {
+    const cluster = getOwnServers(ns);
+    const abortController = new AbortController();
+    clusterExec(
+      ns,
+      cluster,
+      Jobs.Share(getClusterFreeThreads(ns, cluster, ns.getScriptRam(Jobs.Share.script)), { loop: true }),
+      { signal: abortController.signal },
+    );
+    const sleepTime = 10_000;
+    setShareTask({
+      host: "cluster",
+      action: "share",
+      startTime: Date.now(),
+      endTime: Date.now() + sleepTime,
+      abortController,
+    });
+    abortController.signal.addEventListener("abort", () => setShareTask(null));
+  }
+
+  function handleCancelShare() {
+    shareTask?.abortController.abort();
   }
 
   function progress(value: number, max: number) {
