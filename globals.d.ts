@@ -6,10 +6,6 @@ declare namespace Bitburner {
   type RunOptions = import("../NetScriptDefinitions.d.ts").RunOptions;
 }
 
-declare global {
-  type NS = import("../NetScriptDefinitions.d.ts").NS;
-}
-
-declare const React: typeof import("react");
-
+declare type NS = import("../NetScriptDefinitions.d.ts").NS;
+declare type React = import("react");
 declare const _: typeof import("lodash");

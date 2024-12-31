@@ -59,12 +59,7 @@ function trySolve(ns: Bitburner.NS, server: string, file: string) {
     input,
   );
 
-  const result = ns.codingcontract.attempt(
-    // @ts-expect-error
-    output,
-    file,
-    server,
-  );
+  const result = ns.codingcontract.attempt(output, file, server);
 
   if (!result) {
     ns.print(`Failed to solve ${type} in ${server} with input ${input} and output ${output}`);

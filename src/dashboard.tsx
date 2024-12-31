@@ -156,10 +156,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     </>
   );
 
-  function handleCheckbox(
-    ev: // @ts-expect-error -- TODO fix later
-    React.ChangeEvent<HTMLInputElement>,
-  ) {
+  function handleCheckbox(ev: React.ChangeEvent<HTMLInputElement>) {
     loopRef.current = ev.target.checked;
   }
 

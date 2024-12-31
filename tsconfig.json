@@ -1,3 +1,7 @@
 {
-  "extends": "@tsconfig/vite-react"
+  "extends": ["@tsconfig/vite-react"],
+  "compilerOptions": {
+    "types": ["@types/react", "./globals.d.ts"],
+    "jsx": "preserve"
+  }
 }
