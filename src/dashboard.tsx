@@ -268,10 +268,8 @@ export async function main(ns: Bitburner.NS) {
   ns.disableLog("ALL");
   ns.tail();
   ns.resizeTail(1200, 400);
-  ns.clearLog();
 
-  // ns.printRaw(<Dashboard ns={ns} />);
   render(ns, <Dashboard ns={ns} />);
 
-  while (true) await ns.asleep(10_000);
+  while (await ns.asleep(10_000));
 }
