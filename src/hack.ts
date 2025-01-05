@@ -22,7 +22,17 @@ export async function main(ns: Bitburner.NS) {
 export function hackTarget(
   ns: Bitburner.NS,
   target: string,
-  { maxCycles = MAX_HACK_CYCLES, targetHackPercent = TARGET_HACK_PERCENT, extraDelay = 0 } = {},
+  {
+    maxCycles = MAX_HACK_CYCLES,
+    targetHackPercent = TARGET_HACK_PERCENT,
+    extraDelay = 0,
+    signal,
+  }: {
+    maxCycles?: number;
+    targetHackPercent?: number;
+    extraDelay?: number;
+    signal?: AbortSignal;
+  } = {},
 ) {
   const RAM = Math.max(ns.getScriptRam(Script.HACK), ns.getScriptRam(Script.GROW), ns.getScriptRam(Script.WEAKEN));
 
@@ -62,22 +72,21 @@ export function hackTarget(
     i < Math.min(maxCycles, Math.max(Math.floor(weakenTime / LONG_SLEEP), 1)) && requiredThreads <= totalThreads;
     i++
   ) {
-    clusterExec(ns, cluster, Jobs.Hack(hackThreads, target, hackDelay + i * LONG_SLEEP));
-    clusterExec(ns, cluster, Jobs.Grow(growThreads, target, growDelay + i * LONG_SLEEP));
-    clusterExec(ns, cluster, Jobs.Weaken(weakenThreads, target, weakenDelay + i * LONG_SLEEP));
+    clusterExec(ns, cluster, Jobs.Hack(hackThreads, target, hackDelay + i * LONG_SLEEP), { signal });
+    clusterExec(ns, cluster, Jobs.Grow(growThreads, target, growDelay + i * LONG_SLEEP), { signal });
+    clusterExec(ns, cluster, Jobs.Weaken(weakenThreads, target, weakenDelay + i * LONG_SLEEP), { signal });
     totalThreads -= requiredThreads;
   }
 
-  // const moneyStolen = Math.min(
-  //   ns.hackAnalyze(target) * hackThreads * ns.getServerMoneyAvailable(target),
-  //   ns.getServerMoneyAvailable(target),
-  // );
-  // const moneyAvailable = ns.getServerMoneyAvailable(target);
+  const moneyAvailable = ns.getServerMoneyAvailable(target);
+  const moneyStolen = Math.min(ns.hackAnalyze(target) * hackThreads * moneyAvailable, moneyAvailable);
 
   const sleepTime = totalTime + LONG_SLEEP * i + 1000;
 
   return {
     sleepTime,
+    hackThreads,
+    moneyStolen,
   };
 
   // [
