@@ -16,7 +16,7 @@ export async function main(ns: Bitburner.NS) {
   ns.tail();
   ns.resizeTail(600, 120);
 
-  await hackTarget(ns, target);
+  await hackTarget(ns, target)?.promise;
 }
 
 export function hackTarget(
@@ -47,7 +47,7 @@ export function hackTarget(
   } = hgwAnalyze(ns, target, targetHackPercent);
 
   if (requiredThreads > freeThreads) {
-    return false;
+    return;
     // throw new Error(`invalid threads`);
   }
 
