@@ -84,6 +84,7 @@ export function hackTarget(
   const sleepTime = totalTime + LONG_SLEEP * i + 1000;
 
   return {
+    promise: ns.asleep(sleepTime),
     sleepTime,
     hackThreads,
     moneyStolen,

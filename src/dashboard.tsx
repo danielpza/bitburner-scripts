@@ -1,18 +1,19 @@
 import Table from "./components/Table";
 import { useForceRender } from "./hooks/useForceRender";
 import { useInterval } from "./hooks/useInterval";
+import { useList } from "./hooks/useList";
+import { clusterExec } from "./utils/clusterExec";
+import { Jobs } from "./utils/constants";
+import { getClusterFreeThreads } from "./utils/getClusterFreeThreads";
+import { getClusterLoad } from "./utils/getClusterLoad";
+import { getOwnServers } from "./utils/getOwnServers";
+import { getRootAccessServers } from "./utils/getRootAccessServers";
+import { canEasyHack } from "./utils/info/canEasyHack";
 import { render } from "./utils/render";
 
 import { growTarget } from "./grow";
 import { hackTarget } from "./hack";
 import { weakenTarget } from "./weaken";
-import { getClusterLoad } from "./utils/getClusterLoad";
-import { getRootAccessServers } from "./utils/getRootAccessServers";
-import { canEasyHack } from "./utils/info/canEasyHack";
-import { clusterExec } from "./utils/clusterExec";
-import { Jobs } from "./utils/constants";
-import { getClusterFreeThreads } from "./utils/getClusterFreeThreads";
-import { getOwnServers } from "./utils/getOwnServers";
 
 interface Task {
   host: string;
@@ -24,7 +25,7 @@ interface Task {
 
 function Dashboard({ ns }: { ns: Bitburner.NS }) {
   const refresh = useForceRender();
-  const [targets, setTargets] = React.useState<Task[]>([]);
+  const [targets, { add: addTarget, remove: removeTarget, clear: clearTargets }] = useList<Task, "host">("host");
   const loopRef = React.useRef(true);
   const load = getClusterLoad(ns);
   const [shareTask, setShareTask] = React.useState<Task | null>(null);
@@ -162,7 +163,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     for (const target of targets) {
       target.abortController.abort();
     }
-    setTargets([]);
+    clearTargets();
   }
 
   async function handleActionResult(
@@ -175,10 +176,10 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     const startTime = Date.now();
     const endTime = startTime + sleepTime;
     const abortController = new AbortController();
-    setTargets((prev) => [...prev, { host, action, startTime, endTime, abortController }]);
+    addTarget({ host, action, startTime, endTime, abortController });
     await ns.asleep(sleepTime);
+    removeTarget(host);
     if (abortController.signal.aborted) return false;
-    setTargets((prev) => prev.filter((target) => target.host !== host));
     return true;
   }
 
@@ -188,7 +189,7 @@ function Dashboard({ ns }: { ns: Bitburner.NS }) {
     for (const host of getRootAccessServers(ns))
       for (const process of ns.ps(host)) if (process.args.includes(server)) ns.kill(process.pid);
     target.abortController.abort();
-    setTargets((prev) => prev.filter((target) => target.host !== server));
+    removeTarget(server);
   }
 
   async function handleAuto(server: string) {
